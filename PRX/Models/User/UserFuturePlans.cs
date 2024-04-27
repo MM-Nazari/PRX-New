@@ -1,0 +1,18 @@
+﻿using System.ComponentModel.DataAnnotations;
+using PRX.Utils;
+
+namespace PRX.Models.User
+{
+    public class UserFuturePlans
+    {
+        public int Id { get; set; }
+        [Required]
+        public int UserId { get; set; }
+        [Required]
+        [DescriptionValidation]
+        public string Description { get; set; }
+        public bool IsComplete { get; set; } = false;
+
+        public User User { get; set; }
+    }
+}
