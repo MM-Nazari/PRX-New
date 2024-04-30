@@ -17,6 +17,7 @@ namespace PRX.Models.Haghighi
         public string IssuingAuthority { get; set; }
 
         public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         public PRX.Models.User.User User { get; set; }
     }

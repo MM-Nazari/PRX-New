@@ -19,5 +19,9 @@
         public string RepresentativeName { get; set; }
         public string RepresentativeNationalId { get; set; }
         public string RepresentativeMobilePhone { get; set; }
+
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

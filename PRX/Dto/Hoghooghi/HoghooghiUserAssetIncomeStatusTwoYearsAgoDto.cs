@@ -15,5 +15,8 @@
         public decimal OperationalProfitOrLoss { get; set; }
         public decimal NetProfitOrLoss { get; set; }
         public decimal AccumulatedProfitOrLoss { get; set; }
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

@@ -7,6 +7,8 @@
         public int AssetTypeId { get; set; }
         public decimal AssetValue { get; set; }
         public decimal AssetPercentage { get; set; }
+
         public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

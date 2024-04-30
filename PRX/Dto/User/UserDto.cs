@@ -11,5 +11,8 @@ namespace PRX.Dto.User
         public string Password { get; set; } // Add Password field
         
         public int? ReferenceCode { get; set; }
+
+        public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
     }
 }

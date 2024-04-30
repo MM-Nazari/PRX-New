@@ -12,8 +12,9 @@ namespace PRX.Dto.User
 
         
         public DateTime DepositDate { get; set; }
-
-        
         public string DepositSource { get; set; }
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

@@ -10,5 +10,9 @@
         public string ExecutiveExperience { get; set; }
         public string FamiliarityWithCapitalMarket { get; set; }
         public string PersonalInvestmentExperienceInStockExchange { get; set; }
+
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

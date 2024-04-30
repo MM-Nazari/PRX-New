@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
 using PRX.Models.Haghighi;
@@ -28,16 +29,37 @@ namespace PRX.Controllers.Haghighi
 
         // GET: api/HaghighiUserFinancialProfile/5
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserFinancialProfileById(int id)
         {
-            var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.Id == id);
-            if (financialProfile == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (financialProfile == null)
+                {
+                    return NotFound();
+                }
+                return Ok(financialProfile);
+
             }
-            return Ok(financialProfile);
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+
         }
 
         // POST: api/HaghighiUserFinancialProfile
@@ -70,46 +92,91 @@ namespace PRX.Controllers.Haghighi
 
         // PUT: api/HaghighiUserFinancialProfile/5
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHaghighiUserFinancialProfile(int id, [FromBody] HaghighiUserFinancialProfileDto financialProfileDto)
         {
-            var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.Id == id);
-            if (financialProfile == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (financialProfile == null)
+                {
+                    return NotFound();
+                }
+
+                financialProfile.UserId = financialProfileDto.UserId;
+                financialProfile.MainContinuousIncome = financialProfileDto.MainContinuousIncome;
+                financialProfile.OtherIncomes = financialProfileDto.OtherIncomes;
+                financialProfile.SupportFromOthers = financialProfileDto.SupportFromOthers;
+                financialProfile.ContinuousExpenses = financialProfileDto.ContinuousExpenses;
+                financialProfile.OccasionalExpenses = financialProfileDto.OccasionalExpenses;
+                financialProfile.ContributionToOthers = financialProfileDto.ContributionToOthers;
+
+                _context.SaveChanges();
+
+                return Ok(financialProfile);
+
             }
 
-            financialProfile.UserId = financialProfileDto.UserId;
-            financialProfile.MainContinuousIncome = financialProfileDto.MainContinuousIncome;
-            financialProfile.OtherIncomes = financialProfileDto.OtherIncomes;
-            financialProfile.SupportFromOthers = financialProfileDto.SupportFromOthers;
-            financialProfile.ContinuousExpenses = financialProfileDto.ContinuousExpenses;
-            financialProfile.OccasionalExpenses = financialProfileDto.OccasionalExpenses;
-            financialProfile.ContributionToOthers = financialProfileDto.ContributionToOthers;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            _context.SaveChanges();
 
-            return Ok(financialProfile);
         }
 
         // DELETE: api/HaghighiUserFinancialProfile/5
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserFinancialProfile(int id)
         {
-            var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.Id == id);
-            if (financialProfile == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (financialProfile == null)
+                {
+                    return NotFound();
+                }
+
+                financialProfile.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok();
+
             }
 
-            _context.HaghighiUserFinancialProfiles.Remove(financialProfile);
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            return Ok();
+     
         }
 
         // DELETE: api/HaghighiUserFinancialProfile/clear
@@ -118,6 +185,26 @@ namespace PRX.Controllers.Haghighi
         public IActionResult ClearAllHaghighiUserFinancialProfiles()
         {
             _context.HaghighiUserFinancialProfiles.RemoveRange(_context.HaghighiUserFinancialProfiles);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        // PUT: api/HaghighiUserProfile/complete/{id}
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkFinanceProfileAsComplete(int id)
+        {
+            var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id);
+            if (financialProfile == null)
+            {
+                return NotFound();
+            }
+
+            financialProfile.IsComplete = true;
             _context.SaveChanges();
 
             return Ok();

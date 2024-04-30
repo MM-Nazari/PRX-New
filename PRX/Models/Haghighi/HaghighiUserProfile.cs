@@ -43,6 +43,7 @@ namespace PRX.Models.Haghighi
         [EmailAddress]
         public string Email { get; set; }
         public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
 
 

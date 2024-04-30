@@ -10,5 +10,9 @@
         public DateTime EndDate { get; set; }
         public string WorkAddress { get; set; }
         public string WorkPhone { get; set; }
+
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -15,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
-            options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX;Integrated Security=True;TrustServerCertificate=True;"));
+            options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX_BACKUP;Integrated Security=True;TrustServerCertificate=True;"));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -33,6 +34,20 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = false,
         ValidateIssuerSigningKey = true
+    };
+
+    o.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // Get token from the 'Authorization' header, removing the 'Bearer ' prefix
+            var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+
+            // Set the token retrieved from the header
+            context.Token = accessToken;
+
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -83,7 +98,7 @@ builder.Services.AddSwaggerGen(c =>
 
         // Users Groups
         // Include controllers with specific group names
-        var allowedGroups = new[] { "Users" /*, "UserAssets", "UserAssetTypes", "UserDebts", "UserDeposits", "UserFinancialChanges", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals", "HaghighiUserEducationStatuses", "HaghighiUserEmploymentHistories", "HaghighiUserFinancialProfiles", "HaghighiUserProfiles", "HaghighiUserRelationships", "HoghooghiUsers", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUserInvestmentDepartmentStaff", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores" */ }; 
+        var allowedGroups = new[] { "Users",  "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles", "UserFinancialChanges"/*, "UserAssets", "UserAssetTypes", "UserDebts", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals", "HaghighiUserEducationStatuses", "HaghighiUserEmploymentHistories", "HoghooghiUsers", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUserInvestmentDepartmentStaff", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores" */ }; 
         return allowedGroups.Contains(apiDesc.GroupName);
 
 

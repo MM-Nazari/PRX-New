@@ -18,6 +18,7 @@ namespace PRX.Models.User
         [Range(0, 100)]
         public decimal DebtRepaymentPercentage { get; set; }
         public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         public User User { get; set; }
     }

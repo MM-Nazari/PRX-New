@@ -12,8 +12,8 @@ using PRX.Data;
 namespace PRX.Migrations
 {
     [DbContext(typeof(PRXDbContext))]
-    [Migration("20240424073152_temp")]
-    partial class temp
+    [Migration("20240430071217_testserasd")]
+    partial class testserasd
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -658,6 +658,9 @@ namespace PRX.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -957,7 +960,7 @@ namespace PRX.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("userStates");
+                    b.ToTable("UserStates");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserType", b =>
@@ -979,7 +982,7 @@ namespace PRX.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("userTypes");
+                    b.ToTable("UserTypes");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserWithdrawal", b =>
@@ -1115,7 +1118,7 @@ namespace PRX.Migrations
             modelBuilder.Entity("PRX.Models.Hoghooghis.Hoghooghi.HoghooghiUserAssetIncomeStatusTwoYearsAgo", b =>
                 {
                     b.HasOne("PRX.Models.User.User", "User")
-                        .WithMany("hoghooghiUserAssetIncomeStatusTwoYearsAgos")
+                        .WithMany("HoghooghiUserAssetIncomeStatusTwoYearsAgos")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1252,7 +1255,7 @@ namespace PRX.Migrations
             modelBuilder.Entity("PRX.Models.User.UserMoreInformation", b =>
                 {
                     b.HasOne("PRX.Models.User.User", "User")
-                        .WithOne("UserMoreInformation")
+                        .WithOne("UserMoreInformations")
                         .HasForeignKey("PRX.Models.User.UserMoreInformation", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1263,7 +1266,7 @@ namespace PRX.Migrations
             modelBuilder.Entity("PRX.Models.User.UserState", b =>
                 {
                     b.HasOne("PRX.Models.User.User", "User")
-                        .WithOne("userState")
+                        .WithOne("UserState")
                         .HasForeignKey("PRX.Models.User.UserState", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1274,7 +1277,7 @@ namespace PRX.Migrations
             modelBuilder.Entity("PRX.Models.User.UserType", b =>
                 {
                     b.HasOne("PRX.Models.User.User", "User")
-                        .WithMany("userTypes")
+                        .WithMany("UserTypes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1322,6 +1325,8 @@ namespace PRX.Migrations
                     b.Navigation("HoghooghiUser")
                         .IsRequired();
 
+                    b.Navigation("HoghooghiUserAssetIncomeStatusTwoYearsAgos");
+
                     b.Navigation("HoghooghiUserBoardOfDirectors");
 
                     b.Navigation("HoghooghiUserCompaniesWithMajorInvestors");
@@ -1347,20 +1352,18 @@ namespace PRX.Migrations
 
                     b.Navigation("UserInvestmentExperiences");
 
-                    b.Navigation("UserMoreInformation")
+                    b.Navigation("UserMoreInformations")
+                        .IsRequired();
+
+                    b.Navigation("UserState")
                         .IsRequired();
 
                     b.Navigation("UserTestScore")
                         .IsRequired();
 
+                    b.Navigation("UserTypes");
+
                     b.Navigation("UserWithdrawals");
-
-                    b.Navigation("hoghooghiUserAssetIncomeStatusTwoYearsAgos");
-
-                    b.Navigation("userState")
-                        .IsRequired();
-
-                    b.Navigation("userTypes");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserAssetType", b =>

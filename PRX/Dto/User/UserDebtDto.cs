@@ -14,7 +14,10 @@ namespace PRX.Dto.User
         public DateTime DebtDueDate { get; set; }
         
         public decimal DebtRepaymentPercentage { get; set; }
-        public bool IsComplete { get; set; } = false;
+
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
 
 
     }

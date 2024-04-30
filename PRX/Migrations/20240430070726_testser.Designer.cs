@@ -12,8 +12,8 @@ using PRX.Data;
 namespace PRX.Migrations
 {
     [DbContext(typeof(PRXDbContext))]
-    [Migration("20240424080431_test")]
-    partial class test
+    [Migration("20240430070726_testser")]
+    partial class testser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -657,6 +657,9 @@ namespace PRX.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Password")
                         .IsRequired()

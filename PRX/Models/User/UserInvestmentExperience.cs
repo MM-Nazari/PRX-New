@@ -21,6 +21,7 @@ namespace PRX.Models.User
         public string ProfitLossDescription { get; set; }
         public string ConversionReason { get; set; }
         public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         public User User { get; set; }
     }

@@ -11,6 +11,7 @@ namespace PRX.Models.User
         [Range(0, double.MaxValue)]
         public decimal Amount { get; set; }
         public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         public User User { get; set; }
     }

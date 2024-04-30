@@ -18,5 +18,9 @@
         public DateTime BestTimeToCall { get; set; }
         public string ResidentialAddress { get; set; }
         public string Email { get; set; }
+
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

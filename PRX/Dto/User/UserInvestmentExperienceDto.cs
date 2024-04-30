@@ -25,5 +25,8 @@ namespace PRX.Dto.User
         public string ProfitLossDescription { get; set; }
 
         public string ConversionReason { get; set; }
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

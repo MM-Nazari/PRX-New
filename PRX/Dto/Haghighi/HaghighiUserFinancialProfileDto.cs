@@ -9,5 +9,9 @@
         public decimal ContinuousExpenses { get; set; }
         public decimal OccasionalExpenses { get; set; }
         public decimal ContributionToOthers { get; set; }
+
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

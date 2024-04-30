@@ -6,5 +6,9 @@
         public string CompanyName { get; set; }
         public string CompanySubject { get; set; }
         public decimal PercentageOfTotal { get; set; }
+
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

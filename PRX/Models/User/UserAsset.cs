@@ -16,6 +16,7 @@ namespace PRX.Models.User
         [Range(0, 100)]
         public decimal AssetPercentage { get; set; } = decimal.Zero;
         public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         public User User { get; set; }
 

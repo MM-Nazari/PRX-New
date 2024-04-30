@@ -9,5 +9,8 @@ namespace PRX.Dto.User
 
         [Required(ErrorMessage = "Info is required")]
         public string Info { get; set; }
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

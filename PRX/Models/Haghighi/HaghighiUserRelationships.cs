@@ -43,6 +43,7 @@ namespace PRX.Models.Haghighi
 
 
         public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         // Navigation property for one-to-one relationship with User
         public PRX.Models.User.User User { get; set; }

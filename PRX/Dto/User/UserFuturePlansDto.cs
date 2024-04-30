@@ -9,5 +9,7 @@ namespace PRX.Dto.User
 
         [Required(ErrorMessage = "Description is required")]
         public string Description { get; set; }
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

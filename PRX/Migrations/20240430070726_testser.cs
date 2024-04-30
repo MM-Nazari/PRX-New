@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PRX.Migrations
 {
     /// <inheritdoc />
-    public partial class temp : Migration
+    public partial class testser : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -45,7 +45,8 @@ namespace PRX.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ReferenceCode = table.Column<int>(type: "int", nullable: false)
+                    ReferenceCode = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -545,7 +546,7 @@ namespace PRX.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "userStates",
+                name: "UserStates",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -555,9 +556,9 @@ namespace PRX.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_userStates", x => x.Id);
+                    table.PrimaryKey("PK_UserStates", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_userStates_Users_UserId",
+                        name: "FK_UserStates_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -585,7 +586,7 @@ namespace PRX.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "userTypes",
+                name: "UserTypes",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -595,9 +596,9 @@ namespace PRX.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_userTypes", x => x.Id);
+                    table.PrimaryKey("PK_UserTypes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_userTypes_Users_UserId",
+                        name: "FK_UserTypes_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -786,8 +787,8 @@ namespace PRX.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_userStates_UserId",
-                table: "userStates",
+                name: "IX_UserStates_UserId",
+                table: "UserStates",
                 column: "UserId",
                 unique: true);
 
@@ -798,8 +799,8 @@ namespace PRX.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_userTypes_UserId",
-                table: "userTypes",
+                name: "IX_UserTypes_UserId",
+                table: "UserTypes",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -869,13 +870,13 @@ namespace PRX.Migrations
                 name: "UserMoreInformations");
 
             migrationBuilder.DropTable(
-                name: "userStates");
+                name: "UserStates");
 
             migrationBuilder.DropTable(
                 name: "UserTestScores");
 
             migrationBuilder.DropTable(
-                name: "userTypes");
+                name: "UserTypes");
 
             migrationBuilder.DropTable(
                 name: "UserWithdrawals");

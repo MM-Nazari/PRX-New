@@ -17,7 +17,7 @@ namespace PRX.Models.User
         public string PhoneNumber { get; set; }
         [Required]
         public int? ReferenceCode { get; set; }
-
+        public bool IsDeleted { get; set; } = false;
 
 
         //

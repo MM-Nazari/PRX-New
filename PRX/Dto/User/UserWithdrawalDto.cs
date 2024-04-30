@@ -7,5 +7,8 @@
         public decimal WithdrawalAmount { get; set; }
         public DateTime WithdrawalDate { get; set; }
         public string WithdrawalReason { get; set; }
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

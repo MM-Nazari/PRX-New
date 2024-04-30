@@ -15,6 +15,7 @@ namespace PRX.Models.User
         [DescriptionValidation]
         public string Description { get; set; }
         public bool IsComplete { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         public User User { get; set; }
     }

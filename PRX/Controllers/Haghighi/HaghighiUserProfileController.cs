@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
 using PRX.Models.Haghighi;
@@ -28,20 +29,121 @@ namespace PRX.Controllers.Haghighi
 
         // GET: api/HaghighiUserProfile/5
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserProfileById(int id)
         {
-            var profile = _context.HaghighiUserProfiles.FirstOrDefault(e => e.Id == id);
-            if (profile == null)
-            {
-                return NotFound();
+            try {
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var profile = _context.HaghighiUserProfiles.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound();
+                }
+                return Ok(profile);
+
             }
-            return Ok(profile);
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
         }
+
+
+        // PUT: api/HaghighiUserProfile/5
+        [HttpPut("{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHaghighiUserProfile(int id, [FromBody] HaghighiUserProfileDto profileDto)
+        {
+            try
+            {
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                var profile = _context.HaghighiUserProfiles.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound();
+                }
+
+                // Update profile properties
+                profile.FirstName = profileDto.FirstName;
+                profile.LastName = profileDto.LastName;
+                // Update other properties as needed...
+
+                _context.SaveChanges();
+
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+        }
+
+        // DELETE: api/HaghighiUserProfile/5
+        [HttpDelete("{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHaghighiUserProfile(int id)
+        {
+            try
+            {
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is deleting their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                var profile = _context.HaghighiUserProfiles.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound();
+                }
+
+                profile.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to delete user profile." });
+            }
+        }
+
 
         // POST: api/HaghighiUserProfile
         [HttpPost]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateHaghighiUserProfile([FromBody] HaghighiUserProfileDto profileDto)
@@ -77,59 +179,7 @@ namespace PRX.Controllers.Haghighi
             return CreatedAtAction(nameof(GetHaghighiUserProfileById), new { id = profile.Id }, profile);
         }
 
-        // PUT: api/HaghighiUserProfile/5
-        [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHaghighiUserProfile(int id, [FromBody] HaghighiUserProfileDto profileDto)
-        {
-            var profile = _context.HaghighiUserProfiles.FirstOrDefault(e => e.Id == id);
-            if (profile == null)
-            {
-                return NotFound();
-            }
-
-            profile.UserId = profileDto.UserId;
-            profile.FirstName = profileDto.FirstName;
-            profile.LastName = profileDto.LastName;
-            profile.FathersName = profileDto.FathersName;
-            profile.NationalNumber = profileDto.NationalNumber;
-            profile.BirthDate = profileDto.BirthDate;
-            profile.BirthPlace = profileDto.BirthPlace;
-            profile.BirthCertificateNumber = profileDto.BirthCertificateNumber;
-            profile.MaritalStatus = profileDto.MaritalStatus;
-            profile.Gender = profileDto.Gender;
-            profile.PostalCode = profileDto.PostalCode;
-            profile.HomePhone = profileDto.HomePhone;
-            profile.Fax = profileDto.Fax;
-            profile.BestTimeToCall = profileDto.BestTimeToCall;
-            profile.ResidentialAddress = profileDto.ResidentialAddress;
-            profile.Email = profileDto.Email;
-
-            _context.SaveChanges();
-
-            return Ok(profile);
-        }
-
-        // DELETE: api/HaghighiUserProfile/5
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHaghighiUserProfile(int id)
-        {
-            var profile = _context.HaghighiUserProfiles.FirstOrDefault(e => e.Id == id);
-            if (profile == null)
-            {
-                return NotFound();
-            }
-
-            _context.HaghighiUserProfiles.Remove(profile);
-            _context.SaveChanges();
-
-            return Ok();
-        }
-
+  
         // DELETE: api/HaghighiUserProfile/clear
         [HttpDelete("clear")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -140,5 +190,26 @@ namespace PRX.Controllers.Haghighi
 
             return Ok();
         }
+
+        // PUT: api/HaghighiUserProfile/complete/{id}
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkProfileAsComplete(int id)
+        {
+            var profile = _context.HaghighiUserProfiles.FirstOrDefault(e => e.UserId == id);
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            profile.IsComplete = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

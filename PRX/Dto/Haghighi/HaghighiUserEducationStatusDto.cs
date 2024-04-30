@@ -7,5 +7,9 @@
         public string FieldOfStudy { get; set; }
         public int GraduationYear { get; set; }
         public string IssuingAuthority { get; set; }
+
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

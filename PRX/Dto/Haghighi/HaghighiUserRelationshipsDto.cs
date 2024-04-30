@@ -12,5 +12,8 @@
         public decimal AverageMonthlyExpense { get; set; }
         public decimal ApproximateAssets { get; set; }
         public decimal ApproximateLiabilities { get; set; }
+
+        public bool IsComplete { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

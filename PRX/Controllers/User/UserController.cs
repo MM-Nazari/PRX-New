@@ -31,58 +31,6 @@ namespace PRX.Controllers.User
             _configuration = configuration;
         }
 
-        [HttpGet]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetAllUsers()
-        {
-            var users = _context.Users.ToList();
-            var userDtos = users.Select(user => new UserDto
-            {
-                Id = user.Id,
-                PhoneNumber = user.PhoneNumber,
-                ReferenceCode = user.ReferenceCode
-            }).ToList();
-            return Ok(userDtos);
-        }
-
-        [HttpGet("{id}")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetUserById(int id)
-        {
-            try
-            {
-                var user = _context.Users.FirstOrDefault(u => u.Id == id);
-                if (user == null)
-                {
-                    return NotFound();
-                }
-
-                var userDto = new UserDto
-                {
-                    Id = user.Id,
-                    PhoneNumber = user.PhoneNumber,
-                    ReferenceCode = user.ReferenceCode
-                };
-
-                return Ok(userDto);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception for debugging purposes
-                // Replace Console.WriteLine with your preferred logging mechanism
-                Console.WriteLine($"Exception occurred: {ex}");
-
-                // Return 401 Unauthorized status code
-                return Unauthorized(new { Message = "Unauthorized. Please check your token or authentication credentials." });
-            }
-        }
-
-
         [HttpPost]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -120,7 +68,7 @@ namespace PRX.Controllers.User
         public IActionResult Login([FromBody] UserDto userDto)
         {
             var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
-            if (user == null || !VerifyPassword(userDto.Password, user.Password))
+            if (user == null || _utils.HashPassword(userDto.Password) == user.Password)
             {
                 return Unauthorized(new { Message = "Invalid phone number or password" });
             }
@@ -129,6 +77,158 @@ namespace PRX.Controllers.User
             var token = GenerateJwtToken(user);
 
             return Ok(new { Authorization = token });
+        }
+
+
+        // by ID Endpoints
+
+        [HttpGet("{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserById(int id)
+        {
+            try
+            {
+                // Retrieve the user ID from the token
+                //var tokenUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is accessing their own data
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    PhoneNumber = user.PhoneNumber,
+                    ReferenceCode = user.ReferenceCode
+                };
+
+                return Ok(userDto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return Unauthorized(new { Message = "Unauthorized. Please check your token or authentication credentials." });
+            }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUser(int id, [FromBody] UserDto userDto)
+        {
+            try
+            {
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own data
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                // Find the user to update
+                var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                // Update the user properties
+                user.PhoneNumber = userDto.PhoneNumber;
+                user.ReferenceCode = userDto.ReferenceCode;
+
+                // If password is provided in the DTO, hash and update the password
+                if (!string.IsNullOrEmpty(userDto.Password))
+                {
+                    var hashedPassword = _utils.HashPassword(userDto.Password);
+                    user.Password = hashedPassword;
+                }
+
+                // Save changes to database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user." });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUser(int id)
+        {
+            try
+            {
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is deleting their own data
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                user.IsDeleted = true;
+                _context.SaveChanges();
+
+                //_context.Users.Remove(user);
+                //_context.SaveChanges();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to delete user." });
+            }
+        }
+
+
+        // all Endpoints
+
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllUsers()
+        {
+            var users = _context.Users.ToList();
+            var userDtos = users.Select(user => new UserDto
+            {
+                Id = user.Id,
+                PhoneNumber = user.PhoneNumber,
+                ReferenceCode = user.ReferenceCode,
+                IsDeleted = user.IsDeleted
+            }).ToList();
+            return Ok(userDtos);
         }
 
         private bool VerifyPassword(string password, string hashedPassword)
@@ -183,60 +283,7 @@ namespace PRX.Controllers.User
         }
 
 
-
-        [HttpPut("{id}")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateUser(int id, [FromBody] UserDto userDto)
-        {
-            // Find the user to update
-            var user = _context.Users.FirstOrDefault(u => u.Id == id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            // Update the user properties
-            user.PhoneNumber = userDto.PhoneNumber;
-            user.ReferenceCode = userDto.ReferenceCode;
-
-            // If password is provided in the DTO, hash and update the password
-            if (!string.IsNullOrEmpty(userDto.Password))
-            {
-                var hashedPassword = _utils.HashPassword(userDto.Password);
-                user.Password = hashedPassword;
-            }
-
-            // Save changes to database
-            _context.SaveChanges();
-
-            // Return 204 No Content
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteUser(int id)
-        {
-            var user = _context.Users.FirstOrDefault(u => u.Id == id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            _context.SaveChanges();
-
-            return Ok();
-        }
-
         [HttpDelete("clear")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearUser()
         {
