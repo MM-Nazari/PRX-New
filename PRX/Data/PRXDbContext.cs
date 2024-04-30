@@ -507,10 +507,10 @@ namespace PRX.Data
                 .WithOne(p => p.User)
                 .HasForeignKey<UserMoreInformation>(p => p.UserId);
 
-            modelBuilder.Entity<UserAssetType>()
-                .HasMany(u => u.UserAssets)
-                .WithOne(r => r.UserAssetType)
-                .HasForeignKey(r => r.AssetTypeId);
+            //modelBuilder.Entity<UserAssetType>()
+            //    .HasMany(u => u.UserAssets)
+            //    .WithOne(r => r.UserAssetType)
+            //    .HasForeignKey(r => r.AssetTypeId);
 
 
             modelBuilder.Entity<User>()
@@ -603,6 +603,12 @@ namespace PRX.Data
                 .HasForeignKey<UserAnswer>(p => p.AnswerOptionId);
 
 
+            modelBuilder.Entity<UserAssetType>().HasMany(u => u.UserAssets).WithOne(r => r.UserAssetType).HasForeignKey(r => r.AssetTypeId);
+
+
+                //.HasMany(u => u.user)
+                //.WithOne(r => r.User)
+                //.HasForeignKey(r => r.UserId);
 
         }
     }

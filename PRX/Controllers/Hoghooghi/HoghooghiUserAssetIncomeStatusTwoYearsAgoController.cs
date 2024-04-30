@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
 using PRX.Models.Hoghooghis.Hoghooghi;
@@ -28,16 +30,38 @@ namespace PRX.Controllers.Hoghooghi
 
         // GET: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
         {
-            var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.Id == id);
-            if (record == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound();
+                }
+                return Ok(record);
+
             }
-            return Ok(record);
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+
+
         }
 
         // POST: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo
@@ -76,52 +100,98 @@ namespace PRX.Controllers.Hoghooghi
 
         // PUT: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Update(int id, [FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoDto dto)
         {
-            var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.Id == id);
-            if (record == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound();
+                }
+
+                record.UserId = dto.UserId;
+                record.FiscalYear = dto.FiscalYear;
+                record.RegisteredCapital = dto.RegisteredCapital;
+                record.ApproximateAssetValue = dto.ApproximateAssetValue;
+                record.TotalLiabilities = dto.TotalLiabilities;
+                record.TotalInvestments = dto.TotalInvestments;
+                record.OperationalIncome = dto.OperationalIncome;
+                record.OtherIncome = dto.OtherIncome;
+                record.OperationalExpenses = dto.OperationalExpenses;
+                record.OtherExpenses = dto.OtherExpenses;
+                record.OperationalProfitOrLoss = dto.OperationalProfitOrLoss;
+                record.NetProfitOrLoss = dto.NetProfitOrLoss;
+                record.AccumulatedProfitOrLoss = dto.AccumulatedProfitOrLoss;
+
+                _context.SaveChanges();
+
+                return Ok(record);
+
             }
 
-            record.UserId = dto.UserId;
-            record.FiscalYear = dto.FiscalYear;
-            record.RegisteredCapital = dto.RegisteredCapital;
-            record.ApproximateAssetValue = dto.ApproximateAssetValue;
-            record.TotalLiabilities = dto.TotalLiabilities;
-            record.TotalInvestments = dto.TotalInvestments;
-            record.OperationalIncome = dto.OperationalIncome;
-            record.OtherIncome = dto.OtherIncome;
-            record.OperationalExpenses = dto.OperationalExpenses;
-            record.OtherExpenses = dto.OtherExpenses;
-            record.OperationalProfitOrLoss = dto.OperationalProfitOrLoss;
-            record.NetProfitOrLoss = dto.NetProfitOrLoss;
-            record.AccumulatedProfitOrLoss = dto.AccumulatedProfitOrLoss;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            _context.SaveChanges();
 
-            return Ok(record);
+
+
         }
 
         // DELETE: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
         {
-            var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.Id == id);
-            if (record == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound();
+                }
+
+                record.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok();
+
             }
 
-            _context.HoghooghiUsersAssets.Remove(record);
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            return Ok();
+
         }
 
         // DELETE: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo
@@ -130,6 +200,26 @@ namespace PRX.Controllers.Hoghooghi
         public IActionResult ClearAll()
         {
             _context.HoghooghiUsersAssets.RemoveRange(_context.HoghooghiUsersAssets);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkRelationshipAsComplete(int id)
+        {
+            var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id);
+            if (record == null)
+            {
+                return NotFound();
+            }
+
+            record.IsComplete = true;
             _context.SaveChanges();
 
             return Ok();

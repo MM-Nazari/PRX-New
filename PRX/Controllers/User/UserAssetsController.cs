@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
@@ -25,7 +26,6 @@ namespace PRX.Controllers.User
             var userAssets = _context.UserAssets.ToList();
             var userAssetDtos = userAssets.Select(userAsset => new UserAssetDto
             {
-                Id = userAsset.Id,
                 UserId = userAsset.UserId,
                 AssetTypeId = userAsset.AssetTypeId,
                 AssetValue = userAsset.AssetValue,
@@ -36,25 +36,49 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserAssetById(int id)
         {
-            var userAsset = _context.UserAssets.FirstOrDefault(u => u.Id == id);
-            if (userAsset == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userAsset == null)
+                {
+                    return NotFound();
+                }
+                var userAssetDto = new UserAssetDto
+                {
+
+                    UserId = userAsset.UserId,
+                    AssetTypeId = userAsset.AssetTypeId,
+                    AssetValue = userAsset.AssetValue,
+                    AssetPercentage = userAsset.AssetPercentage,
+                    IsComplete = userAsset.IsComplete
+                };
+                return Ok(userAssetDto);
+
             }
-            var userAssetDto = new UserAssetDto
+
+            catch (Exception ex)
             {
-                Id = userAsset.Id,
-                UserId = userAsset.UserId,
-                AssetTypeId = userAsset.AssetTypeId,
-                AssetValue = userAsset.AssetValue,
-                AssetPercentage = userAsset.AssetPercentage,
-                IsComplete = userAsset.IsComplete
-            };
-            return Ok(userAssetDto);
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+
+
+            
         }
 
         [HttpPost]
@@ -72,8 +96,7 @@ namespace PRX.Controllers.User
                 UserId = userAssetDto.UserId,
                 AssetTypeId = userAssetDto.AssetTypeId,
                 AssetValue = userAssetDto.AssetValue,
-                AssetPercentage = userAssetDto.AssetPercentage,
-                IsComplete = userAssetDto.IsComplete
+                AssetPercentage = userAssetDto.AssetPercentage
             };
 
             _context.UserAssets.Add(userAsset);
@@ -83,44 +106,91 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserAsset(int id, [FromBody] UserAssetDto userAssetDto)
         {
-            var userAsset = _context.UserAssets.FirstOrDefault(u => u.Id == id);
-            if (userAsset == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userAsset == null)
+                {
+                    return NotFound();
+                }
+
+                userAsset.UserId = userAssetDto.UserId;
+                userAsset.AssetTypeId = userAssetDto.AssetTypeId;
+                userAsset.AssetValue = userAssetDto.AssetValue;
+                userAsset.AssetPercentage = userAssetDto.AssetPercentage;
+                userAsset.IsComplete = userAssetDto.IsComplete;
+
+                _context.SaveChanges();
+
+                return NoContent();
+
             }
 
-            userAsset.UserId = userAssetDto.UserId;
-            userAsset.AssetTypeId = userAssetDto.AssetTypeId;
-            userAsset.AssetValue = userAssetDto.AssetValue;
-            userAsset.AssetPercentage = userAssetDto.AssetPercentage;
-            userAsset.IsComplete = userAssetDto.IsComplete;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            _context.SaveChanges();
-
-            return NoContent();
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserAsset(int id)
         {
-            var userAsset = _context.UserAssets.FirstOrDefault(u => u.Id == id);
-            if (userAsset == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userAsset == null)
+                {
+                    return NotFound();
+                }
+
+                userAsset.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok();
+
             }
 
-            _context.UserAssets.Remove(userAsset);
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            return Ok();
+
+            
         }
 
         [HttpDelete("clear")]
@@ -128,6 +198,26 @@ namespace PRX.Controllers.User
         public IActionResult ClearUserAssets()
         {
             _context.UserAssets.RemoveRange(_context.UserAssets);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkCompaniesAsComplete(int id)
+        {
+            var record = _context.UserAssets.FirstOrDefault(e => e.UserId == id);
+            if (record == null)
+            {
+                return NotFound();
+            }
+
+            record.IsComplete = true;
             _context.SaveChanges();
 
             return Ok();

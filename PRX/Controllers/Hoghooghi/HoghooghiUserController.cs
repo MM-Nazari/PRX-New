@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
 using PRX.Models.Hoghooghi;
@@ -28,16 +29,38 @@ namespace PRX.Controllers.Hoghooghi
 
         // GET: api/HoghooghiUser/5
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHoghooghiUserById(int id)
         {
-            var user = _context.HoghooghiUsers.FirstOrDefault(e => e.Id == id);
-            if (user == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return Ok(user);
+
             }
-            return Ok(user);
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+
+        
         }
 
         // POST: api/HoghooghiUser
@@ -80,56 +103,103 @@ namespace PRX.Controllers.Hoghooghi
 
         // PUT: api/HoghooghiUser/5
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHoghooghiUser(int id, [FromBody] HoghooghiUserDto userDto)
         {
-            var user = _context.HoghooghiUsers.FirstOrDefault(e => e.Id == id);
-            if (user == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                user.UserId = userDto.UserId;
+                user.Name = userDto.Name;
+                user.RegistrationNumber = userDto.RegistrationNumber;
+                user.RegistrationDate = userDto.RegistrationDate;
+                user.RegistrationLocation = userDto.RegistrationLocation;
+                user.NationalId = userDto.NationalId;
+                user.MainActivityBasedOnCharter = userDto.MainActivityBasedOnCharter;
+                user.MainActivityBasedOnPastThreeYearsPerformance = userDto.MainActivityBasedOnPastThreeYearsPerformance;
+                user.PostalCode = userDto.PostalCode;
+                user.LandlinePhone = userDto.LandlinePhone;
+                user.Fax = userDto.Fax;
+                user.BestTimeToCall = userDto.BestTimeToCall;
+                user.Address = userDto.Address;
+                user.Email = userDto.Email;
+                user.RepresentativeName = userDto.RepresentativeName;
+                user.RepresentativeNationalId = userDto.RepresentativeNationalId;
+                user.RepresentativeMobilePhone = userDto.RepresentativeMobilePhone;
+
+                _context.SaveChanges();
+
+                return Ok(user);
+
             }
 
-            user.UserId = userDto.UserId;
-            user.Name = userDto.Name;
-            user.RegistrationNumber = userDto.RegistrationNumber;
-            user.RegistrationDate = userDto.RegistrationDate;
-            user.RegistrationLocation = userDto.RegistrationLocation;
-            user.NationalId = userDto.NationalId;
-            user.MainActivityBasedOnCharter = userDto.MainActivityBasedOnCharter;
-            user.MainActivityBasedOnPastThreeYearsPerformance = userDto.MainActivityBasedOnPastThreeYearsPerformance;
-            user.PostalCode = userDto.PostalCode;
-            user.LandlinePhone = userDto.LandlinePhone;
-            user.Fax = userDto.Fax;
-            user.BestTimeToCall = userDto.BestTimeToCall;
-            user.Address = userDto.Address;
-            user.Email = userDto.Email;
-            user.RepresentativeName = userDto.RepresentativeName;
-            user.RepresentativeNationalId = userDto.RepresentativeNationalId;
-            user.RepresentativeMobilePhone = userDto.RepresentativeMobilePhone;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            _context.SaveChanges();
-
-            return Ok(user);
+            
         }
 
         // DELETE: api/HoghooghiUser/5
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHoghooghiUser(int id)
         {
-            var user = _context.HoghooghiUsers.FirstOrDefault(e => e.Id == id);
-            if (user == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                user.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok();
+
             }
 
-            _context.HoghooghiUsers.Remove(user);
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            return Ok();
+           
         }
 
         // DELETE: api/HoghooghiUser
@@ -138,6 +208,26 @@ namespace PRX.Controllers.Hoghooghi
         public IActionResult ClearAllHoghooghiUsers()
         {
             _context.HoghooghiUsers.RemoveRange(_context.HoghooghiUsers);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkCompaniesAsComplete(int id)
+        {
+            var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.IsComplete = true;
             _context.SaveChanges();
 
             return Ok();

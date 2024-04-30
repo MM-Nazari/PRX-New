@@ -10,6 +10,7 @@ namespace PRX.Models.User
         [Required]
         public string Type { get; set; }
 
+        public bool IsDeleted { get; set; } = false;
         public User User { get; set; }
     }
 }

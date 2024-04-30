@@ -64,6 +64,11 @@ namespace PRX.Models.User
         public UserTestScore UserTestScore { get; set; }
 
 
+        
+
+
+
+
     }
 
 }

@@ -68,7 +68,7 @@ namespace PRX.Controllers.User
         public IActionResult Login([FromBody] UserDto userDto)
         {
             var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
-            if (user == null || _utils.HashPassword(userDto.Password) == user.Password)
+            if (user == null || !_utils.VerifyPassword(userDto.Password, user.Password))
             {
                 return Unauthorized(new { Message = "Invalid phone number or password" });
             }
@@ -231,24 +231,6 @@ namespace PRX.Controllers.User
             return Ok(userDtos);
         }
 
-        private bool VerifyPassword(string password, string hashedPassword)
-        {
-            // Extract the salt and hashed password from the stored hash
-            string[] hashParts = hashedPassword.Split(':');
-            byte[] salt = Convert.FromBase64String(hashParts[0]);
-            string storedHash = hashParts[1];
-
-            // Compute the hash of the provided password with the same salt
-            string computedHash = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: password,
-                salt: salt,
-                prf: KeyDerivationPrf.HMACSHA256,
-                iterationCount: 10000,
-                numBytesRequested: 32));
-
-            // Compare the computed hash with the stored hash
-            return storedHash == computedHash;
-        }
 
         private string GenerateJwtToken(PRX.Models.User.User user)
         {

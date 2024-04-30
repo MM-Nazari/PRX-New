@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
 using PRX.Models.Hoghooghi;
@@ -28,16 +29,39 @@ namespace PRX.Controllers.Hoghooghi
 
         // GET: api/HoghooghiUserCompaniesWithMajorInvestors/5
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
         {
-            var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.Id == id);
-            if (record == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound();
+                }
+                return Ok(record);
+
             }
-            return Ok(record);
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+
+            
         }
 
         // POST: api/HoghooghiUserCompaniesWithMajorInvestors
@@ -67,43 +91,89 @@ namespace PRX.Controllers.Hoghooghi
 
         // PUT: api/HoghooghiUserCompaniesWithMajorInvestors/5
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Update(int id, [FromBody] HoghooghiUserCompaniesWithMajorInvestorsDto dto)
         {
-            var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.Id == id);
-            if (record == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound();
+                }
+
+                record.UserId = dto.UserId;
+                record.CompanyName = dto.CompanyName;
+                record.CompanySubject = dto.CompanySubject;
+                record.PercentageOfTotal = dto.PercentageOfTotal;
+
+                _context.SaveChanges();
+
+                return Ok(record);
+
             }
 
-            record.UserId = dto.UserId;
-            record.CompanyName = dto.CompanyName;
-            record.CompanySubject = dto.CompanySubject;
-            record.PercentageOfTotal = dto.PercentageOfTotal;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            _context.SaveChanges();
 
-            return Ok(record);
+            
         }
 
         // DELETE: api/HoghooghiUserCompaniesWithMajorInvestors/5
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
         {
-            var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.Id == id);
-            if (record == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound();
+                }
+
+                record.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok();
+
             }
 
-            _context.HoghooghiUserCompaniesWithMajorInvestors.Remove(record);
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            return Ok();
+       
         }
 
         // DELETE: api/HoghooghiUserCompaniesWithMajorInvestors
@@ -116,5 +186,26 @@ namespace PRX.Controllers.Hoghooghi
 
             return Ok();
         }
+
+
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkCompaniesAsComplete(int id)
+        {
+            var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id);
+            if (record == null)
+            {
+                return NotFound();
+            }
+
+            record.IsComplete = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

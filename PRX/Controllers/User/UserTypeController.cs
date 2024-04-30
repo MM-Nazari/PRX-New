@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
@@ -31,12 +33,12 @@ namespace PRX.Controllers.User
             return Ok(userTypeDtos);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("GetById/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserTypeById(int id)
         {
-            var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id);
+            var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
             if (userType == null)
             {
                 return NotFound();
@@ -49,6 +51,27 @@ namespace PRX.Controllers.User
             };
             return Ok(userTypeDto);
         }
+
+        [HttpGet("GetByUserId/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserTypeByUserId(int id)
+        {
+            var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (userType == null)
+            {
+                return NotFound();
+            }
+            var userTypeDto = new UserTypeDto
+            {
+                Id = userType.Id,
+                UserId = userType.UserId,
+                Type = userType.Type
+            };
+            return Ok(userTypeDto);
+        }
+
+
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -72,13 +95,13 @@ namespace PRX.Controllers.User
             return CreatedAtAction(nameof(GetUserTypeById), new { id = userType.Id }, userType);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("PutById/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserType(int id, [FromBody] UserTypeDto userTypeDto)
         {
-            var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id);
+            var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
             if (userType == null)
             {
                 return NotFound();
@@ -92,7 +115,29 @@ namespace PRX.Controllers.User
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+
+        [HttpPut("PutByUserId/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserTypeBy(int id, [FromBody] UserTypeDto userTypeDto)
+        {
+            var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (userType == null)
+            {
+                return NotFound();
+            }
+
+            userType.Id = userTypeDto.Id;
+            userType.Type = userTypeDto.Type;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        [HttpDelete("DeleteById/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserType(int id)
@@ -103,11 +148,29 @@ namespace PRX.Controllers.User
                 return NotFound();
             }
 
-            _context.UserTypes.Remove(userType);
+            userType.IsDeleted = true;
             _context.SaveChanges();
 
             return Ok();
         }
+
+        [HttpDelete("DeleteByUserId/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserTypeBy(int id)
+        {
+            var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id);
+            if (userType == null)
+            {
+                return NotFound();
+            }
+
+            userType.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status200OK)]

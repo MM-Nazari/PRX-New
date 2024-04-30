@@ -6,7 +6,6 @@
         public int UserId { get; set; }
         public string State { get; set; }
 
-        public bool IsComplete { get; set; }
         public bool IsDeleted { get; set; }
 
     }

@@ -187,7 +187,7 @@ namespace PRX.Controllers.Haghighi
         }
 
 
-        // PUT: api/HaghighiUserProfile/complete/{id}
+        
         [HttpPut("complete/{id}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
 using PRX.Models.Haghighi;
@@ -28,16 +29,37 @@ namespace PRX.Controllers.Haghighi
 
         // GET: api/HaghighiUserEmploymentHistory/5
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserEmploymentHistoryById(int id)
         {
-            var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.Id == id);
-            if (employmentHistory == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (employmentHistory == null)
+                {
+                    return NotFound();
+                }
+                return Ok(employmentHistory);
+
             }
-            return Ok(employmentHistory);
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+       
         }
 
         // POST: api/HaghighiUserEmploymentHistory
@@ -71,47 +93,95 @@ namespace PRX.Controllers.Haghighi
 
         // PUT: api/HaghighiUserEmploymentHistory/5
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHaghighiUserEmploymentHistory(int id, [FromBody] HaghighiUserEmploymentHistoryDto employmentHistoryDto)
         {
-            var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.Id == id);
-            if (employmentHistory == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (employmentHistory == null)
+                {
+                    return NotFound();
+                }
+
+                employmentHistory.UserId = employmentHistoryDto.UserId;
+                employmentHistory.EmployerLocation = employmentHistoryDto.EmployerLocation;
+                employmentHistory.MainActivity = employmentHistoryDto.MainActivity;
+                employmentHistory.Position = employmentHistoryDto.Position;
+                employmentHistory.StartDate = employmentHistoryDto.StartDate;
+                employmentHistory.EndDate = employmentHistoryDto.EndDate;
+                employmentHistory.WorkAddress = employmentHistoryDto.WorkAddress;
+                employmentHistory.WorkPhone = employmentHistoryDto.WorkPhone;
+
+                _context.SaveChanges();
+
+                return Ok(employmentHistory);
+
             }
 
-            employmentHistory.UserId = employmentHistoryDto.UserId;
-            employmentHistory.EmployerLocation = employmentHistoryDto.EmployerLocation;
-            employmentHistory.MainActivity = employmentHistoryDto.MainActivity;
-            employmentHistory.Position = employmentHistoryDto.Position;
-            employmentHistory.StartDate = employmentHistoryDto.StartDate;
-            employmentHistory.EndDate = employmentHistoryDto.EndDate;
-            employmentHistory.WorkAddress = employmentHistoryDto.WorkAddress;
-            employmentHistory.WorkPhone = employmentHistoryDto.WorkPhone;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            _context.SaveChanges();
 
-            return Ok(employmentHistory);
+     
         }
 
         // DELETE: api/HaghighiUserEmploymentHistory/5
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserEmploymentHistory(int id)
         {
-            var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.Id == id);
-            if (employmentHistory == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (employmentHistory == null)
+                {
+                    return NotFound();
+                }
+
+                _context.HaghighiUserEmploymentHistories.Remove(employmentHistory);
+                _context.SaveChanges();
+
+                return Ok();
+
             }
 
-            _context.HaghighiUserEmploymentHistories.Remove(employmentHistory);
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            return Ok();
+
+        
         }
 
         // DELETE: api/HaghighiUserEmploymentHistory
@@ -122,6 +192,27 @@ namespace PRX.Controllers.Haghighi
             var employmentHistory = _context.HaghighiUserEmploymentHistories.ToList();
             _context.HaghighiUserEmploymentHistories.RemoveRange(employmentHistory);
             _context.SaveChanges();
+            return Ok();
+        }
+
+
+        // PUT: api/HaghighiUserProfile/complete/{id}
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkEmploymentAsComplete(int id)
+        {
+            var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id);
+            if (employmentHistory == null)
+            {
+                return NotFound();
+            }
+
+            employmentHistory.IsComplete = true;
+            _context.SaveChanges();
+
             return Ok();
         }
     }

@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
@@ -34,24 +36,47 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserWithdrawalById(int id)
         {
-            var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.Id == id);
-            if (userWithdrawal == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userWithdrawal == null)
+                {
+                    return NotFound();
+                }
+                var userWithdrawalDto = new UserWithdrawalDto
+                {
+                    Id = userWithdrawal.Id,
+                    UserId = userWithdrawal.UserId,
+                    WithdrawalAmount = userWithdrawal.WithdrawalAmount,
+                    WithdrawalDate = userWithdrawal.WithdrawalDate,
+                    WithdrawalReason = userWithdrawal.WithdrawalReason
+                };
+                return Ok(userWithdrawalDto);
+
             }
-            var userWithdrawalDto = new UserWithdrawalDto
+
+            catch (Exception ex)
             {
-                Id = userWithdrawal.Id,
-                UserId = userWithdrawal.UserId,
-                WithdrawalAmount = userWithdrawal.WithdrawalAmount,
-                WithdrawalDate = userWithdrawal.WithdrawalDate,
-                WithdrawalReason = userWithdrawal.WithdrawalReason
-            };
-            return Ok(userWithdrawalDto);
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+
+
         }
 
         [HttpPost]
@@ -79,42 +104,87 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserWithdrawal(int id, [FromBody] UserWithdrawalDto userWithdrawalDto)
         {
-            var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.Id == id);
-            if (userWithdrawal == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userWithdrawal == null)
+                {
+                    return NotFound();
+                }
+
+                
+                userWithdrawal.WithdrawalAmount = userWithdrawalDto.WithdrawalAmount;
+                userWithdrawal.WithdrawalDate = userWithdrawalDto.WithdrawalDate;
+                userWithdrawal.WithdrawalReason = userWithdrawalDto.WithdrawalReason;
+
+                _context.SaveChanges();
+
+                return Ok();
+
             }
 
-            userWithdrawal.UserId = userWithdrawalDto.UserId;
-            userWithdrawal.WithdrawalAmount = userWithdrawalDto.WithdrawalAmount;
-            userWithdrawal.WithdrawalDate = userWithdrawalDto.WithdrawalDate;
-            userWithdrawal.WithdrawalReason = userWithdrawalDto.WithdrawalReason;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserWithdrawal(int id)
         {
-            var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.Id == id);
-            if (userWithdrawal == null)
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userWithdrawal == null)
+                {
+                    return NotFound();
+                }
+
+                userWithdrawal.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok();
+
             }
 
-            _context.UserWithdrawals.Remove(userWithdrawal);
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            return Ok();
+
         }
 
         [HttpDelete]
@@ -123,6 +193,27 @@ namespace PRX.Controllers.User
         {
             _context.UserWithdrawals.RemoveRange(_context.UserWithdrawals);
             _context.SaveChanges();
+            return Ok();
+        }
+
+
+        // PUT: api/HaghighiUserProfile/complete/{id}
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkFinancwChangeAsComplete(int id)
+        {
+            var userFinancialChanges = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id);
+            if (userFinancialChanges == null)
+            {
+                return NotFound();
+            }
+
+            userFinancialChanges.IsComplete = true;
+            _context.SaveChanges();
+
             return Ok();
         }
     }

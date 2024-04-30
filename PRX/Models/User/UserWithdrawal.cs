@@ -14,6 +14,7 @@ namespace PRX.Models.User
         public DateTime WithdrawalDate { get; set; }
         [Required]
         public string WithdrawalReason { get; set; }
+
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
 

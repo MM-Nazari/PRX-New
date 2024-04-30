@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
@@ -26,16 +28,39 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserInvestmentById(int id)
         {
-            var userInvestment = _context.UserInvestments.Find(id);
-            if (userInvestment == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userInvestment == null)
+                {
+                    return NotFound();
+                }
+                return Ok(userInvestment);
+
             }
-            return Ok(userInvestment);
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
+
+
         }
 
         [HttpPost]
@@ -61,40 +86,86 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserInvestment(int id, [FromBody] UserInvestmentDto userInvestmentDto)
         {
-            var userInvestment = _context.UserInvestments.Find(id);
-            if (userInvestment == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userInvestment == null)
+                {
+                    return NotFound();
+                }
+
+                userInvestment.UserId = userInvestmentDto.UserId;
+                userInvestment.Amount = userInvestmentDto.Amount;
+
+                _context.SaveChanges();
+
+                return Ok(userInvestment);
+
             }
 
-            userInvestment.UserId = userInvestmentDto.UserId;
-            userInvestment.Amount = userInvestmentDto.Amount;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            _context.SaveChanges();
 
-            return Ok(userInvestment);
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserInvestment(int id)
         {
-            var userInvestment = _context.UserInvestments.Find(id);
-            if (userInvestment == null)
+
+            try
             {
-                return NotFound();
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own profile
+                if (id != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userInvestment == null)
+                {
+                    return NotFound();
+                }
+
+                userInvestment.IsDeleted = true;
+                _context.SaveChanges();
+
+                return NoContent();
+
             }
 
-            _context.UserInvestments.Remove(userInvestment);
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex}");
+                return BadRequest(new { Message = "Failed to update user profile." });
+            }
 
-            return NoContent();
+
         }
 
         [HttpDelete("clear")]
@@ -105,6 +176,26 @@ namespace PRX.Controllers.User
             _context.SaveChanges();
 
             return NoContent();
+        }
+
+        // PUT: api/HaghighiUserProfile/complete/{id}
+        [HttpPut("complete/{id}")]
+        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult MarkFinancwChangeAsComplete(int id)
+        {
+            var userFinancialChanges = _context.UserInvestments.FirstOrDefault(u => u.UserId == id);
+            if (userFinancialChanges == null)
+            {
+                return NotFound();
+            }
+
+            userFinancialChanges.IsComplete = true;
+            _context.SaveChanges();
+
+            return Ok();
         }
     }
 }

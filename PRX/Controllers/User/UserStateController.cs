@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
@@ -26,17 +28,18 @@ namespace PRX.Controllers.User
             {
                 Id = userState.Id,
                 UserId = userState.UserId,
-                State = userState.State
+                State = userState.State,
+                IsDeleted = userState.IsDeleted
             }).ToList();
             return Ok(userStateDtos);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("GetByUserId/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetUserStateById(int id)
+        public IActionResult GetUserStateByUserId(int id)
         {
-            var userState = _context.UserStates.FirstOrDefault(u => u.Id == id);
+            var userState = _context.UserStates.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
             if (userState == null)
             {
                 return NotFound();
@@ -49,6 +52,27 @@ namespace PRX.Controllers.User
             };
             return Ok(userStateDto);
         }
+
+        [HttpGet("GetById/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserStateById(int id)
+        {
+            var userState = _context.UserStates.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+            if (userState == null)
+            {
+                return NotFound();
+            }
+            var userStateDto = new UserStateDto
+            {
+                Id = userState.Id,
+                UserId = userState.UserId,
+                State = userState.State
+            };
+            return Ok(userStateDto);
+        }
+
+
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -72,13 +96,13 @@ namespace PRX.Controllers.User
             return CreatedAtAction(nameof(GetUserStateById), new { id = userState.Id }, userState);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("PutById{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserState(int id, [FromBody] UserStateDto userStateDto)
         {
-            var userState = _context.UserStates.FirstOrDefault(u => u.Id == id);
+            var userState = _context.UserStates.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
             if (userState == null)
             {
                 return NotFound();
@@ -92,7 +116,29 @@ namespace PRX.Controllers.User
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+
+        [HttpPut("PutByUserId{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserStateByUserId(int id, [FromBody] UserStateDto userStateDto)
+        {
+            var userState = _context.UserStates.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (userState == null)
+            {
+                return NotFound();
+            }
+            userState.Id = userStateDto.Id;
+            userState.State = userStateDto.State;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+
+        [HttpDelete("DeleteById/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserState(int id)
@@ -103,11 +149,30 @@ namespace PRX.Controllers.User
                 return NotFound();
             }
 
-            _context.UserStates.Remove(userState);
+            userState.IsDeleted = true;
             _context.SaveChanges();
 
             return Ok();
         }
+
+
+        [HttpDelete("DeleteByUserId/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserStateByUser(int id)
+        {
+            var userState = _context.UserStates.FirstOrDefault(u => u.UserId == id);
+            if (userState == null)
+            {
+                return NotFound();
+            }
+
+            userState.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status200OK)]
