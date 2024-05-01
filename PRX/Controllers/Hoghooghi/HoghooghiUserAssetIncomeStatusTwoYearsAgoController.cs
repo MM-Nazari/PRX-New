@@ -57,8 +57,8 @@ namespace PRX.Controllers.Hoghooghi
 
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return BadRequest(new { Message = "Failed to update user profile." });
+                
+                return BadRequest();
             }
 
 
@@ -145,8 +145,8 @@ namespace PRX.Controllers.Hoghooghi
 
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return BadRequest(new { Message = "Failed to update user profile." });
+                
+                return BadRequest();
             }
 
 
@@ -187,8 +187,8 @@ namespace PRX.Controllers.Hoghooghi
 
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return BadRequest(new { Message = "Failed to update user profile." });
+                
+                return BadRequest();
             }
 
 

@@ -90,7 +90,7 @@ namespace PRX.Controllers.Quiz
 
             if (userAnswer == null)
             {
-                return BadRequest("UserAnswerOption not found for the specified UserId.");
+                return BadRequest();
             }
 
             var record = new UserAnswer

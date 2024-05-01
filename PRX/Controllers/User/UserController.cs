@@ -31,6 +31,22 @@ namespace PRX.Controllers.User
             _configuration = configuration;
         }
 
+        [HttpGet("PhoneExistance/{phoneNumber}")]
+        [AllowAnonymous]
+        public IActionResult CheckPhoneNumberExists(string phoneNumber)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == phoneNumber);
+            if (user != null)
+            {
+                return Ok("yes");
+            }
+            else
+            {
+                return Ok("no");
+            }
+        }
+
+
         [HttpPost]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -70,7 +86,7 @@ namespace PRX.Controllers.User
             var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
             if (user == null || !_utils.VerifyPassword(userDto.Password, user.Password))
             {
-                return Unauthorized(new { Message = "Invalid phone number or password" });
+                return Unauthorized();
             }
 
             // Log user login
@@ -133,8 +149,8 @@ namespace PRX.Controllers.User
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return Unauthorized(new { Message = "Unauthorized. Please check your token or authentication credentials." });
+                return BadRequest();
+                return Unauthorized();
             }
         }
 
@@ -183,8 +199,8 @@ namespace PRX.Controllers.User
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return BadRequest(new { Message = "Failed to update user." });
+
+                return BadRequest();
             }
         }
 
@@ -222,8 +238,8 @@ namespace PRX.Controllers.User
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return BadRequest(new { Message = "Failed to delete user." });
+
+                return BadRequest();
             }
         }
 

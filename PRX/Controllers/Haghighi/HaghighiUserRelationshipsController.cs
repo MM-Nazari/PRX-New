@@ -52,8 +52,8 @@ namespace PRX.Controllers.Haghighi
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return BadRequest(new { Message = "Failed to delete user." });
+                
+                return BadRequest();
             }
 
   
@@ -132,8 +132,8 @@ namespace PRX.Controllers.Haghighi
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return BadRequest(new { Message = "Failed to delete user." });
+                
+                return BadRequest();
             }
 
 
@@ -169,8 +169,8 @@ namespace PRX.Controllers.Haghighi
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return BadRequest(new { Message = "Failed to delete user." });
+                
+                return BadRequest();
             }
 
         }

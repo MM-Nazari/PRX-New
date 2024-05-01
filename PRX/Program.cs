@@ -14,11 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-    });
+builder.Services.AddControllers();
+    //.AddJsonOptions(options =>
+    //{
+    //    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    //});
 
 
 builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
@@ -104,7 +104,7 @@ builder.Services.AddSwaggerGen(c =>
 
         // Users Groups
         // Include controllers with specific group names
-        var allowedGroups = new[] { "Users", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores" /*, "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles", "UserFinancialChanges", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserAssets", "UserAssetTypes", "UserDebts", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals" *//* *//* */ }; 
+        var allowedGroups = new[] { "Users", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles", "UserFinancialChanges", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserAssets", "UserAssetTypes", "UserDebts", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals" }; 
         return allowedGroups.Contains(apiDesc.GroupName);
 
 
