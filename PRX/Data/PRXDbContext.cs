@@ -67,11 +67,13 @@ namespace PRX.Data
         public DbSet<UserTestScore> UserTestScores { get; set; }
 
 
+        // Log
+
+        public DbSet<UserLoginLog> UserLoginLog { get; set; }
 
 
 
 
-        
 
 
 
@@ -182,11 +184,30 @@ namespace PRX.Data
 
             // Hoghooghi
 
-            modelBuilder.Entity<HoghooghiUser>().Property(e => e.Id).ValueGeneratedOnAdd().IsRequired();
-            modelBuilder.Entity<HoghooghiUserAssetIncomeStatusTwoYearsAgo>().Property(e => e.Id).ValueGeneratedOnAdd().IsRequired();
-            modelBuilder.Entity<HoghooghiUserBoardOfDirectors>().Property(e => e.Id).ValueGeneratedOnAdd().IsRequired();
-            modelBuilder.Entity<HoghooghiUserCompaniesWithMajorInvestors>().Property(e => e.Id).ValueGeneratedOnAdd().IsRequired();
-            modelBuilder.Entity<HoghooghiUserInvestmentDepartmentStaff>().Property(e => e.Id).ValueGeneratedOnAdd().IsRequired();
+            modelBuilder.Entity<HoghooghiUser>()
+                .Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .IsRequired();
+
+            modelBuilder.Entity<HoghooghiUserAssetIncomeStatusTwoYearsAgo>()
+                .Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .IsRequired();
+
+            modelBuilder.Entity<HoghooghiUserBoardOfDirectors>()
+                .Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .IsRequired();
+
+            modelBuilder.Entity<HoghooghiUserCompaniesWithMajorInvestors>()
+                .Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .IsRequired();
+
+            modelBuilder.Entity<HoghooghiUserInvestmentDepartmentStaff>()
+                .Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .IsRequired();
 
 
 
@@ -211,13 +232,20 @@ namespace PRX.Data
             .ValueGeneratedOnAdd()
             .IsRequired();
 
+            // Log
+
+            modelBuilder.Entity<UserLoginLog>()
+             .Property(e => e.Id)
+             .ValueGeneratedOnAdd()
+             .IsRequired();
+
 
 
 
             //
             // Unique Fields
             //
-            
+
             // User
 
             modelBuilder.Entity<User>()
@@ -603,12 +631,23 @@ namespace PRX.Data
                 .HasForeignKey<UserAnswer>(p => p.AnswerOptionId);
 
 
-            modelBuilder.Entity<UserAssetType>().HasMany(u => u.UserAssets).WithOne(r => r.UserAssetType).HasForeignKey(r => r.AssetTypeId);
+            // Assets
+
+            modelBuilder.Entity<UserAssetType>()
+                .HasMany(u => u.UserAssets)
+                .WithOne(r => r.UserAssetType)
+                .HasForeignKey(r => r.AssetTypeId);
 
 
-                //.HasMany(u => u.user)
-                //.WithOne(r => r.User)
-                //.HasForeignKey(r => r.UserId);
+            // Log
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.UserLoginLogs)
+                .WithOne(r => r.User)
+                .HasForeignKey(r => r.UserId);
+
+
+
 
         }
     }

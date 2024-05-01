@@ -73,10 +73,25 @@ namespace PRX.Controllers.User
                 return Unauthorized(new { Message = "Invalid phone number or password" });
             }
 
+            // Log user login
+            LogUserLogin(user.Id);
+
             // Generate JWT token
             var token = GenerateJwtToken(user);
 
             return Ok(new { Authorization = token });
+        }
+
+        private void LogUserLogin(int userId)
+        {
+            var userLoginLog = new UserLoginLog
+            {
+                UserId = userId,
+                LoginTime = DateTime.Now
+            };
+
+            _context.UserLoginLog.Add(userLoginLog);
+            _context.SaveChanges();
         }
 
 

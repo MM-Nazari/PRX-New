@@ -64,7 +64,12 @@ namespace PRX.Models.User
         public UserTestScore UserTestScore { get; set; }
 
 
-        
+        // Log
+
+        public List<UserLoginLog> UserLoginLogs { get; set; }
+
+
+
 
 
 
