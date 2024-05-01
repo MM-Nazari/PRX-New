@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PRX.Data;
 using PRX.Dto.Quiz;
 using PRX.Models.Quiz;
@@ -32,7 +33,7 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
         {
-            var record = _context.UserTestScores.FirstOrDefault(e => e.Id == id);
+            var record = _context.UserTestScores.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
             if (record == null)
             {
                 return NotFound();
@@ -54,7 +55,7 @@ namespace PRX.Controllers.Quiz
             var record = new UserTestScore
             {
                 UserId = dto.UserId,
-                Score = dto.Score
+                QuizScore = dto.QuizScore
             };
 
             _context.UserTestScores.Add(record);
@@ -70,18 +71,59 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Update(int id, [FromBody] UserTestScoreDto dto)
         {
-            var record = _context.UserTestScores.FirstOrDefault(e => e.Id == id);
+            var record = _context.UserTestScores.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
             if (record == null)
             {
                 return NotFound();
             }
 
             record.UserId = dto.UserId;
-            record.Score = dto.Score;
+            record.QuizScore = dto.QuizScore;
 
             _context.SaveChanges();
 
             return Ok(record);
+        }
+
+        [HttpPost("CalculateQuizScore/{userId}")]
+        public IActionResult CalculateQuizScore(int userId)
+        {
+            // Retrieve all user's answer options with their scores
+            var answerOptions = _context.UserAnswers
+                .Include(ua => ua.answerOption)
+                .Where(ua => ua.UserId == userId && !ua.IsDeleted && !ua.answerOption.IsDeleted)
+                .ToList();
+
+            // Calculate total score
+            int totalScore = 0;
+            foreach (var answerOption in answerOptions)
+            {
+                totalScore += answerOption.answerOption.Score;
+            }
+
+            // Retrieve or create UserTestScore record
+            var userTestScore = _context.UserTestScores
+                .FirstOrDefault(uts => uts.UserId == userId && !uts.IsDeleted);
+
+            if (userTestScore == null)
+            {
+                userTestScore = new UserTestScore
+                {
+                    UserId = userId,
+                    QuizScore = totalScore
+                };
+                _context.UserTestScores.Add(userTestScore);
+            }
+            else
+            {
+                userTestScore.QuizScore = totalScore;
+                _context.UserTestScores.Update(userTestScore);
+            }
+
+            // Save changes
+            _context.SaveChanges();
+
+            return Ok(userTestScore);
         }
 
         // DELETE: api/UserTestScore/5
@@ -90,13 +132,13 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
         {
-            var record = _context.UserTestScores.FirstOrDefault(e => e.Id == id);
+            var record = _context.UserTestScores.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
             if (record == null)
             {
                 return NotFound();
             }
 
-            _context.UserTestScores.Remove(record);
+            record.IsDeleted = true;
             _context.SaveChanges();
 
             return Ok();

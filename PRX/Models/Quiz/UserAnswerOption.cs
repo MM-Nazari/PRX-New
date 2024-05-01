@@ -9,6 +9,7 @@ namespace PRX.Models.Quiz
         public int QuestionId { get; set; }
         public string Text { get; set; }
 
+        public int Score { get; set; } = 0;
 
         public bool IsDeleted { get; set; } = false;
         public UserQuestion UserQuestion { get; set; }

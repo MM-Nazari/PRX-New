@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PRX.Data;
 using PRX.Dto.Quiz;
 using PRX.Models.Quiz;
@@ -28,12 +29,12 @@ namespace PRX.Controllers.Quiz
         }
 
         // GET: api/UserAnswer/5
-        [HttpGet("{id}")]
+        [HttpGet("GetOneByUserId{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetById(int id)
+        public IActionResult GetByUserId(int id)
         {
-            var record = _context.UserAnswers.FirstOrDefault(e => e.Id == id);
+            var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
             if (record == null)
             {
                 return NotFound();
@@ -41,20 +42,60 @@ namespace PRX.Controllers.Quiz
             return Ok(record);
         }
 
-        // POST: api/UserAnswer
+
+        // GET: api/UserAnswer/5
+        [HttpGet("GetOneById{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetById(int id)
+        {
+            var record = _context.UserAnswers.FirstOrDefault(e => e.Id == id && !e.IsDeleted);
+            if (record == null)
+            {
+                return NotFound();
+            }
+            return Ok(record);
+        }
+
+
+        // GET: api/UserAnswer/5
+        [HttpGet("GetAllByUserId/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetByUserIds(int id)
+        {
+            var records = _context.UserAnswers.Where(e => e.UserId == id && !e.IsDeleted).ToList();
+            if (records == null || records.Count == 0)
+            {
+                return NotFound();
+            }
+            return Ok(records);
+        }
+
+
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Create([FromBody] UserAnswerDto dto)
+        public IActionResult Create(int userId, [FromBody] UserAnswerDto dto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
+            // Find the corresponding UserAnswerOption
+            var userAnswer = _context.UserAnswers
+                .FirstOrDefault(o => o.UserId == userId && !o.IsDeleted);
+
+            if (userAnswer == null)
+            {
+                return BadRequest("UserAnswerOption not found for the specified UserId.");
+            }
+
             var record = new UserAnswer
             {
-                UserId = dto.UserId,
+                UserId = userId, // Assign userId parameter here
                 AnswerOptionId = dto.AnswerOptionId,
                 AnswerText = dto.AnswerText
             };
@@ -65,6 +106,9 @@ namespace PRX.Controllers.Quiz
             return CreatedAtAction(nameof(GetById), new { id = record.Id }, record);
         }
 
+
+
+
         // PUT: api/UserAnswer/5
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -72,7 +116,7 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Update(int id, [FromBody] UserAnswerDto dto)
         {
-            var record = _context.UserAnswers.FirstOrDefault(e => e.Id == id);
+            var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
             if (record == null)
             {
                 return NotFound();
@@ -93,13 +137,13 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
         {
-            var record = _context.UserAnswers.FirstOrDefault(e => e.Id == id);
+            var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
             if (record == null)
             {
                 return NotFound();
             }
 
-            _context.UserAnswers.Remove(record);
+            record.IsDeleted = true;
             _context.SaveChanges();
 
             return Ok();

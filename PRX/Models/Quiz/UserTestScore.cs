@@ -8,7 +8,7 @@ namespace PRX.Models.Quiz
         [Required]
         public int UserId { get; set; }
         [Required]
-        public int Score { get; set; }
+        public int QuizScore { get; set; }
 
 
         public bool IsDeleted { get; set; } = false;

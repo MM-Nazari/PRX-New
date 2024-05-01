@@ -78,7 +78,7 @@ namespace PRX.Controllers.Quiz
         }
 
         // PUT: api/UserAnswerOption/5
-        [HttpPut("{id}")]
+        [HttpPut("PutById/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -99,7 +99,7 @@ namespace PRX.Controllers.Quiz
         }
 
         // DELETE: api/UserAnswerOption/5
-        [HttpDelete("{id}")]
+        [HttpDelete("DeleteById/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
@@ -110,11 +110,37 @@ namespace PRX.Controllers.Quiz
                 return NotFound();
             }
 
-            _context.UserAnswerOptions.Remove(record);
+            record.IsDeleted = true;
             _context.SaveChanges();
 
             return Ok();
         }
+
+        // DELETE: api/UserAnswerOption/DeleteByQuestionId/5
+        [HttpDelete("DeleteByQuestionId/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteByQuestionId(int id)
+        {
+            var records = _context.UserAnswerOptions.Where(e => e.QuestionId == id).ToList();
+            if (records == null || records.Count == 0)
+            {
+                return NotFound();
+            }
+
+            foreach (var record in records)
+            {
+                record.IsDeleted = true;
+            }
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+
+
 
         // DELETE: api/UserAnswerOption
         [HttpDelete]

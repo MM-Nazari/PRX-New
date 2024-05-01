@@ -3,6 +3,8 @@
     public class UserTestScoreDto
     {
         public int UserId { get; set; }
-        public int Score { get; set; }
+        public int QuizScore { get; set; }
+
+        public bool IsDeleted { get; set; }
     }
 }
