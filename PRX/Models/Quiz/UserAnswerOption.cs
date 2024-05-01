@@ -8,6 +8,9 @@ namespace PRX.Models.Quiz
         public int Id { get; set; }
         public int QuestionId { get; set; }
         public string Text { get; set; }
+
+
+        public bool IsDeleted { get; set; } = false;
         public UserQuestion UserQuestion { get; set; }
         //public List<HaghighiUserAnswer> HaghighiUserAnswers { get; set; }
         public UserAnswer UserAnswer { get; set; }

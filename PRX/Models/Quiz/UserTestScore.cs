@@ -10,6 +10,9 @@ namespace PRX.Models.Quiz
         [Required]
         public int Score { get; set; }
 
+
+        public bool IsDeleted { get; set; } = false;
+
         public PRX.Models.User.User User { get; set; }
     }
 }

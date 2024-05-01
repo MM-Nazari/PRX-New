@@ -27,7 +27,7 @@ namespace PRX.Controllers.Quiz
         }
 
         // GET: api/UserAnswerOption/5
-        [HttpGet("{id}")]
+        [HttpGet("GetById/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
@@ -38,6 +38,20 @@ namespace PRX.Controllers.Quiz
                 return NotFound();
             }
             return Ok(record);
+        }
+
+        // GET: api/UserAnswerOption/GetByQuestionId/5
+        [HttpGet("GetByQuestionId/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetByQuestionId(int id)
+        {
+            var records = _context.UserAnswerOptions.Where(e => e.QuestionId == id).ToList();
+            if (records == null || records.Count == 0)
+            {
+                return NotFound();
+            }
+            return Ok(records);
         }
 
         // POST: api/UserAnswerOption

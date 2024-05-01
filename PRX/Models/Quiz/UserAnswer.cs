@@ -13,6 +13,9 @@ namespace PRX.Models.Quiz
 
         public int AnswerOptionId { get; set; }
         public string? AnswerText { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
+
         public User.User User { get; set; }
         public UserAnswerOption answerOption { get; set; }
     }
