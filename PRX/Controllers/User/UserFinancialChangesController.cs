@@ -27,7 +27,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserFinancialChangesById(int id)
@@ -83,7 +83,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -126,7 +126,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserFinancialChanges(int id)
@@ -193,5 +193,99 @@ namespace PRX.Controllers.User
 
             return Ok();
         }
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllUserFinancialChangesAdmin()
+        {
+            var financialChanges = _context.UserFinancialChanges.ToList();
+            var financialChangeDtos = financialChanges.Select(change => new UserFinancialChangesDto
+            {
+                UserId = change.UserId,
+                Description = change.Description,
+                IsComplete = change.IsComplete,
+                IsDeleted = change.IsDeleted
+            }).ToList();
+            return Ok(financialChangeDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserFinancialChangeByIdAdmin(int id)
+        {
+            var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+            if (financialChange == null)
+            {
+                return NotFound();
+            }
+
+            var financialChangeDto = new UserFinancialChangesDto
+            {
+                UserId = financialChange.UserId,
+                Description = financialChange.Description,
+                IsComplete = financialChange.IsComplete,
+                IsDeleted = financialChange.IsDeleted
+            };
+
+            return Ok(financialChangeDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserFinancialChangeAdmin(int id, [FromBody] UserFinancialChangesDto financialChangeDto)
+        {
+            var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+            if (financialChange == null)
+            {
+                return NotFound();
+            }
+
+            financialChange.Description = financialChangeDto.Description;
+            //financialChange.IsComplete = financialChangeDto.IsComplete;
+            //financialChange.IsDeleted = financialChangeDto.IsDeleted;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserFinancialChangeAdmin(int id)
+        {
+            var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+            if (financialChange == null)
+            {
+                return NotFound();
+            }
+
+            financialChange.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/UserFinancialChanges/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearUserFinancialChangesAdmin()
+        {
+            _context.UserFinancialChanges.RemoveRange(_context.UserFinancialChanges);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
     }
 }

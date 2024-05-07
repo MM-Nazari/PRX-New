@@ -114,7 +114,7 @@ namespace PRX.Controllers.User
         // by ID Endpoints
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -150,12 +150,11 @@ namespace PRX.Controllers.User
             catch (Exception ex)
             {
                 return BadRequest();
-                return Unauthorized();
             }
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -205,7 +204,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -244,9 +243,10 @@ namespace PRX.Controllers.User
         }
 
 
-        // all Endpoints
+        // Adimn
 
-        [HttpGet]
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllUsers()
@@ -260,6 +260,80 @@ namespace PRX.Controllers.User
                 IsDeleted = user.IsDeleted
             }).ToList();
             return Ok(userDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserByIdAdmin(int id)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                PhoneNumber = user.PhoneNumber,
+                ReferenceCode = user.ReferenceCode,
+                IsDeleted = user.IsDeleted
+            };
+
+            return Ok(userDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserAdmin(int id, [FromBody] UserDto userDto)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.PhoneNumber = userDto.PhoneNumber;
+            user.ReferenceCode = userDto.ReferenceCode;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserAdmin(int id)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearUser()
+        {
+            _context.Users.RemoveRange(_context.Users);
+            _context.SaveChanges();
+
+            return Ok();
         }
 
 
@@ -276,12 +350,14 @@ namespace PRX.Controllers.User
             // Define custom claim types
             const string IdClaimType = "id";
             const string PhoneClaimType = "phone_number";
+            const string RoleClaimType = "role";
 
             // Create claims for user ID and phone number using custom claim types
             var claims = new List<System.Security.Claims.Claim>
             {
                 new System.Security.Claims.Claim(IdClaimType, user.Id.ToString()),
-                new System.Security.Claims.Claim(PhoneClaimType, user.PhoneNumber)
+                new System.Security.Claims.Claim(PhoneClaimType, user.PhoneNumber),
+                new System.Security.Claims.Claim(RoleClaimType, user.Role),
             };
 
             var token = new JwtSecurityToken(
@@ -293,17 +369,6 @@ namespace PRX.Controllers.User
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-
-        [HttpDelete("clear")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult ClearUser()
-        {
-            _context.Users.RemoveRange(_context.Users);
-            _context.SaveChanges();
-
-            return Ok();
         }
 
     }

@@ -12,6 +12,7 @@ namespace PRX.Dto.User
         
         public int? ReferenceCode { get; set; }
 
+        public string Role { get; set; } = "User";
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
     }

@@ -28,7 +28,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserMoreInformationById(int id)
@@ -85,7 +85,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -128,7 +128,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserMoreInformation(int id)
@@ -196,5 +196,95 @@ namespace PRX.Controllers.User
 
             return Ok();
         }
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllUserMoreInformations()
+        {
+            var userMoreInformations = _context.UserMoreInformations.ToList();
+            var userMoreInformationDtos = userMoreInformations.Select(info => new UserMoreInformationDto
+            {
+                UserId = info.UserId,
+                Info = info.Info,
+                IsComplete = info.IsComplete,
+                IsDeleted = info.IsDeleted
+            }).ToList();
+            return Ok(userMoreInformationDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserMoreInformationByIdAdmin(int id)
+        {
+            var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+            if (userMoreInformation == null)
+            {
+                return NotFound();
+            }
+
+            var userMoreInformationDto = new UserMoreInformationDto
+            {
+                UserId = userMoreInformation.UserId,
+                Info = userMoreInformation.Info,
+                IsComplete = userMoreInformation.IsComplete,
+                IsDeleted = userMoreInformation.IsDeleted
+            };
+
+            return Ok(userMoreInformationDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserMoreInformationAdmin(int id, [FromBody] UserMoreInformationDto userMoreInformationDto)
+        {
+            var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+            if (userMoreInformation == null)
+            {
+                return NotFound();
+            }
+
+            userMoreInformation.Info = userMoreInformationDto.Info;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserMoreInformationAdmin(int id)
+        {
+            var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+            if (userMoreInformation == null)
+            {
+                return NotFound();
+            }
+
+            userMoreInformation.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearUserMoreInformationsAdmin()
+        {
+            _context.UserMoreInformations.RemoveRange(_context.UserMoreInformations);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

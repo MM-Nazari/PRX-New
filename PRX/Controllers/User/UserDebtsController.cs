@@ -19,16 +19,16 @@ namespace PRX.Controllers.User
             _context = context;
         }
 
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult GetAllUserDebts()
-        {
-            var userDebts = _context.UserDebts;
-            return Ok(userDebts);
-        }
+        //[HttpGet]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //public IActionResult GetAllUserDebts()
+        //{
+        //    var userDebts = _context.UserDebts;
+        //    return Ok(userDebts);
+        //}
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserDebtById(int id)
@@ -88,7 +88,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -134,7 +134,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserDebt(int id)
@@ -172,15 +172,15 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpDelete("clear")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult ClearUserDebts()
-        {
-            _context.UserDebts.RemoveRange(_context.UserDebts);
-            _context.SaveChanges();
+        //[HttpDelete("clear")]
+        //[ProducesResponseType(StatusCodes.Status204NoContent)]
+        //public IActionResult ClearUserDebts()
+        //{
+        //    _context.UserDebts.RemoveRange(_context.UserDebts);
+        //    _context.SaveChanges();
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
         [HttpPut("complete/{id}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
@@ -200,6 +200,107 @@ namespace PRX.Controllers.User
 
             return Ok();
         }
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllUserDebts()
+        {
+            var userDebts = _context.UserDebts.ToList();
+            var userDebtDtos = userDebts.Select(debt => new UserDebtDto
+            {
+                UserId = debt.UserId,
+                DebtTitle = debt.DebtTitle,
+                DebtAmount = debt.DebtAmount,
+                DebtDueDate = debt.DebtDueDate,
+                DebtRepaymentPercentage = debt.DebtRepaymentPercentage,
+                IsComplete = debt.IsComplete,
+                IsDeleted = debt.IsDeleted
+            }).ToList();
+            return Ok(userDebtDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserDebtByIdAdmin(int id)
+        {
+            var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.UserId == id && !debt.IsDeleted);
+            if (userDebt == null)
+            {
+                return NotFound();
+            }
+
+            var userDebtDto = new UserDebtDto
+            {
+                UserId = userDebt.UserId,
+                DebtTitle = userDebt.DebtTitle,
+                DebtAmount = userDebt.DebtAmount,
+                DebtDueDate = userDebt.DebtDueDate,
+                DebtRepaymentPercentage = userDebt.DebtRepaymentPercentage,
+                IsComplete = userDebt.IsComplete,
+                IsDeleted = userDebt.IsDeleted
+            };
+
+            return Ok(userDebtDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserDebtAdmin(int id, [FromBody] UserDebtDto userDebtDto)
+        {
+            var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.UserId == id && !debt.IsDeleted);
+            if (userDebt == null)
+            {
+                return NotFound();
+            }
+
+            userDebt.DebtTitle = userDebtDto.DebtTitle;
+            userDebt.DebtAmount = userDebtDto.DebtAmount;
+            userDebt.DebtDueDate = userDebtDto.DebtDueDate;
+            userDebt.DebtRepaymentPercentage = userDebtDto.DebtRepaymentPercentage;
+            //userDebt.IsComplete = userDebtDto.IsComplete;
+            //userDebt.IsDeleted = userDebtDto.IsDeleted;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserDebtAdmin(int id)
+        {
+            var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.UserId == id && !debt.IsDeleted);
+            if (userDebt == null)
+            {
+                return NotFound();
+            }
+
+            userDebt.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearUserDebts()
+        {
+            _context.UserDebts.RemoveRange(_context.UserDebts);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
     }
 }

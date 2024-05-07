@@ -58,7 +58,14 @@ builder.Services.AddAuthentication(options =>
 });
 
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("UserRolePolicy", policy =>
+        policy.RequireRole("User"));
+
+    options.AddPolicy("AdminRolePolicy", policy =>
+        policy.RequireRole("Admin"));
+});
 
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -104,7 +111,7 @@ builder.Services.AddSwaggerGen(c =>
 
         // Users Groups
         // Include controllers with specific group names
-        var allowedGroups = new[] { "Users", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles", "UserFinancialChanges", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserAssets", "UserAssetTypes", "UserDebts", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals" }; 
+        var allowedGroups = new[] { "Users", "Admins", "UserAssets", "UserDebts", "UserFinancialChanges", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserAssetTypes", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"}; 
         return allowedGroups.Contains(apiDesc.GroupName);
 
 

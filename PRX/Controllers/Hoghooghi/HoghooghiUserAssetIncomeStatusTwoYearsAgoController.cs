@@ -30,7 +30,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // GET: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
@@ -100,7 +100,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // PUT: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -156,7 +156,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // DELETE: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
@@ -224,5 +224,130 @@ namespace PRX.Controllers.Hoghooghi
 
             return Ok();
         }
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHoghooghiUserAssetIncomeStatusTwoYearsAgo()
+        {
+            var statuses = _context.HoghooghiUsersAssets.ToList();
+            var statusDtos = statuses.Select(status => new HoghooghiUserAssetIncomeStatusTwoYearsAgoDto
+            {
+                UserId = status.UserId,
+                FiscalYear = status.FiscalYear,
+                RegisteredCapital = status.RegisteredCapital,
+                ApproximateAssetValue = status.ApproximateAssetValue,
+                TotalLiabilities = status.TotalLiabilities,
+                TotalInvestments = status.TotalInvestments,
+                OperationalIncome = status.OperationalIncome,
+                OtherIncome = status.OtherIncome,
+                OperationalExpenses = status.OperationalExpenses,
+                OtherExpenses = status.OtherExpenses,
+                OperationalProfitOrLoss = status.OperationalProfitOrLoss,
+                NetProfitOrLoss = status.NetProfitOrLoss,
+                AccumulatedProfitOrLoss = status.AccumulatedProfitOrLoss,
+                IsComplete = status.IsComplete,
+                IsDeleted = status.IsDeleted
+            }).ToList();
+            return Ok(statusDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHoghooghiUserAssetIncomeStatusTwoYearsAgoByIdAdmin(int id)
+        {
+            var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+            if (status == null)
+            {
+                return NotFound();
+            }
+
+            var statusDto = new HoghooghiUserAssetIncomeStatusTwoYearsAgoDto
+            {
+                UserId = status.UserId,
+                FiscalYear = status.FiscalYear,
+                RegisteredCapital = status.RegisteredCapital,
+                ApproximateAssetValue = status.ApproximateAssetValue,
+                TotalLiabilities = status.TotalLiabilities,
+                TotalInvestments = status.TotalInvestments,
+                OperationalIncome = status.OperationalIncome,
+                OtherIncome = status.OtherIncome,
+                OperationalExpenses = status.OperationalExpenses,
+                OtherExpenses = status.OtherExpenses,
+                OperationalProfitOrLoss = status.OperationalProfitOrLoss,
+                NetProfitOrLoss = status.NetProfitOrLoss,
+                AccumulatedProfitOrLoss = status.AccumulatedProfitOrLoss,
+                IsComplete = status.IsComplete,
+                IsDeleted = status.IsDeleted
+            };
+
+            return Ok(statusDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHoghooghiUserAssetIncomeStatusTwoYearsAgoAdmin(int id, [FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoDto statusDto)
+        {
+            var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+            if (status == null)
+            {
+                return NotFound();
+            }
+
+            status.FiscalYear = statusDto.FiscalYear;
+            status.RegisteredCapital = statusDto.RegisteredCapital;
+            status.ApproximateAssetValue = statusDto.ApproximateAssetValue;
+            status.TotalLiabilities = statusDto.TotalLiabilities;
+            status.TotalInvestments = statusDto.TotalInvestments;
+            status.OperationalIncome = statusDto.OperationalIncome;
+            status.OtherIncome = statusDto.OtherIncome;
+            status.OperationalExpenses = statusDto.OperationalExpenses;
+            status.OtherExpenses = statusDto.OtherExpenses;
+            status.OperationalProfitOrLoss = statusDto.OperationalProfitOrLoss;
+            status.NetProfitOrLoss = statusDto.NetProfitOrLoss;
+            status.AccumulatedProfitOrLoss = statusDto.AccumulatedProfitOrLoss;
+            //status.IsComplete = statusDto.IsComplete;
+            //status.IsDeleted = statusDto.IsDeleted;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHoghooghiUserAssetIncomeStatusTwoYearsAgoAdmin(int id)
+        {
+            var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+            if (status == null)
+            {
+                return NotFound();
+            }
+
+            status.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHoghooghiUserAssetIncomeStatusTwoYearsAgo()
+        {
+            _context.HoghooghiUsersAssets.RemoveRange(_context.HoghooghiUsersAssets);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

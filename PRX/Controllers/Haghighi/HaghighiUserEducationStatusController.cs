@@ -29,7 +29,7 @@ namespace PRX.Controllers.Haghighi
 
         // GET: api/HaghighiUserEducationStatus/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserEducationStatusById(int id)
@@ -92,7 +92,7 @@ namespace PRX.Controllers.Haghighi
 
         // PUT: api/HaghighiUserEducationStatus/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -139,7 +139,7 @@ namespace PRX.Controllers.Haghighi
 
         // DELETE: api/HaghighiUserEducationStatus/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserEducationStatus(int id)
@@ -207,5 +207,107 @@ namespace PRX.Controllers.Haghighi
 
             return Ok();
         }
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHaghighiUserEducationStatusesAdmin()
+        {
+            var statuses = _context.HaghighiUserEducationStatuses.ToList();
+            var statusDtos = statuses.Select(status => new HaghighiUserEducationStatusDto
+            {
+                UserId = status.UserId,
+                LastDegree = status.LastDegree,
+                FieldOfStudy = status.FieldOfStudy,
+                GraduationYear = status.GraduationYear,
+                IssuingAuthority = status.IssuingAuthority,
+                IsComplete = status.IsComplete,
+                IsDeleted = status.IsDeleted
+            }).ToList();
+            return Ok(statusDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHaghighiUserEducationStatusByIdAdmin(int id)
+        {
+            var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+            if (status == null)
+            {
+                return NotFound();
+            }
+
+            var statusDto = new HaghighiUserEducationStatusDto
+            {
+                UserId = status.UserId,
+                LastDegree = status.LastDegree,
+                FieldOfStudy = status.FieldOfStudy,
+                GraduationYear = status.GraduationYear,
+                IssuingAuthority = status.IssuingAuthority,
+                IsComplete = status.IsComplete,
+                IsDeleted = status.IsDeleted
+            };
+
+            return Ok(statusDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHaghighiUserEducationStatusAdmin(int id, [FromBody] HaghighiUserEducationStatusDto statusDto)
+        {
+            var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+            if (status == null)
+            {
+                return NotFound();
+            }
+
+            status.LastDegree = statusDto.LastDegree;
+            status.FieldOfStudy = statusDto.FieldOfStudy;
+            status.GraduationYear = statusDto.GraduationYear;
+            status.IssuingAuthority = statusDto.IssuingAuthority;
+            //status.IsComplete = statusDto.IsComplete;
+            //status.IsDeleted = statusDto.IsDeleted;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHaghighiUserEducationStatusAdmin(int id)
+        {
+            var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+            if (status == null)
+            {
+                return NotFound();
+            }
+
+            status.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHaghighiUserEducationStatusesAdmin()
+        {
+            _context.HaghighiUserEducationStatuses.RemoveRange(_context.HaghighiUserEducationStatuses);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

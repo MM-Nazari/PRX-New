@@ -28,7 +28,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserFuturePlansById(int id)
@@ -87,7 +87,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -130,7 +130,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserFuturePlans(int id)
@@ -199,5 +199,96 @@ namespace PRX.Controllers.User
 
             return Ok();
         }
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllUserFuturePlansAdmin()
+        {
+            var futurePlans = _context.UserFuturePlans.ToList();
+            var futurePlanDtos = futurePlans.Select(plan => new UserFuturePlansDto
+            {
+                UserId = plan.UserId,
+                Description = plan.Description,
+                IsComplete = plan.IsComplete,
+                IsDeleted = plan.IsDeleted
+            }).ToList();
+            return Ok(futurePlanDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserFuturePlansByIdAdmin(int id)
+        {
+            var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+            if (futurePlan == null)
+            {
+                return NotFound();
+            }
+
+            var futurePlanDto = new UserFuturePlansDto
+            {
+                UserId = futurePlan.UserId,
+                Description = futurePlan.Description,
+                IsComplete = futurePlan.IsComplete,
+                IsDeleted = futurePlan.IsDeleted
+            };
+
+            return Ok(futurePlanDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserFuturePlansAdmin(int id, [FromBody] UserFuturePlansDto futurePlanDto)
+        {
+            var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+            if (futurePlan == null)
+            {
+                return NotFound();
+            }
+
+            futurePlan.Description = futurePlanDto.Description;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserFuturePlansAdmin(int id)
+        {
+            var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+            if (futurePlan == null)
+            {
+                return NotFound();
+            }
+
+            futurePlan.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearUserFuturePlansAdmin()
+        {
+            _context.UserFuturePlans.RemoveRange(_context.UserFuturePlans);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

@@ -29,7 +29,7 @@ namespace PRX.Controllers.Haghighi
 
         // GET: api/HaghighiUserEmploymentHistory/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserEmploymentHistoryById(int id)
@@ -93,7 +93,7 @@ namespace PRX.Controllers.Haghighi
 
         // PUT: api/HaghighiUserEmploymentHistory/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -144,7 +144,7 @@ namespace PRX.Controllers.Haghighi
 
         // DELETE: api/HaghighiUserEmploymentHistory/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserEmploymentHistory(int id)
@@ -215,5 +215,116 @@ namespace PRX.Controllers.Haghighi
 
             return Ok();
         }
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHaghighiUserEmploymentHistories()
+        {
+            var histories = _context.HaghighiUserEmploymentHistories.ToList();
+            var historyDtos = histories.Select(history => new HaghighiUserEmploymentHistoryDto
+            {
+                UserId = history.UserId,
+                EmployerLocation = history.EmployerLocation,
+                MainActivity = history.MainActivity,
+                Position = history.Position,
+                StartDate = history.StartDate,
+                EndDate = history.EndDate,
+                WorkAddress = history.WorkAddress,
+                WorkPhone = history.WorkPhone,
+                IsComplete = history.IsComplete,
+                IsDeleted = history.IsDeleted
+            }).ToList();
+            return Ok(historyDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHaghighiUserEmploymentHistoryByIdAdmin(int id)
+        {
+            var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+            if (history == null)
+            {
+                return NotFound();
+            }
+
+            var historyDto = new HaghighiUserEmploymentHistoryDto
+            {
+                UserId = history.UserId,
+                EmployerLocation = history.EmployerLocation,
+                MainActivity = history.MainActivity,
+                Position = history.Position,
+                StartDate = history.StartDate,
+                EndDate = history.EndDate,
+                WorkAddress = history.WorkAddress,
+                WorkPhone = history.WorkPhone,
+                IsComplete = history.IsComplete,
+                IsDeleted = history.IsDeleted
+            };
+
+            return Ok(historyDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHaghighiUserEmploymentHistoryAdmin(int id, [FromBody] HaghighiUserEmploymentHistoryDto historyDto)
+        {
+            var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+            if (history == null)
+            {
+                return NotFound();
+            }
+
+            history.EmployerLocation = historyDto.EmployerLocation;
+            history.MainActivity = historyDto.MainActivity;
+            history.Position = historyDto.Position;
+            history.StartDate = historyDto.StartDate;
+            history.EndDate = historyDto.EndDate;
+            history.WorkAddress = historyDto.WorkAddress;
+            history.WorkPhone = historyDto.WorkPhone;
+            //history.IsComplete = historyDto.IsComplete;
+            //history.IsDeleted = historyDto.IsDeleted;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHaghighiUserEmploymentHistoryAdmin(int id)
+        {
+            var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+            if (history == null)
+            {
+                return NotFound();
+            }
+
+            history.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHaghighiUserEmploymentHistories()
+        {
+            _context.HaghighiUserEmploymentHistories.RemoveRange(_context.HaghighiUserEmploymentHistories);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

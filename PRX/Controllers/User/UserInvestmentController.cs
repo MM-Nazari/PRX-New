@@ -28,7 +28,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserInvestmentById(int id)
@@ -86,7 +86,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -129,7 +129,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserInvestment(int id)
@@ -197,5 +197,95 @@ namespace PRX.Controllers.User
 
             return Ok();
         }
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllUserInvestmentsAdmin()
+        {
+            var investments = _context.UserInvestments.ToList();
+            var investmentDtos = investments.Select(investment => new UserInvestmentDto
+            {
+                UserId = investment.UserId,
+                Amount = investment.Amount,
+                IsComplete = investment.IsComplete,
+                IsDeleted = investment.IsDeleted
+            }).ToList();
+            return Ok(investmentDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserInvestmentByIdAdmin(int id)
+        {
+            var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+            if (investment == null)
+            {
+                return NotFound();
+            }
+
+            var investmentDto = new UserInvestmentDto
+            {
+                UserId = investment.UserId,
+                Amount = investment.Amount,
+                IsComplete = investment.IsComplete,
+                IsDeleted = investment.IsDeleted
+            };
+
+            return Ok(investmentDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserInvestmentAdmin(int id, [FromBody] UserInvestmentDto investmentDto)
+        {
+            var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+            if (investment == null)
+            {
+                return NotFound();
+            }
+
+            investment.Amount = investmentDto.Amount;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserInvestmentAdmin(int id)
+        {
+            var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+            if (investment == null)
+            {
+                return NotFound();
+            }
+
+            investment.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearUserInvestmentsAdmin()
+        {
+            _context.UserInvestments.RemoveRange(_context.UserInvestments);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

@@ -29,7 +29,7 @@ namespace PRX.Controllers.Haghighi
 
         // GET: api/HaghighiUserProfile/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserProfileById(int id)
@@ -63,7 +63,7 @@ namespace PRX.Controllers.Haghighi
 
         // PUT: api/HaghighiUserProfile/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -105,7 +105,7 @@ namespace PRX.Controllers.Haghighi
 
         // DELETE: api/HaghighiUserProfile/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -210,6 +210,141 @@ namespace PRX.Controllers.Haghighi
 
             return Ok();
         }
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHaghighiUserProfilesAdmin()
+        {
+            var profiles = _context.HaghighiUserProfiles.ToList();
+            var profileDtos = profiles.Select(profile => new HaghighiUserProfileDto
+            {
+                UserId = profile.UserId,
+                FirstName = profile.FirstName,
+                LastName = profile.LastName,
+                FathersName = profile.FathersName,
+                NationalNumber = profile.NationalNumber,
+                BirthDate = profile.BirthDate,
+                BirthPlace = profile.BirthPlace,
+                BirthCertificateNumber = profile.BirthCertificateNumber,
+                MaritalStatus = profile.MaritalStatus,
+                Gender = profile.Gender,
+                PostalCode = profile.PostalCode,
+                HomePhone = profile.HomePhone,
+                Fax = profile.Fax,
+                BestTimeToCall = profile.BestTimeToCall,
+                ResidentialAddress = profile.ResidentialAddress,
+                Email = profile.Email,
+                IsComplete = profile.IsComplete,
+                IsDeleted = profile.IsDeleted
+            }).ToList();
+            return Ok(profileDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHaghighiUserProfileByIdAdmin(int id)
+        {
+            var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            var profileDto = new HaghighiUserProfileDto
+            {
+                UserId = profile.UserId,
+                FirstName = profile.FirstName,
+                LastName = profile.LastName,
+                FathersName = profile.FathersName,
+                NationalNumber = profile.NationalNumber,
+                BirthDate = profile.BirthDate,
+                BirthPlace = profile.BirthPlace,
+                BirthCertificateNumber = profile.BirthCertificateNumber,
+                MaritalStatus = profile.MaritalStatus,
+                Gender = profile.Gender,
+                PostalCode = profile.PostalCode,
+                HomePhone = profile.HomePhone,
+                Fax = profile.Fax,
+                BestTimeToCall = profile.BestTimeToCall,
+                ResidentialAddress = profile.ResidentialAddress,
+                Email = profile.Email,
+                IsComplete = profile.IsComplete,
+                IsDeleted = profile.IsDeleted
+            };
+
+            return Ok(profileDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHaghighiUserProfileAdmin(int id, [FromBody] HaghighiUserProfileDto profileDto)
+        {
+            var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            profile.FirstName = profileDto.FirstName;
+            profile.LastName = profileDto.LastName;
+            profile.FathersName = profileDto.FathersName;
+            profile.NationalNumber = profileDto.NationalNumber;
+            profile.BirthDate = profileDto.BirthDate;
+            profile.BirthPlace = profileDto.BirthPlace;
+            profile.BirthCertificateNumber = profileDto.BirthCertificateNumber;
+            profile.MaritalStatus = profileDto.MaritalStatus;
+            profile.Gender = profileDto.Gender;
+            profile.PostalCode = profileDto.PostalCode;
+            profile.HomePhone = profileDto.HomePhone;
+            profile.Fax = profileDto.Fax;
+            profile.BestTimeToCall = profileDto.BestTimeToCall;
+            profile.ResidentialAddress = profileDto.ResidentialAddress;
+            profile.Email = profileDto.Email;
+            //profile.IsComplete = profileDto.IsComplete;
+            //profile.IsDeleted = profileDto.IsDeleted;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHaghighiUserProfileAdmin(int id)
+        {
+            var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            profile.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHaghighiUserProfiles()
+        {
+            _context.HaghighiUserProfiles.RemoveRange(_context.HaghighiUserProfiles);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
     }
 }

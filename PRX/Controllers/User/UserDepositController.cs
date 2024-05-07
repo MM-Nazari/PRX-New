@@ -88,7 +88,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -133,7 +133,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserDeposit(int id)
@@ -200,5 +200,103 @@ namespace PRX.Controllers.User
 
             return Ok();
         }
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllUserDepositsAdmin()
+        {
+            var deposits = _context.UserDeposits.ToList();
+            var depositDtos = deposits.Select(deposit => new UserDepositDto
+            {
+                UserId = deposit.UserId,
+                DepositAmount = deposit.DepositAmount,
+                DepositDate = deposit.DepositDate,
+                DepositSource = deposit.DepositSource,
+                IsComplete = deposit.IsComplete,
+                IsDeleted = deposit.IsDeleted
+            }).ToList();
+            return Ok(depositDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserDepositByIdAdmin(int id)
+        {
+            var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+            if (deposit == null)
+            {
+                return NotFound();
+            }
+
+            var depositDto = new UserDepositDto
+            {
+                UserId = deposit.UserId,
+                DepositAmount = deposit.DepositAmount,
+                DepositDate = deposit.DepositDate,
+                DepositSource = deposit.DepositSource,
+                IsComplete = deposit.IsComplete,
+                IsDeleted = deposit.IsDeleted
+            };
+
+            return Ok(depositDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserDepositAdmin(int id, [FromBody] UserDepositDto depositDto)
+        {
+            var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+            if (deposit == null)
+            {
+                return NotFound();
+            }
+
+            deposit.DepositAmount = depositDto.DepositAmount;
+            deposit.DepositDate = depositDto.DepositDate;
+            deposit.DepositSource = depositDto.DepositSource;
+  
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserDepositAdmin(int id)
+        {
+            var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+            if (deposit == null)
+            {
+                return NotFound();
+            }
+
+            deposit.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearUserDepositsAdmin()
+        {
+            _context.UserDeposits.RemoveRange(_context.UserDeposits);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

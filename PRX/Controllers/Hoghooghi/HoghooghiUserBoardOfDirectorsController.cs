@@ -29,7 +29,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // GET: api/HoghooghiUserBoardOfDirectors/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
@@ -95,7 +95,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // PUT: api/HoghooghiUserBoardOfDirectors/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -145,7 +145,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // DELETE: api/HoghooghiUserBoardOfDirectors/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
@@ -215,5 +215,116 @@ namespace PRX.Controllers.Hoghooghi
 
             return Ok();
         }
+
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHoghooghiUserBoardOfDirectors()
+        {
+            var directors = _context.HoghooghiUserBoardOfDirectors.ToList();
+            var directorDtos = directors.Select(director => new HoghooghiUserBoardOfDirectorsDto
+            {
+                UserId = director.UserId,
+                FullName = director.FullName,
+                Position = director.Position,
+                EducationalLevel = director.EducationalLevel,
+                FieldOfStudy = director.FieldOfStudy,
+                ExecutiveExperience = director.ExecutiveExperience,
+                FamiliarityWithCapitalMarket = director.FamiliarityWithCapitalMarket,
+                PersonalInvestmentExperienceInStockExchange = director.PersonalInvestmentExperienceInStockExchange,
+                IsComplete = director.IsComplete,
+                IsDeleted = director.IsDeleted
+            }).ToList();
+            return Ok(directorDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHoghooghiUserBoardOfDirectorsByIdAdmin(int id)
+        {
+            var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+            if (director == null)
+            {
+                return NotFound();
+            }
+
+            var directorDto = new HoghooghiUserBoardOfDirectorsDto
+            {
+                UserId = director.UserId,
+                FullName = director.FullName,
+                Position = director.Position,
+                EducationalLevel = director.EducationalLevel,
+                FieldOfStudy = director.FieldOfStudy,
+                ExecutiveExperience = director.ExecutiveExperience,
+                FamiliarityWithCapitalMarket = director.FamiliarityWithCapitalMarket,
+                PersonalInvestmentExperienceInStockExchange = director.PersonalInvestmentExperienceInStockExchange,
+                IsComplete = director.IsComplete,
+                IsDeleted = director.IsDeleted
+            };
+
+            return Ok(directorDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHoghooghiUserBoardOfDirectorsAdmin(int id, [FromBody] HoghooghiUserBoardOfDirectorsDto directorDto)
+        {
+            var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+            if (director == null)
+            {
+                return NotFound();
+            }
+
+            director.FullName = directorDto.FullName;
+            director.Position = directorDto.Position;
+            director.EducationalLevel = directorDto.EducationalLevel;
+            director.FieldOfStudy = directorDto.FieldOfStudy;
+            director.ExecutiveExperience = directorDto.ExecutiveExperience;
+            director.FamiliarityWithCapitalMarket = directorDto.FamiliarityWithCapitalMarket;
+            director.PersonalInvestmentExperienceInStockExchange = directorDto.PersonalInvestmentExperienceInStockExchange;
+          
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHoghooghiUserBoardOfDirectorsAdmin(int id)
+        {
+            var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+            if (director == null)
+            {
+                return NotFound();
+            }
+
+            director.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHoghooghiUserBoardOfDirectors()
+        {
+            _context.HoghooghiUserBoardOfDirectors.RemoveRange(_context.HoghooghiUserBoardOfDirectors);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

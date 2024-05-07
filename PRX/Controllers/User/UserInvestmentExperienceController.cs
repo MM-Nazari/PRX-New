@@ -28,7 +28,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserInvestmentExperienceById(int id)
@@ -91,7 +91,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -140,7 +140,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserInvestmentExperience(int id)
@@ -208,5 +208,110 @@ namespace PRX.Controllers.User
 
             return Ok();
         }
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllUserInvestmentExperiencesAdmin()
+        {
+            var experiences = _context.UserInvestmentExperiences.ToList();
+            var experienceDtos = experiences.Select(experience => new UserInvestmentExperienceDto
+            {
+                UserId = experience.UserId,
+                InvestmentType = experience.InvestmentType,
+                InvestmentAmount = experience.InvestmentAmount,
+                InvestmentDurationMonths = experience.InvestmentDurationMonths,
+                ProfitLossAmount = experience.ProfitLossAmount,
+                ProfitLossDescription = experience.ProfitLossDescription,
+                ConversionReason = experience.ConversionReason,
+                IsComplete = experience.IsComplete,
+                IsDeleted = experience.IsDeleted
+            }).ToList();
+            return Ok(experienceDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetUserInvestmentExperienceByIdAdmin(int id)
+        {
+            var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.UserId == id && !exp.IsDeleted);
+            if (experience == null)
+            {
+                return NotFound();
+            }
+
+            var experienceDto = new UserInvestmentExperienceDto
+            {
+                UserId = experience.UserId,
+                InvestmentType = experience.InvestmentType,
+                InvestmentAmount = experience.InvestmentAmount,
+                InvestmentDurationMonths = experience.InvestmentDurationMonths,
+                ProfitLossAmount = experience.ProfitLossAmount,
+                ProfitLossDescription = experience.ProfitLossDescription,
+                ConversionReason = experience.ConversionReason,
+                IsComplete = experience.IsComplete,
+                IsDeleted = experience.IsDeleted
+            };
+
+            return Ok(experienceDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateUserInvestmentExperienceAdmin(int id, [FromBody] UserInvestmentExperienceDto experienceDto)
+        {
+            var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.UserId == id && !exp.IsDeleted);
+            if (experience == null)
+            {
+                return NotFound();
+            }
+
+            experience.InvestmentType = experienceDto.InvestmentType;
+            experience.InvestmentAmount = experienceDto.InvestmentAmount;
+            experience.InvestmentDurationMonths = experienceDto.InvestmentDurationMonths;
+            experience.ProfitLossAmount = experienceDto.ProfitLossAmount;
+            experience.ProfitLossDescription = experienceDto.ProfitLossDescription;
+            experience.ConversionReason = experienceDto.ConversionReason;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteUserInvestmentExperienceAdmin(int id)
+        {
+            var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.UserId == id && !exp.IsDeleted);
+            if (experience == null)
+            {
+                return NotFound();
+            }
+
+            experience.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearUserInvestmentExperiencesAdmin()
+        {
+            _context.UserInvestmentExperiences.RemoveRange(_context.UserInvestmentExperiences);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

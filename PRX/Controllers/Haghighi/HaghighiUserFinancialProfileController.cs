@@ -29,7 +29,7 @@ namespace PRX.Controllers.Haghighi
 
         // GET: api/HaghighiUserFinancialProfile/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserFinancialProfileById(int id)
@@ -92,7 +92,7 @@ namespace PRX.Controllers.Haghighi
 
         // PUT: api/HaghighiUserFinancialProfile/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -140,7 +140,7 @@ namespace PRX.Controllers.Haghighi
 
         // DELETE: api/HaghighiUserFinancialProfile/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserFinancialProfile(int id)
@@ -209,5 +209,113 @@ namespace PRX.Controllers.Haghighi
 
             return Ok();
         }
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHaghighiUserFinancialProfilesAdmin()
+        {
+            var profiles = _context.HaghighiUserFinancialProfiles.ToList();
+            var profileDtos = profiles.Select(profile => new HaghighiUserFinancialProfileDto
+            {
+                UserId = profile.UserId,
+                MainContinuousIncome = profile.MainContinuousIncome,
+                OtherIncomes = profile.OtherIncomes,
+                SupportFromOthers = profile.SupportFromOthers,
+                ContinuousExpenses = profile.ContinuousExpenses,
+                OccasionalExpenses = profile.OccasionalExpenses,
+                ContributionToOthers = profile.ContributionToOthers,
+                IsComplete = profile.IsComplete,
+                IsDeleted = profile.IsDeleted
+            }).ToList();
+            return Ok(profileDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHaghighiUserFinancialProfileByIdAdmin(int id)
+        {
+            var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            var profileDto = new HaghighiUserFinancialProfileDto
+            {
+                UserId = profile.UserId,
+                MainContinuousIncome = profile.MainContinuousIncome,
+                OtherIncomes = profile.OtherIncomes,
+                SupportFromOthers = profile.SupportFromOthers,
+                ContinuousExpenses = profile.ContinuousExpenses,
+                OccasionalExpenses = profile.OccasionalExpenses,
+                ContributionToOthers = profile.ContributionToOthers,
+                IsComplete = profile.IsComplete,
+                IsDeleted = profile.IsDeleted
+            };
+
+            return Ok(profileDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHaghighiUserFinancialProfileAdmin(int id, [FromBody] HaghighiUserFinancialProfileDto profileDto)
+        {
+            var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            profile.MainContinuousIncome = profileDto.MainContinuousIncome;
+            profile.OtherIncomes = profileDto.OtherIncomes;
+            profile.SupportFromOthers = profileDto.SupportFromOthers;
+            profile.ContinuousExpenses = profileDto.ContinuousExpenses;
+            profile.OccasionalExpenses = profileDto.OccasionalExpenses;
+            profile.ContributionToOthers = profileDto.ContributionToOthers;
+            //profile.IsComplete = profileDto.IsComplete;
+            //profile.IsDeleted = profileDto.IsDeleted;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHaghighiUserFinancialProfileAdmin(int id)
+        {
+            var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            profile.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHaghighiUserFinancialProfiles()
+        {
+            _context.HaghighiUserFinancialProfiles.RemoveRange(_context.HaghighiUserFinancialProfiles);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

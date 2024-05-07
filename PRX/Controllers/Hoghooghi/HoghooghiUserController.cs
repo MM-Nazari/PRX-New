@@ -29,7 +29,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // GET: api/HoghooghiUser/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHoghooghiUserById(int id)
@@ -103,7 +103,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // PUT: api/HoghooghiUser/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -163,7 +163,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // DELETE: api/HoghooghiUser/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHoghooghiUser(int id)
@@ -232,5 +232,141 @@ namespace PRX.Controllers.Hoghooghi
 
             return Ok();
         }
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHoghooghiUsersAdmin()
+        {
+            var users = _context.HoghooghiUsers.ToList();
+            var userDtos = users.Select(user => new HoghooghiUserDto
+            {
+                UserId = user.UserId,
+                Name = user.Name,
+                RegistrationNumber = user.RegistrationNumber,
+                RegistrationDate = user.RegistrationDate,
+                RegistrationLocation = user.RegistrationLocation,
+                NationalId = user.NationalId,
+                MainActivityBasedOnCharter = user.MainActivityBasedOnCharter,
+                MainActivityBasedOnPastThreeYearsPerformance = user.MainActivityBasedOnPastThreeYearsPerformance,
+                PostalCode = user.PostalCode,
+                LandlinePhone = user.LandlinePhone,
+                Fax = user.Fax,
+                BestTimeToCall = user.BestTimeToCall,
+                Address = user.Address,
+                Email = user.Email,
+                RepresentativeName = user.RepresentativeName,
+                RepresentativeNationalId = user.RepresentativeNationalId,
+                RepresentativeMobilePhone = user.RepresentativeMobilePhone,
+                IsComplete = user.IsComplete,
+                IsDeleted = user.IsDeleted
+            }).ToList();
+            return Ok(userDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHoghooghiUserByIdAdmin(int id)
+        {
+            var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var userDto = new HoghooghiUserDto
+            {
+                UserId = user.UserId,
+                Name = user.Name,
+                RegistrationNumber = user.RegistrationNumber,
+                RegistrationDate = user.RegistrationDate,
+                RegistrationLocation = user.RegistrationLocation,
+                NationalId = user.NationalId,
+                MainActivityBasedOnCharter = user.MainActivityBasedOnCharter,
+                MainActivityBasedOnPastThreeYearsPerformance = user.MainActivityBasedOnPastThreeYearsPerformance,
+                PostalCode = user.PostalCode,
+                LandlinePhone = user.LandlinePhone,
+                Fax = user.Fax,
+                BestTimeToCall = user.BestTimeToCall,
+                Address = user.Address,
+                Email = user.Email,
+                RepresentativeName = user.RepresentativeName,
+                RepresentativeNationalId = user.RepresentativeNationalId,
+                RepresentativeMobilePhone = user.RepresentativeMobilePhone,
+                IsComplete = user.IsComplete,
+                IsDeleted = user.IsDeleted
+            };
+
+            return Ok(userDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHoghooghiUserAdmin(int id, [FromBody] HoghooghiUserDto userDto)
+        {
+            var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.Name = userDto.Name;
+            user.RegistrationNumber = userDto.RegistrationNumber;
+            user.RegistrationDate = userDto.RegistrationDate;
+            user.RegistrationLocation = userDto.RegistrationLocation;
+            user.NationalId = userDto.NationalId;
+            user.MainActivityBasedOnCharter = userDto.MainActivityBasedOnCharter;
+            user.MainActivityBasedOnPastThreeYearsPerformance = userDto.MainActivityBasedOnPastThreeYearsPerformance;
+            user.PostalCode = userDto.PostalCode;
+            user.LandlinePhone = userDto.LandlinePhone;
+            user.Fax = userDto.Fax;
+            user.BestTimeToCall = userDto.BestTimeToCall;
+            user.Address = userDto.Address;
+            user.Email = userDto.Email;
+            user.RepresentativeName = userDto.RepresentativeName;
+            user.RepresentativeNationalId = userDto.RepresentativeNationalId;
+            user.RepresentativeMobilePhone = userDto.RepresentativeMobilePhone;
+
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHoghooghiUserAdmin(int id)
+        {
+            var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHoghooghiUsers()
+        {
+            _context.HoghooghiUsers.RemoveRange(_context.HoghooghiUsers);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

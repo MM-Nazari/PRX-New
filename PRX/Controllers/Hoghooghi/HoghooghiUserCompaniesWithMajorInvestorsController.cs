@@ -29,7 +29,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // GET: api/HoghooghiUserCompaniesWithMajorInvestors/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
@@ -91,7 +91,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // PUT: api/HoghooghiUserCompaniesWithMajorInvestors/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -137,7 +137,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // DELETE: api/HoghooghiUserCompaniesWithMajorInvestors/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
@@ -206,6 +206,104 @@ namespace PRX.Controllers.Hoghooghi
 
             return Ok();
         }
+
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHoghooghiUserCompaniesWithMajorInvestors()
+        {
+            var companies = _context.HoghooghiUserCompaniesWithMajorInvestors.ToList();
+            var companyDtos = companies.Select(company => new HoghooghiUserCompaniesWithMajorInvestorsDto
+            {
+                UserId = company.UserId,
+                CompanyName = company.CompanyName,
+                CompanySubject = company.CompanySubject,
+                PercentageOfTotal = company.PercentageOfTotal,
+                IsComplete = company.IsComplete,
+                IsDeleted = company.IsDeleted
+            }).ToList();
+            return Ok(companyDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHoghooghiUserCompaniesWithMajorInvestorsByIdAdmin(int id)
+        {
+            var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.UserId == id && !c.IsDeleted);
+            if (company == null)
+            {
+                return NotFound();
+            }
+
+            var companyDto = new HoghooghiUserCompaniesWithMajorInvestorsDto
+            {
+                UserId = company.UserId,
+                CompanyName = company.CompanyName,
+                CompanySubject = company.CompanySubject,
+                PercentageOfTotal = company.PercentageOfTotal,
+                IsComplete = company.IsComplete,
+                IsDeleted = company.IsDeleted
+            };
+
+            return Ok(companyDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHoghooghiUserCompaniesWithMajorInvestorsAdmin(int id, [FromBody] HoghooghiUserCompaniesWithMajorInvestorsDto companyDto)
+        {
+            var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.UserId == id && !c.IsDeleted);
+            if (company == null)
+            {
+                return NotFound();
+            }
+
+            company.CompanyName = companyDto.CompanyName;
+            company.CompanySubject = companyDto.CompanySubject;
+            company.PercentageOfTotal = companyDto.PercentageOfTotal;
+ 
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHoghooghiUserCompaniesWithMajorInvestorsAdmin(int id)
+        {
+            var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.UserId == id && !c.IsDeleted);
+            if (company == null)
+            {
+                return NotFound();
+            }
+
+            company.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHoghooghiUserCompaniesWithMajorInvestors()
+        {
+            _context.HoghooghiUserCompaniesWithMajorInvestors.RemoveRange(_context.HoghooghiUserCompaniesWithMajorInvestors);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
     }
 }

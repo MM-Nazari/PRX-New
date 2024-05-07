@@ -29,7 +29,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // GET: api/HoghooghiUserInvestmentDepartmentStaff/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
@@ -95,7 +95,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // PUT: api/HoghooghiUserInvestmentDepartmentStaff/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -145,7 +145,7 @@ namespace PRX.Controllers.Hoghooghi
 
         // DELETE: api/HoghooghiUserInvestmentDepartmentStaff/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
@@ -213,5 +213,114 @@ namespace PRX.Controllers.Hoghooghi
 
             return Ok();
         }
+
+        [HttpGet("Admin")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetAllHoghooghiUserInvestmentDepartmentStaff()
+        {
+            var users = _context.HoghooghiUserInvestmentDepartmentStaff.ToList();
+            var userDtos = users.Select(user => new HoghooghiUserInvestmentDepartmentStaffDto
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Position = user.Position,
+                EducationalLevel = user.EducationalLevel,
+                FieldOfStudy = user.FieldOfStudy,
+                ExecutiveExperience = user.ExecutiveExperience,
+                FamiliarityWithCapitalMarket = user.FamiliarityWithCapitalMarket,
+                PersonalInvestmentExperienceInStockExchange = user.PersonalInvestmentExperienceInStockExchange,
+                IsComplete = user.IsComplete,
+                IsDeleted = user.IsDeleted
+            }).ToList();
+            return Ok(userDtos);
+        }
+
+        [HttpGet("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetHoghooghiUserInvestmentDepartmentStaffByIdAdmin(int id)
+        {
+            var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var userDto = new HoghooghiUserInvestmentDepartmentStaffDto
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Position = user.Position,
+                EducationalLevel = user.EducationalLevel,
+                FieldOfStudy = user.FieldOfStudy,
+                ExecutiveExperience = user.ExecutiveExperience,
+                FamiliarityWithCapitalMarket = user.FamiliarityWithCapitalMarket,
+                PersonalInvestmentExperienceInStockExchange = user.PersonalInvestmentExperienceInStockExchange,
+                IsComplete = user.IsComplete,
+                IsDeleted = user.IsDeleted
+            };
+
+            return Ok(userDto);
+        }
+
+        [HttpPut("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHoghooghiUserInvestmentDepartmentStaffAdmin(int id, [FromBody] HoghooghiUserInvestmentDepartmentStaffDto userDto)
+        {
+            var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.FullName = userDto.FullName;
+            user.Position = userDto.Position;
+            user.EducationalLevel = userDto.EducationalLevel;
+            user.FieldOfStudy = userDto.FieldOfStudy;
+            user.ExecutiveExperience = userDto.ExecutiveExperience;
+            user.FamiliarityWithCapitalMarket = userDto.FamiliarityWithCapitalMarket;
+            user.PersonalInvestmentExperienceInStockExchange = userDto.PersonalInvestmentExperienceInStockExchange;
+
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHoghooghiUserInvestmentDepartmentStaffAdmin(int id)
+        {
+            var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.IsDeleted = true;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete("Admin/Clear")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult ClearHoghooghiUserInvestmentDepartmentStaff()
+        {
+            _context.HoghooghiUserInvestmentDepartmentStaff.RemoveRange(_context.HoghooghiUserInvestmentDepartmentStaff);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
     }
 }

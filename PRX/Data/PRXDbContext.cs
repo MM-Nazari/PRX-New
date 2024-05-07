@@ -4,6 +4,7 @@ using PRX.Models.Hoghooghi;
 using PRX.Models.Hoghooghis.Hoghooghi;
 using PRX.Models.Quiz;
 using PRX.Models.User;
+using PRX.Models.Admin;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
@@ -18,6 +19,12 @@ namespace PRX.Data
         //
         // Sets
         //
+
+
+        // Admin 
+
+        public DbSet<Admin> Admins { get; set; }
+
 
         // User set
 
@@ -80,10 +87,18 @@ namespace PRX.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            
+
             //
             // Primary Key & Auto Increament
             //
+
+            // Admin
+
+            modelBuilder.Entity<Admin>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .IsRequired();
+
 
             // User
 
@@ -245,6 +260,13 @@ namespace PRX.Data
             //
             // Unique Fields
             //
+
+            // Admin
+
+            modelBuilder.Entity<Admin>()
+                .HasIndex(p => new { p.Username })
+                .IsUnique();
+
 
             // User
 
