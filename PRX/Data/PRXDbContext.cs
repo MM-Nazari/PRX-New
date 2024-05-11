@@ -42,6 +42,7 @@ namespace PRX.Data
         public DbSet<UserMoreInformation> UserMoreInformations { get; set; }
         public DbSet<UserState> UserStates { get; set; }
         public DbSet<UserType> UserTypes { get; set; }
+        public DbSet<UserDocument> UserDocuments { get; set; }
 
 
 
@@ -164,6 +165,11 @@ namespace PRX.Data
             .IsRequired();
 
             modelBuilder.Entity<UserWithdrawal>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .IsRequired();
+
+            modelBuilder.Entity<UserDocument>()
             .Property(e => e.Id)
             .ValueGeneratedOnAdd()
             .IsRequired();
@@ -572,6 +578,12 @@ namespace PRX.Data
                 .HasOne(u => u.UserState)
                 .WithOne(p => p.User)
                 .HasForeignKey<UserState>(p => p.UserId);
+
+            
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.UserDocs)
+                .WithOne(r => r.User)
+                .HasForeignKey(r => r.UserId);
 
 
 

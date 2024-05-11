@@ -39,6 +39,7 @@ namespace PRX.Models.User
         public UserMoreInformation UserMoreInformations { get; set; }
         public List<UserType> UserTypes { get; set; }
         public UserState UserState { get; set; }
+        public List<UserDocument> UserDocs { get; set; }
 
 
         // Haghighi
