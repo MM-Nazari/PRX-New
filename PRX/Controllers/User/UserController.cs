@@ -33,16 +33,30 @@ namespace PRX.Controllers.User
 
         [HttpGet("PhoneExistance/{phoneNumber}")]
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CheckPhoneNumberExists(string phoneNumber)
         {
-            var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == phoneNumber);
-            if (user != null)
+
+            try 
             {
-                return Ok("yes");
+                var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == phoneNumber);
+                if (user != null)
+                {
+                    //Response.Headers.Append("message", "Phone number exists");
+                    return Ok(new { message = ResponseMessages.PhoneExistanseTrue });
+                }
+                else
+                {
+                    return Ok(new { messagde = ResponseMessages.PhoneExistanseFalse });
+                }
+
+
             }
-            else
+            catch (Exception ex)
             {
-                return Ok("no");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
@@ -51,6 +65,7 @@ namespace PRX.Controllers.User
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateUser([FromBody] UserDto userDto)
         {
             // Validate the DTO if necessary
@@ -59,47 +74,87 @@ namespace PRX.Controllers.User
                 return BadRequest(ModelState);
             }
 
-            // Hash the password before saving it to the database
-            var hashedPassword = _utils.HashPassword(userDto.Password);
-
-            // Map DTO to domain model
-            var user = new PRX.Models.User.User
+            // Optional: Check if user already exists
+            var existingUser = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
+            if (existingUser != null)
             {
-                Password = hashedPassword,
-                PhoneNumber = userDto.PhoneNumber,
-                ReferenceCode = userDto.ReferenceCode
-            };
+                //Response.Headers.Add("message", ResponseMessages.UserExists);
+                return BadRequest(new { message = ResponseMessages.UsersPhoneExists });
+            }
 
-            // Add user to database
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            try 
+            {
 
-            // Return the created user
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+                // Hash the password before saving it to the database
+                var hashedPassword = _utils.HashPassword(userDto.Password);
+
+                // Map DTO to domain model
+                var user = new PRX.Models.User.User
+                {
+                    Password = hashedPassword,
+                    PhoneNumber = userDto.PhoneNumber,
+                    ReferenceCode = userDto.ReferenceCode
+                };
+
+                // Add user to database
+                _context.Users.Add(user);
+                _context.SaveChanges();
+
+                // Return the created user
+                return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+
+            } 
+            catch (Exception ex)          
+            {
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
 
         [HttpPost("login")]
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Login([FromBody] UserDto userDto)
         {
             var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
-            if (user == null || !_utils.VerifyPassword(userDto.Password, user.Password))
+            if (user == null)
             {
-                return Unauthorized();
+                //Response.Headers.Add("message", "User does not exist");
+                return Unauthorized(new {message = ResponseMessages.UserNotExists});
             }
 
-            // Log user login
-            LogUserLogin(user.Id);
 
-            // Generate JWT token
-            var token = GenerateJwtToken(user);
+            if (!_utils.VerifyPassword(userDto.Password, user.Password))
+            {
+                return Unauthorized(new {message = ResponseMessages.PasswordIncorrect});
+            }
 
-            return Ok(new { Authorization = token });
+            try 
+            {
+                // Log user login
+                LogUserLogin(user.Id);
+
+                // Generate JWT token
+                var token = GenerateJwtToken(user);
+
+                return Ok(new { Authorization = token });
+            }
+            catch (Exception ex)
+            {
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         private void LogUserLogin(int userId)
         {
+
             var userLoginLog = new UserLoginLog
             {
                 UserId = userId,
@@ -118,10 +173,18 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetUserById(int id)
         {
             try
             {
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+
                 // Retrieve the user ID from the token
                 //var tokenUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -129,13 +192,13 @@ namespace PRX.Controllers.User
                 // Ensure that the user is accessing their own data
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized }); 
                 }
 
                 var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound(new {message = ResponseMessages.UserNotFound});
                 }
 
                 var userDto = new UserDto
@@ -149,34 +212,50 @@ namespace PRX.Controllers.User
             }
             catch (Exception ex)
             {
-                return BadRequest();
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
+        }
+
+        private IActionResult Forbiden(object value)
+        {
+            throw new NotImplementedException();
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateUser(int id, [FromBody] UserDto userDto)
         {
             try
             {
+
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId});
+                }
+
+
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own data
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });  // Or return 403 Forbidden
                 }
 
                 // Find the user to update
                 var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
                 }
 
                 // Update the user properties
@@ -199,32 +278,43 @@ namespace PRX.Controllers.User
             catch (Exception ex)
             {
 
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteUser(int id)
         {
             try
             {
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is deleting their own data
+                // Ensure that the user is updating their own data
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });  // Or return 403 Forbidden
                 }
 
+                // Find the user to update
                 var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
                 }
 
                 user.IsDeleted = true;
@@ -233,12 +323,12 @@ namespace PRX.Controllers.User
                 //_context.Users.Remove(user);
                 //_context.SaveChanges();
 
-                return Ok();
+                return Ok(new {message = ResponseMessages.OK});
             }
             catch (Exception ex)
             {
 
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
@@ -248,94 +338,175 @@ namespace PRX.Controllers.User
         [HttpGet("Admin")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllUsers()
         {
-            var users = _context.Users.ToList();
-            var userDtos = users.Select(user => new UserDto
+            try
             {
-                Id = user.Id,
-                PhoneNumber = user.PhoneNumber,
-                ReferenceCode = user.ReferenceCode,
-                IsDeleted = user.IsDeleted
-            }).ToList();
-            return Ok(userDtos);
+
+                var users = _context.Users.ToList();
+                var userDtos = users.Select(user => new UserDto
+                {
+                    Id = user.Id,
+                    PhoneNumber = user.PhoneNumber,
+                    ReferenceCode = user.ReferenceCode,
+                    IsDeleted = user.IsDeleted
+                }).ToList();
+
+                return Ok(userDtos);
+
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("Admin/{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetUserByIdAdmin(int id)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
+                }
+
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    PhoneNumber = user.PhoneNumber,
+                    ReferenceCode = user.ReferenceCode,
+                    IsDeleted = user.IsDeleted
+                };
+
+                return Ok(userDto);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userDto = new UserDto
-            {
-                Id = user.Id,
-                PhoneNumber = user.PhoneNumber,
-                ReferenceCode = user.ReferenceCode,
-                IsDeleted = user.IsDeleted
-            };
-
-            return Ok(userDto);
         }
 
         [HttpPut("Admin/{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateUserAdmin(int id, [FromBody] UserDto userDto)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
-            if (user == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
+                }
+
+                user.PhoneNumber = userDto.PhoneNumber;
+                user.ReferenceCode = userDto.ReferenceCode;
+
+                _context.SaveChanges();
+
+                return Ok(new {message = ResponseMessages.OK});
+            }
+             catch(Exception ex) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            user.PhoneNumber = userDto.PhoneNumber;
-            user.ReferenceCode = userDto.ReferenceCode;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteUserAdmin(int id)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
-            if (user == null)
+
+            try 
             {
-                return NotFound();
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
+                }
+
+                user.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new {message = ResponseMessages.OK});
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            user.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
 
         [HttpDelete("Admin/Clear")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult ClearUser()
         {
-            _context.Users.RemoveRange(_context.Users);
-            _context.SaveChanges();
+            try
+            {
+                _context.Users.RemoveRange(_context.Users);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
+
         }
-
 
         private string GenerateJwtToken(PRX.Models.User.User user)
         {

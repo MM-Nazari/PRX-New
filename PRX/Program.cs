@@ -4,10 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using PRX.Utils;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,11 +18,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-    //.AddJsonOptions(options =>
-    //{
-    //    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-    //});
+//.AddJsonOptions(options =>
+//{
+//    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+//});
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
 
 builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
             options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX_BACKUP;Integrated Security=True;TrustServerCertificate=True;"));
@@ -46,15 +59,39 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            // Get token from the 'Authorization' header, removing the 'Bearer ' prefix
             var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
-
-            // Set the token retrieved from the header
             context.Token = accessToken;
-
             return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            var result = JsonConvert.SerializeObject(new { message = "Authentication failed." });
+            return context.Response.WriteAsync(result);
+        },
+        OnForbidden = context =>
+        {
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            var result = JsonConvert.SerializeObject(new { message = ResponseMessages.Forbidden });
+            return context.Response.WriteAsync(result);
         }
     };
+
+    //o.Events = new JwtBearerEvents
+    //{
+    //    OnMessageReceived = context =>
+    //    {
+    //        // Get token from the 'Authorization' header, removing the 'Bearer ' prefix
+    //        var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+
+    //        // Set the token retrieved from the header
+    //        context.Token = accessToken;
+
+    //        return Task.CompletedTask;
+    //    }
+    //};
 });
 
 
@@ -128,6 +165,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+// Enable CORS globally
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

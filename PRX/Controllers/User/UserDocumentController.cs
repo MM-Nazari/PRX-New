@@ -18,9 +18,11 @@ namespace PRX.Controllers.User
     public class UserDocumentController : ControllerBase
     {
         private readonly PRXDbContext _context;
-        public UserDocumentController(PRXDbContext context) 
+        private readonly ILogger<UserDocumentController> _logger;
+        public UserDocumentController(PRXDbContext context, ILogger<UserDocumentController> logger) 
         { 
             _context = context;
+            _logger = logger;
         }
 
         [HttpPost("UserDocuments")]
@@ -66,6 +68,9 @@ namespace PRX.Controllers.User
                 case ".jpg":
                     fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.jpeg";
                     break;
+                case ".zip": // Handle .zip files
+                    fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.zip";
+                    break;
                 default:
                     return BadRequest("Unsupported file format.");
             }
@@ -98,80 +103,168 @@ namespace PRX.Controllers.User
             return Ok();
         }
 
+
         [HttpPut("UserDocuments/{userId}/{documentType}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateDocument(int userId, string documentType, [FromForm] UserDocumentDto updatedDocumentDto)
+        public async Task<IActionResult> UpdateDocument(int userId, string documentType, [FromForm] UserDocumentDto documentDto)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
+            try
             {
-                return NotFound();
-            }
+                // Check if the user exists
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return NotFound();
+                }
 
-            var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-            if (userId != tokenUserId)
+                // Ensure the request is made by the authenticated user
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                if (userId != tokenUserId)
+                {
+                    return Forbid(); // Or return 403 Forbidden
+                }
+
+                // Find the existing document by userId and documentType
+                var existingDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+                if (existingDocument == null)
+                {
+                    return NotFound();
+                }
+
+                // Create a folder with the user's phone number if it doesn't exist
+                var userFolder = Path.Combine("C:\\PRX Documents", user.PhoneNumber);
+                if (!Directory.Exists(userFolder))
+                {
+                    Directory.CreateDirectory(userFolder);
+                }
+
+                // Get the file extension from the uploaded file
+                var fileExtension = Path.GetExtension(documentDto.File.FileName).ToLower();
+
+                // Determine the file name and extension based on the document type
+                string fileName;
+                switch (fileExtension)
+                {
+                    case ".pdf":
+                        fileName = $"{userId}-{documentType}.pdf";
+                        break;
+                    case ".png":
+                        fileName = $"{userId}-{documentType}.png";
+                        break;
+                    case ".jpeg":
+                    case ".jpg":
+                        fileName = $"{userId}-{documentType}.jpeg";
+                        break;
+                    case ".zip": // Handle .zip files
+                        fileName = $"{userId}-{documentType}.zip";
+                        break;
+                    default:
+                        return BadRequest("Unsupported file format.");
+                }
+
+                // Construct the full file path
+                var filePath = Path.Combine(userFolder, fileName);
+
+                // Save the file to the user's folder
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await documentDto.File.CopyToAsync(stream);
+                }
+
+                // Update the existing document
+                existingDocument.FilePath = filePath;
+                existingDocument.DocumentType = documentDto.DocumentType;
+
+                // Save changes to the database
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
             {
-                return Forbid(); // Or return 403 Forbidden
+                // Log the exception
+                _logger.LogError(ex, "Error occurred while updating document.");
+
+                // Return a 500 Internal Server Error response
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the document.");
             }
-
-            var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
-            if (userDocument == null)
-            {
-                return NotFound();
-            }
-
-            // Create a folder with the user's phone number if it doesn't exist
-            var userFolder = Path.Combine("C:\\PRX Documents", user.PhoneNumber);
-            if (!Directory.Exists(userFolder))
-            {
-                Directory.CreateDirectory(userFolder);
-            }
-
-            // Get the file extension from the uploaded file
-            var fileExtension = Path.GetExtension(updatedDocumentDto.File.FileName).ToLower();
-
-            // Determine the file name and extension based on the document type
-            string fileName;
-            switch (fileExtension)
-            {
-                case ".pdf":
-                    fileName = $"{userId}-{documentType}.pdf";
-                    break;
-                case ".png":
-                    fileName = $"{userId}-{documentType}.png";
-                    break;
-                case ".jpeg":
-                case ".jpg":
-                    fileName = $"{userId}-{documentType}.jpeg";
-                    break;
-                default:
-                    return BadRequest("Unsupported file format.");
-            }
-
-            // Construct the full file path
-            var filePath = Path.Combine(userFolder, fileName);
-
-            // Save the file to the user's folder
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await updatedDocumentDto.File.CopyToAsync(stream);
-            }
-
-            // Update the file path in the database
-            userDocument.FilePath = filePath;
-
-            // Save changes to the database
-            await _context.SaveChangesAsync();
-
-            return Ok();
         }
 
 
 
+        //[HttpPut("UserDocuments/{userId}/{documentType}")]
+        //[Authorize(Roles = "User")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //public async Task<IActionResult> UpdateDocument(int userId, string documentType, [FromForm] UserDocumentDto updatedDocumentDto)
+        //{
+        //    var user = await _context.Users.FindAsync(userId);
+        //    if (user == null)
+        //    {
+        //        return NotFound();
+        //    }
 
+        //    var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+        //    if (userId != tokenUserId)
+        //    {
+        //        return Forbid(); // Or return 403 Forbidden
+        //    }
+
+        //    var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+        //    if (userDocument == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    // Create a folder with the user's phone number if it doesn't exist
+        //    var userFolder = Path.Combine("C:\\PRX Documents", user.PhoneNumber);
+        //    if (!Directory.Exists(userFolder))
+        //    {
+        //        Directory.CreateDirectory(userFolder);
+        //    }
+
+        //    // Get the file extension from the uploaded file
+        //    var fileExtension = Path.GetExtension(updatedDocumentDto.File.FileName).ToLower();
+
+        //    // Determine the file name and extension based on the document type
+        //    string fileName;
+        //    switch (fileExtension)
+        //    {
+        //        case ".pdf":
+        //            fileName = $"{userId}/{documentType}.pdf";
+        //            break;
+        //        case ".png":
+        //            fileName = $"{userId}/{documentType}.png";
+        //            break;
+        //        case ".jpeg":
+        //        case ".jpg":
+        //            fileName = $"{userId}/{documentType}.jpeg";
+        //            break;
+        //        default:
+        //            return BadRequest("Unsupported file format.");
+        //    }
+
+        //    // Construct the full file path
+        //    var filePath = Path.Combine(userFolder, fileName);
+
+        //    // Save the file to the user's folder
+        //    using (var stream = new FileStream(filePath, FileMode.Create))
+        //    {
+        //        await updatedDocumentDto.File.CopyToAsync(stream);
+        //    }
+
+        //    // Update the file path in the database
+        //    userDocument.FilePath = filePath;
+
+        //    // Save changes to the database
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok();
+        //}
 
 
         [HttpGet("UserDocuments/{userId}/{documentType}")]
@@ -244,7 +337,7 @@ namespace PRX.Controllers.User
             return Ok(userDocuments);
         }
 
-        [HttpPut("UserDocuments/Admin{userId}/{documentType}")]
+        [HttpPut("UserDocuments/Admin/{userId}/{documentType}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
