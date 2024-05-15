@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
+using PRX.Utils;
 
 namespace PRX.Controllers.User
 {
@@ -23,8 +24,17 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllUserInvestments()
         {
-            var userInvestments = _context.UserInvestments.ToList();
-            return Ok(userInvestments);
+            try
+            {
+                var userInvestments = _context.UserInvestments.ToList();
+                return Ok(userInvestments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("{id}")]
@@ -36,6 +46,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -43,12 +57,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userInvestment == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserInvestmentNotFound});
                 }
                 return Ok(userInvestment);
 
@@ -56,8 +70,7 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -68,21 +81,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserInvestment([FromBody] UserInvestmentDto userInvestmentDto)
         {
-            if (!ModelState.IsValid)
+
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userInvestment = new UserInvestment
+                {
+                    UserId = userInvestmentDto.UserId,
+                    Amount = userInvestmentDto.Amount
+                };
+
+                _context.UserInvestments.Add(userInvestment);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetUserInvestmentById), new { id = userInvestment.Id }, userInvestment);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userInvestment = new UserInvestment
-            {
-                UserId = userInvestmentDto.UserId,
-                Amount = userInvestmentDto.Amount
-            };
-
-            _context.UserInvestments.Add(userInvestment);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetUserInvestmentById), new { id = userInvestment.Id }, userInvestment);
         }
 
         [HttpPut("{id}")]
@@ -95,6 +117,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -102,12 +128,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userInvestment == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
                 }
 
                 userInvestment.UserId = userInvestmentDto.UserId;
@@ -121,10 +147,8 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
-
 
         }
 
@@ -137,6 +161,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -144,12 +172,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userInvestment == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
                 }
 
                 userInvestment.IsDeleted = true;
@@ -161,8 +189,7 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -172,10 +199,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult ClearUserInvestments()
         {
-            _context.UserInvestments.RemoveRange(_context.UserInvestments);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserInvestments.RemoveRange(_context.UserInvestments);
+                _context.SaveChanges();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         // PUT: api/HaghighiUserProfile/complete/{id}
@@ -186,16 +222,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkFinancwChangeAsComplete(int id)
         {
-            var userFinancialChanges = _context.UserInvestments.FirstOrDefault(u => u.UserId == id);
-            if (userFinancialChanges == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userInvestments = _context.UserInvestments.FirstOrDefault(u => u.UserId == id);
+                if (userInvestments == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
+                }
+
+                userInvestments.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userFinancialChanges.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpGet("Admin")]
@@ -204,15 +254,24 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllUserInvestmentsAdmin()
         {
-            var investments = _context.UserInvestments.ToList();
-            var investmentDtos = investments.Select(investment => new UserInvestmentDto
+            try
             {
-                UserId = investment.UserId,
-                Amount = investment.Amount,
-                IsComplete = investment.IsComplete,
-                IsDeleted = investment.IsDeleted
-            }).ToList();
-            return Ok(investmentDtos);
+                var investments = _context.UserInvestments.ToList();
+                var investmentDtos = investments.Select(investment => new UserInvestmentDto
+                {
+                    UserId = investment.UserId,
+                    Amount = investment.Amount,
+                    IsComplete = investment.IsComplete,
+                    IsDeleted = investment.IsDeleted
+                }).ToList();
+                return Ok(investmentDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -221,21 +280,35 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserInvestmentByIdAdmin(int id)
         {
-            var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
-            if (investment == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+                if (investment == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
+                }
+
+                var investmentDto = new UserInvestmentDto
+                {
+                    UserId = investment.UserId,
+                    Amount = investment.Amount,
+                    IsComplete = investment.IsComplete,
+                    IsDeleted = investment.IsDeleted
+                };
+
+                return Ok(investmentDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var investmentDto = new UserInvestmentDto
-            {
-                UserId = investment.UserId,
-                Amount = investment.Amount,
-                IsComplete = investment.IsComplete,
-                IsDeleted = investment.IsDeleted
-            };
 
-            return Ok(investmentDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -245,17 +318,31 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserInvestmentAdmin(int id, [FromBody] UserInvestmentDto investmentDto)
         {
-            var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
-            if (investment == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+                if (investment == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
+                }
+
+                investment.Amount = investmentDto.Amount;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            investment.Amount = investmentDto.Amount;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -264,16 +351,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserInvestmentAdmin(int id)
         {
-            var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
-            if (investment == null)
+            try
             {
-                return NotFound();
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+                if (investment == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
+                }
+
+                investment.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            investment.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -281,10 +382,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearUserInvestmentsAdmin()
         {
-            _context.UserInvestments.RemoveRange(_context.UserInvestments);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserInvestments.RemoveRange(_context.UserInvestments);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
     }

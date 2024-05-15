@@ -39,45 +39,61 @@ namespace PRX.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult RegisterAdmin([FromBody] AdminDto adminDto)
         {
-            // Validate the DTO if necessary
-            if (!ModelState.IsValid)
+            try 
             {
-                return BadRequest(ModelState);
+                // Validate the DTO if necessary
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var hashedPassword = _utils.HashPassword(adminDto.Password);
+
+
+                // Map DTO to domain model
+                var admin = new PRX.Models.Admin.Admin
+                {
+                    Username = adminDto.Username,
+                    Password = hashedPassword,
+                    Role = "Admin" // Set role as "Admin"
+                };
+
+                // Add admin to database
+                _context.Admins.Add(admin);
+                _context.SaveChanges();
+
+                // Return the created admin
+                return CreatedAtAction(nameof(GetAdminById), new { id = admin.Id }, admin);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var hashedPassword = _utils.HashPassword(adminDto.Password);
-
-
-            // Map DTO to domain model
-            var admin = new PRX.Models.Admin.Admin
-            {
-                Username = adminDto.Username,
-                Password = hashedPassword,
-                Role = "Admin" // Set role as "Admin"
-            };
-
-            // Add admin to database
-            _context.Admins.Add(admin);
-            _context.SaveChanges();
-
-            // Return the created admin
-            return CreatedAtAction(nameof(GetAdminById), new { id = admin.Id }, admin);
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
         public IActionResult Login([FromBody] AdminDto adminDto)
         {
-            var admin = _context.Admins.FirstOrDefault(a => a.Username == adminDto.Username);
-            if (admin == null || !_utils.VerifyPassword(adminDto.Password, admin.Password))
+            try
             {
-                return Unauthorized();
+                var admin = _context.Admins.FirstOrDefault(a => a.Username == adminDto.Username);
+                if (admin == null || !_utils.VerifyPassword(adminDto.Password, admin.Password))
+                {
+                    return Unauthorized(new { message = ResponseMessages.AdminNotFound});
+                }
+
+                // Generate JWT token
+                var token = GenerateJwtToken(admin);
+
+                return Ok(new { Authorization = token });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            // Generate JWT token
-            var token = GenerateJwtToken(admin);
-
-            return Ok(new { Authorization = token });
         }
 
         // GET all admins
@@ -87,14 +103,22 @@ namespace PRX.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetAllAdmins()
         {
-            var admins = _context.Admins.ToList();
-            var adminDtos = admins.Select(admin => new AdminDto
+            try
             {
-                Id = admin.Id,
-                Username = admin.Username
-                // Other properties as needed
-            }).ToList();
-            return Ok(adminDtos);
+                var admins = _context.Admins.ToList();
+                var adminDtos = admins.Select(admin => new AdminDto
+                {
+                    Id = admin.Id,
+                    Username = admin.Username
+                    // Other properties as needed
+                }).ToList();
+                return Ok(adminDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         // GET admin by ID
@@ -105,20 +129,28 @@ namespace PRX.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAdminById(int id)
         {
-            var admin = _context.Admins.FirstOrDefault(a => a.Id == id);
-            if (admin == null)
+            try
             {
-                return NotFound();
+                var admin = _context.Admins.FirstOrDefault(a => a.Id == id);
+                if (admin == null)
+                {
+                    return Unauthorized(new { message = ResponseMessages.AdminNotFound });
+                }
+
+                var adminDto = new AdminDto
+                {
+                    Id = admin.Id,
+                    Username = admin.Username
+                    // Other properties as needed
+                };
+
+                return Ok(adminDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var adminDto = new AdminDto
-            {
-                Id = admin.Id,
-                Username = admin.Username
-                // Other properties as needed
-            };
-
-            return Ok(adminDto);
         }
 
         // Update admin by ID
@@ -129,21 +161,29 @@ namespace PRX.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateAdmin(int id, [FromBody] AdminDto adminDto)
         {
-            var admin = _context.Admins.FirstOrDefault(a => a.Id == id);
-            if (admin == null)
+            try
             {
-                return NotFound();
+                var admin = _context.Admins.FirstOrDefault(a => a.Id == id);
+                if (admin == null)
+                {
+                    return Unauthorized(new { message = ResponseMessages.AdminNotFound });
+                }
+
+                // Update admin properties
+                admin.Username = adminDto.Username;
+                var hashedPassword = _utils.HashPassword(adminDto.Password);
+                admin.Password = hashedPassword;
+                // Update other properties as needed
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            // Update admin properties
-            admin.Username = adminDto.Username;
-            var hashedPassword = _utils.HashPassword(adminDto.Password);
-            admin.Password = hashedPassword;
-            // Update other properties as needed
-
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         // Delete admin by ID
@@ -154,16 +194,24 @@ namespace PRX.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteAdmin(int id)
         {
-            var admin = _context.Admins.FirstOrDefault(a => a.Id == id);
-            if (admin == null)
+            try
             {
-                return NotFound();
+                var admin = _context.Admins.FirstOrDefault(a => a.Id == id);
+                if (admin == null)
+                {
+                    return Unauthorized(new { message = ResponseMessages.AdminNotFound });
+                }
+
+                _context.Admins.Remove(admin);
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            _context.Admins.Remove(admin);
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         private string GenerateJwtToken(PRX.Models.Admin.Admin admin)

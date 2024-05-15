@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
 using PRX.Models.Haghighi;
+using PRX.Utils;
 
 namespace PRX.Controllers.Haghighi
 {
@@ -23,8 +24,18 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllHaghighiUserEducationStatuses()
         {
-            var educationStatuses = _context.HaghighiUserEducationStatuses.ToList();
-            return Ok(educationStatuses);
+            try 
+            {
+
+                var educationStatuses = _context.HaghighiUserEducationStatuses.ToList();
+                return Ok(educationStatuses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         // GET: api/HaghighiUserEducationStatus/5
@@ -38,18 +49,22 @@ namespace PRX.Controllers.Haghighi
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (educationStatus == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound});
                 }
                 return Ok(educationStatus);
 
@@ -57,8 +72,7 @@ namespace PRX.Controllers.Haghighi
 
             catch (Exception ex)
             {
-               
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -70,24 +84,34 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateHaghighiUserEducationStatus([FromBody] HaghighiUserEducationStatusDto educationStatusDto)
         {
-            if (!ModelState.IsValid)
+
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var educationStatus = new HaghighiUserEducationStatus
+                {
+                    UserId = educationStatusDto.UserId,
+                    LastDegree = educationStatusDto.LastDegree,
+                    FieldOfStudy = educationStatusDto.FieldOfStudy,
+                    GraduationYear = educationStatusDto.GraduationYear,
+                    IssuingAuthority = educationStatusDto.IssuingAuthority
+                };
+
+                _context.HaghighiUserEducationStatuses.Add(educationStatus);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetHaghighiUserEducationStatusById), new { id = educationStatus.Id }, educationStatus);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var educationStatus = new HaghighiUserEducationStatus
-            {
-                UserId = educationStatusDto.UserId,
-                LastDegree = educationStatusDto.LastDegree,
-                FieldOfStudy = educationStatusDto.FieldOfStudy,
-                GraduationYear = educationStatusDto.GraduationYear,
-                IssuingAuthority = educationStatusDto.IssuingAuthority
-            };
 
-            _context.HaghighiUserEducationStatuses.Add(educationStatus);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetHaghighiUserEducationStatusById), new { id = educationStatus.Id }, educationStatus);
         }
 
         // PUT: api/HaghighiUserEducationStatus/5
@@ -101,18 +125,22 @@ namespace PRX.Controllers.Haghighi
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (educationStatus == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
                 }
 
                 educationStatus.UserId = educationStatusDto.UserId;
@@ -129,12 +157,11 @@ namespace PRX.Controllers.Haghighi
 
             catch (Exception ex)
             {
-               
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
-   
+
         }
 
         // DELETE: api/HaghighiUserEducationStatus/5
@@ -147,33 +174,36 @@ namespace PRX.Controllers.Haghighi
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (educationStatus == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
                 }
 
                 _context.HaghighiUserEducationStatuses.Remove(educationStatus);
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
 
             }
 
             catch (Exception ex)
             {
-               
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
- 
+
         }
 
         // DELETE: api/HaghighiUserEducationStatus
@@ -181,10 +211,19 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHaghighiUserEducationStatuses()
         {
-            var educationStatuses = _context.HaghighiUserEducationStatuses.ToList();
-            _context.HaghighiUserEducationStatuses.RemoveRange(educationStatuses);
-            _context.SaveChanges();
-            return Ok();
+            try
+            {
+                var educationStatuses = _context.HaghighiUserEducationStatuses.ToList();
+                _context.HaghighiUserEducationStatuses.RemoveRange(educationStatuses);
+                _context.SaveChanges();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
 
@@ -196,16 +235,30 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkEducationStatusAsComplete(int id)
         {
-            var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id);
-            if (educationStatus == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id);
+                if (educationStatus == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
+                }
+
+                educationStatus.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            educationStatus.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
 
@@ -215,18 +268,28 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllHaghighiUserEducationStatusesAdmin()
         {
-            var statuses = _context.HaghighiUserEducationStatuses.ToList();
-            var statusDtos = statuses.Select(status => new HaghighiUserEducationStatusDto
+
+            try
             {
-                UserId = status.UserId,
-                LastDegree = status.LastDegree,
-                FieldOfStudy = status.FieldOfStudy,
-                GraduationYear = status.GraduationYear,
-                IssuingAuthority = status.IssuingAuthority,
-                IsComplete = status.IsComplete,
-                IsDeleted = status.IsDeleted
-            }).ToList();
-            return Ok(statusDtos);
+                var statuses = _context.HaghighiUserEducationStatuses.ToList();
+                var statusDtos = statuses.Select(status => new HaghighiUserEducationStatusDto
+                {
+                    UserId = status.UserId,
+                    LastDegree = status.LastDegree,
+                    FieldOfStudy = status.FieldOfStudy,
+                    GraduationYear = status.GraduationYear,
+                    IssuingAuthority = status.IssuingAuthority,
+                    IsComplete = status.IsComplete,
+                    IsDeleted = status.IsDeleted
+                }).ToList();
+                return Ok(statusDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -235,24 +298,39 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserEducationStatusByIdAdmin(int id)
         {
-            var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
-            if (status == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                if (status == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
+                }
+
+                var statusDto = new HaghighiUserEducationStatusDto
+                {
+                    UserId = status.UserId,
+                    LastDegree = status.LastDegree,
+                    FieldOfStudy = status.FieldOfStudy,
+                    GraduationYear = status.GraduationYear,
+                    IssuingAuthority = status.IssuingAuthority,
+                    IsComplete = status.IsComplete,
+                    IsDeleted = status.IsDeleted
+                };
+
+                return Ok(statusDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var statusDto = new HaghighiUserEducationStatusDto
-            {
-                UserId = status.UserId,
-                LastDegree = status.LastDegree,
-                FieldOfStudy = status.FieldOfStudy,
-                GraduationYear = status.GraduationYear,
-                IssuingAuthority = status.IssuingAuthority,
-                IsComplete = status.IsComplete,
-                IsDeleted = status.IsDeleted
-            };
 
-            return Ok(statusDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -262,22 +340,37 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHaghighiUserEducationStatusAdmin(int id, [FromBody] HaghighiUserEducationStatusDto statusDto)
         {
-            var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
-            if (status == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                if (status == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
+                }
+
+                status.LastDegree = statusDto.LastDegree;
+                status.FieldOfStudy = statusDto.FieldOfStudy;
+                status.GraduationYear = statusDto.GraduationYear;
+                status.IssuingAuthority = statusDto.IssuingAuthority;
+                //status.IsComplete = statusDto.IsComplete;
+                //status.IsDeleted = statusDto.IsDeleted;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            status.LastDegree = statusDto.LastDegree;
-            status.FieldOfStudy = statusDto.FieldOfStudy;
-            status.GraduationYear = statusDto.GraduationYear;
-            status.IssuingAuthority = statusDto.IssuingAuthority;
-            //status.IsComplete = statusDto.IsComplete;
-            //status.IsDeleted = statusDto.IsDeleted;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -286,16 +379,31 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserEducationStatusAdmin(int id)
         {
-            var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
-            if (status == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                if (status == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
+                }
+
+                status.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            status.IsDeleted = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -303,10 +411,20 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHaghighiUserEducationStatusesAdmin()
         {
-            _context.HaghighiUserEducationStatuses.RemoveRange(_context.HaghighiUserEducationStatuses);
-            _context.SaveChanges();
 
-            return Ok();
+            try
+            {
+
+                _context.HaghighiUserEducationStatuses.RemoveRange(_context.HaghighiUserEducationStatuses);
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
     }

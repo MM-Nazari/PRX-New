@@ -5,6 +5,7 @@ using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models; // Assuming your User and UserDocument models are in this namespace
 using PRX.Models.User;
+using PRX.Utils;
 using System;
 using System.IO;
 using System.Linq;
@@ -32,75 +33,84 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UploadDocument([FromForm] UserDocumentDto documentDto)
         {
-            var user = await _context.Users.FindAsync(documentDto.UserId);
-            if (user == null)
+
+            try
             {
-                return NotFound();
+                var user = await _context.Users.FindAsync(documentDto.UserId);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
+                }
+
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                if (documentDto.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                // Create a folder with the user's phone number if it doesn't exist
+                var userFolder = Path.Combine("C:\\PRX Documents", user.PhoneNumber);
+                if (!Directory.Exists(userFolder))
+                {
+                    Directory.CreateDirectory(userFolder);
+                }
+
+                // Get the file extension from the uploaded file
+                var fileExtension = Path.GetExtension(documentDto.File.FileName).ToLower();
+
+                // Determine the file name and extension based on the document type
+                string fileName;
+                switch (fileExtension)
+                {
+                    case ".pdf":
+                        fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.pdf";
+                        break;
+                    case ".png":
+                        fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.png";
+                        break;
+                    case ".jpeg":
+                    case ".jpg":
+                        fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.jpeg";
+                        break;
+                    case ".zip": // Handle .zip files
+                        fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.zip";
+                        break;
+                    default:
+                        return BadRequest(new { message = ResponseMessages.UserFileFormatConfliction });
+                }
+
+                // Construct the full file path
+                var filePath = Path.Combine(userFolder, fileName);
+
+                //// Generate a unique file name based on user ID and document type
+                //var fileName = $"{userId}-{documentDto.DocumentType}.png";
+                //var filePath = Path.Combine(userFolder, fileName);
+
+                // Save the file to the user's folder
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await documentDto.File.CopyToAsync(stream);
+                }
+
+                // Save the file path to the database
+                var userDocument = new UserDocument
+                {
+                    UserId = documentDto.UserId, // Correct casing for UserID
+                    DocumentType = documentDto.DocumentType,
+                    FilePath = filePath,
+                    IsDeleted = false
+                };
+
+                _context.UserDocuments.Add(userDocument);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-            if (documentDto.UserId != tokenUserId)
-            {
-                return Forbid(); // Or return 403 Forbidden
-            }
-
-            // Create a folder with the user's phone number if it doesn't exist
-            var userFolder = Path.Combine("C:\\PRX Documents", user.PhoneNumber);
-            if (!Directory.Exists(userFolder))
-            {
-                Directory.CreateDirectory(userFolder);
-            }
-
-            // Get the file extension from the uploaded file
-            var fileExtension = Path.GetExtension(documentDto.File.FileName).ToLower();
-
-            // Determine the file name and extension based on the document type
-            string fileName;
-            switch (fileExtension)
-            {
-                case ".pdf":
-                    fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.pdf";
-                    break;
-                case ".png":
-                    fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.png";
-                    break;
-                case ".jpeg":
-                case ".jpg":
-                    fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.jpeg";
-                    break;
-                case ".zip": // Handle .zip files
-                    fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.zip";
-                    break;
-                default:
-                    return BadRequest("Unsupported file format.");
-            }
-
-            // Construct the full file path
-            var filePath = Path.Combine(userFolder, fileName);
-
-            //// Generate a unique file name based on user ID and document type
-            //var fileName = $"{userId}-{documentDto.DocumentType}.png";
-            //var filePath = Path.Combine(userFolder, fileName);
-
-            // Save the file to the user's folder
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await documentDto.File.CopyToAsync(stream);
-            }
-
-            // Save the file path to the database
-            var userDocument = new UserDocument
-            {
-                UserId = documentDto.UserId, // Correct casing for UserID
-                DocumentType = documentDto.DocumentType,
-                FilePath = filePath,
-                IsDeleted = false
-            };
-
-            _context.UserDocuments.Add(userDocument);
-            await _context.SaveChangesAsync();
-
-            return Ok();
         }
 
 
@@ -113,25 +123,31 @@ namespace PRX.Controllers.User
         {
             try
             {
+
+                if (userId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 // Check if the user exists
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
                 }
 
                 // Ensure the request is made by the authenticated user
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 if (userId != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 // Find the existing document by userId and documentType
                 var existingDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
                 if (existingDocument == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserDocNotFound });
                 }
 
                 // Create a folder with the user's phone number if it doesn't exist
@@ -162,7 +178,7 @@ namespace PRX.Controllers.User
                         fileName = $"{userId}-{documentType}.zip";
                         break;
                     default:
-                        return BadRequest("Unsupported file format.");
+                        return BadRequest(new { message = ResponseMessages.UserFileFormatConfliction });
                 }
 
                 // Construct the full file path
@@ -181,15 +197,11 @@ namespace PRX.Controllers.User
                 // Save changes to the database
                 await _context.SaveChangesAsync();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
             }
             catch (Exception ex)
             {
-                // Log the exception
-                _logger.LogError(ex, "Error occurred while updating document.");
-
-                // Return a 500 Internal Server Error response
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the document.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
@@ -271,35 +283,49 @@ namespace PRX.Controllers.User
         [Authorize(Roles = "User")]
         public async Task<IActionResult> GetDocument(int userId, string documentType)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (userId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return NotFound(new {message = ResponseMessages.UserNotFound});
+                }
+
+                // Authorization check: Ensure user can only update their own documents
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                if (userId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+                if (userDocument == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserDocNotFound });
+                }
+
+                // Ensure that the file path belongs to the respective user's folder
+                if (!userDocument.FilePath.StartsWith($"C:\\PRX Documents\\{user.PhoneNumber}"))
+                {
+                    return Unauthorized(new { message = ResponseMessages.UserFilePathConfliction }); // Prevent accessing files of other users
+                }
+
+                // Retrieve the file from the specified file path
+                var filePath = userDocument.FilePath;
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+                return File(fileBytes, "application/octet-stream", Path.GetFileName(filePath));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            // Authorization check: Ensure user can only update their own documents
-            var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-            if (userId != tokenUserId)
-            {
-                return Forbid(); // Or return 403 Forbidden
-            }
 
-            var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
-            if (userDocument == null)
-            {
-                return NotFound();
-            }
-
-            // Ensure that the file path belongs to the respective user's folder
-            if (!userDocument.FilePath.StartsWith($"C:\\PRX Documents\\{user.PhoneNumber}"))
-            {
-                return Unauthorized(); // Prevent accessing files of other users
-            }
-
-            // Retrieve the file from the specified file path
-            var filePath = userDocument.FilePath;
-            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(fileBytes, "application/octet-stream", Path.GetFileName(filePath));
         }
 
 
@@ -307,22 +333,36 @@ namespace PRX.Controllers.User
         [Authorize(Roles = "User")]
         public async Task<IActionResult> MarkDocumentAsDeleted(int userId, string documentType)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (userId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
+                }
+
+                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+                if (userDocument == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserDocNotFound });
+                }
+
+                userDocument.IsDeleted = true;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
-            if (userDocument == null)
-            {
-                return NotFound();
-            }
 
-            userDocument.IsDeleted = true;
-            await _context.SaveChangesAsync();
-
-            return Ok();
         }
 
 
@@ -333,8 +373,21 @@ namespace PRX.Controllers.User
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUserDocuments(int userId)
         {
-            var userDocuments = await _context.UserDocuments.Where(d => d.UserId == userId).ToListAsync();
-            return Ok(userDocuments);
+            try
+            {
+                if (userId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userDocuments = await _context.UserDocuments.Where(d => d.UserId == userId).ToListAsync();
+                return Ok(userDocuments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpPut("UserDocuments/Admin/{userId}/{documentType}")]
@@ -344,65 +397,78 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateDocumentAdmin(int userId, string documentType, [FromForm] UserDocumentDto updatedDocumentDto)
         {
-            if (updatedDocumentDto == null || updatedDocumentDto.File == null)
+            try
             {
-                return BadRequest("File is required.");
+                if (userId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                if (updatedDocumentDto == null || updatedDocumentDto.File == null)
+                {
+                    return BadRequest(new { message = ResponseMessages.UserFileNotFound });
+                }
+
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
+                }
+
+                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+                if (userDocument == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserDocNotFound });
+                }
+
+                // Create a folder with the user's phone number if it doesn't exist
+                var userFolder = Path.Combine("C:\\PRX Documents", user.PhoneNumber);
+                if (!Directory.Exists(userFolder))
+                {
+                    Directory.CreateDirectory(userFolder);
+                }
+
+                // Get the file extension from the uploaded file
+                var fileExtension = Path.GetExtension(updatedDocumentDto.File.FileName).ToLower();
+
+                // Determine the file name and extension based on the document type
+                string fileName;
+                switch (fileExtension)
+                {
+                    case ".pdf":
+                        fileName = $"{userId}-{documentType}.pdf";
+                        break;
+                    case ".png":
+                        fileName = $"{userId}-{documentType}.png";
+                        break;
+                    case ".jpeg":
+                    case ".jpg":
+                        fileName = $"{userId}-{documentType}.jpeg";
+                        break;
+                    default:
+                        return BadRequest(new { message = ResponseMessages.UserFileFormatConfliction });
+                }
+
+                // Construct the full file path
+                var filePath = Path.Combine(userFolder, fileName);
+
+                // Save the file to the user's folder
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await updatedDocumentDto.File.CopyToAsync(stream);
+                }
+
+                // Update the file path in the database
+                userDocument.FilePath = filePath;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
-            if (userDocument == null)
-            {
-                return NotFound();
-            }
-
-            // Create a folder with the user's phone number if it doesn't exist
-            var userFolder = Path.Combine("C:\\PRX Documents", user.PhoneNumber);
-            if (!Directory.Exists(userFolder))
-            {
-                Directory.CreateDirectory(userFolder);
-            }
-
-            // Get the file extension from the uploaded file
-            var fileExtension = Path.GetExtension(updatedDocumentDto.File.FileName).ToLower();
-
-            // Determine the file name and extension based on the document type
-            string fileName;
-            switch (fileExtension)
-            {
-                case ".pdf":
-                    fileName = $"{userId}-{documentType}.pdf";
-                    break;
-                case ".png":
-                    fileName = $"{userId}-{documentType}.png";
-                    break;
-                case ".jpeg":
-                case ".jpg":
-                    fileName = $"{userId}-{documentType}.jpeg";
-                    break;
-                default:
-                    return BadRequest("Unsupported file format.");
-            }
-
-            // Construct the full file path
-            var filePath = Path.Combine(userFolder, fileName);
-
-            // Save the file to the user's folder
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await updatedDocumentDto.File.CopyToAsync(stream);
-            }
-
-            // Update the file path in the database
-            userDocument.FilePath = filePath;
-            await _context.SaveChangesAsync();
-
-            return Ok();
         }
 
         [HttpGet("Admin/UserDocuments")]
@@ -411,23 +477,32 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAllDocuments()
         {
-            var userDocuments = await _context.UserDocuments.ToListAsync();
-
-            if (userDocuments == null || !userDocuments.Any())
+            try
             {
-                return NotFound();
+                var userDocuments = await _context.UserDocuments.ToListAsync();
+
+                if (userDocuments == null || !userDocuments.Any())
+                {
+                    return NotFound(new { message = ResponseMessages.UserDocNotFound });
+                }
+
+                // Map UserDocument entities to DTOs
+                var documentDtos = userDocuments.Select(document => new UserDocumentDto
+                {
+                    UserId = document.UserId,
+                    DocumentType = document.DocumentType,
+                    //FilePath = document.FilePath,
+                    IsDeleted = document.IsDeleted
+                }).ToList();
+
+                return Ok(documentDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            // Map UserDocument entities to DTOs
-            var documentDtos = userDocuments.Select(document => new UserDocumentDto
-            {
-                UserId = document.UserId,
-                DocumentType = document.DocumentType,
-                //FilePath = document.FilePath,
-                IsDeleted = document.IsDeleted
-            }).ToList();
 
-            return Ok(documentDtos);
         }
 
 

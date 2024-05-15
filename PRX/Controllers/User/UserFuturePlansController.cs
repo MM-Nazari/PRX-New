@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
+using PRX.Utils;
 
 namespace PRX.Controllers.User
 {
@@ -23,8 +24,17 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllUserFuturePlans()
         {
-            var userFuturePlans = _context.UserFuturePlans.ToList();
-            return Ok(userFuturePlans);
+            try
+            {
+                var userFuturePlans = _context.UserFuturePlans.ToList();
+                return Ok(userFuturePlans);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("{id}")]
@@ -37,18 +47,23 @@ namespace PRX.Controllers.User
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userFuturePlans == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
                 }
                 return Ok(userFuturePlans);
 
@@ -56,8 +71,7 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -69,21 +83,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserFuturePlans([FromBody] UserFuturePlansDto userFuturePlansDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userFuturePlans = new UserFuturePlans
+                {
+                    UserId = userFuturePlansDto.UserId,
+                    Description = userFuturePlansDto.Description
+                };
+
+                _context.UserFuturePlans.Add(userFuturePlans);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetUserFuturePlansById), new { id = userFuturePlans.Id }, userFuturePlans);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userFuturePlans = new UserFuturePlans
-            {
-                UserId = userFuturePlansDto.UserId,
-                Description = userFuturePlansDto.Description
-            };
 
-            _context.UserFuturePlans.Add(userFuturePlans);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetUserFuturePlansById), new { id = userFuturePlans.Id }, userFuturePlans);
         }
 
         [HttpPut("{id}")]
@@ -97,18 +120,23 @@ namespace PRX.Controllers.User
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userFuturePlans == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
                 }
 
                 userFuturePlans.UserId = userFuturePlansDto.UserId;
@@ -122,8 +150,7 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -139,18 +166,23 @@ namespace PRX.Controllers.User
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userFuturePlans == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
                 }
 
                 userFuturePlans.IsDeleted = true;
@@ -162,8 +194,7 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -173,10 +204,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult ClearUserFuturePlans()
         {
-            _context.UserFuturePlans.RemoveRange(_context.UserFuturePlans);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserFuturePlans.RemoveRange(_context.UserFuturePlans);
+                _context.SaveChanges();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
 
@@ -188,16 +228,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkFinancwChangeAsComplete(int id)
         {
-            var userFinancialChanges = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id);
-            if (userFinancialChanges == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userFinancialChanges = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id);
+                if (userFinancialChanges == null)
+                {
+                    return NotFound();
+                }
+
+                userFinancialChanges.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userFinancialChanges.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
 
@@ -207,15 +261,24 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllUserFuturePlansAdmin()
         {
-            var futurePlans = _context.UserFuturePlans.ToList();
-            var futurePlanDtos = futurePlans.Select(plan => new UserFuturePlansDto
+            try
             {
-                UserId = plan.UserId,
-                Description = plan.Description,
-                IsComplete = plan.IsComplete,
-                IsDeleted = plan.IsDeleted
-            }).ToList();
-            return Ok(futurePlanDtos);
+                var futurePlans = _context.UserFuturePlans.ToList();
+                var futurePlanDtos = futurePlans.Select(plan => new UserFuturePlansDto
+                {
+                    UserId = plan.UserId,
+                    Description = plan.Description,
+                    IsComplete = plan.IsComplete,
+                    IsDeleted = plan.IsDeleted
+                }).ToList();
+                return Ok(futurePlanDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -224,21 +287,35 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserFuturePlansByIdAdmin(int id)
         {
-            var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
-            if (futurePlan == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+                if (futurePlan == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
+                }
+
+                var futurePlanDto = new UserFuturePlansDto
+                {
+                    UserId = futurePlan.UserId,
+                    Description = futurePlan.Description,
+                    IsComplete = futurePlan.IsComplete,
+                    IsDeleted = futurePlan.IsDeleted
+                };
+
+                return Ok(futurePlanDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var futurePlanDto = new UserFuturePlansDto
-            {
-                UserId = futurePlan.UserId,
-                Description = futurePlan.Description,
-                IsComplete = futurePlan.IsComplete,
-                IsDeleted = futurePlan.IsDeleted
-            };
 
-            return Ok(futurePlanDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -248,17 +325,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserFuturePlansAdmin(int id, [FromBody] UserFuturePlansDto futurePlanDto)
         {
-            var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
-            if (futurePlan == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+                if (futurePlan == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
+                }
+
+                futurePlan.Description = futurePlanDto.Description;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            futurePlan.Description = futurePlanDto.Description;
-
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -267,16 +357,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserFuturePlansAdmin(int id)
         {
-            var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
-            if (futurePlan == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+                if (futurePlan == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
+                }
+
+                futurePlan.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            futurePlan.IsDeleted = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -284,10 +388,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearUserFuturePlansAdmin()
         {
-            _context.UserFuturePlans.RemoveRange(_context.UserFuturePlans);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserFuturePlans.RemoveRange(_context.UserFuturePlans);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
     }

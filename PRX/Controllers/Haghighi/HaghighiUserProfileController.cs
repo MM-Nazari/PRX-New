@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
 using PRX.Models.Haghighi;
+using PRX.Utils;
 
 namespace PRX.Controllers.Haghighi
 {
@@ -23,8 +24,16 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllHaghighiUserProfiles()
         {
-            var profiles = _context.HaghighiUserProfiles.ToList();
-            return Ok(profiles);
+            try
+            {
+                var profiles = _context.HaghighiUserProfiles.ToList();
+                return Ok(profiles);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         // GET: api/HaghighiUserProfile/5
@@ -34,20 +43,25 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserProfileById(int id)
         {
-            try {
+            try 
+            {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var profile = _context.HaghighiUserProfiles.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (profile == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserProfileNotFound});
                 }
                 return Ok(profile);
 
@@ -55,8 +69,7 @@ namespace PRX.Controllers.Haghighi
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
@@ -72,19 +85,23 @@ namespace PRX.Controllers.Haghighi
         {
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 var profile = _context.HaghighiUserProfiles.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (profile == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserProfileNotFound });
                 }
 
                 // Update profile properties
@@ -98,8 +115,7 @@ namespace PRX.Controllers.Haghighi
             }
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
@@ -113,30 +129,33 @@ namespace PRX.Controllers.Haghighi
         {
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is deleting their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 var profile = _context.HaghighiUserProfiles.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (profile == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserProfileNotFound });
                 }
 
                 profile.IsDeleted = true;
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
             }
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
@@ -148,35 +167,45 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateHaghighiUserProfile([FromBody] HaghighiUserProfileDto profileDto)
         {
-            if (!ModelState.IsValid)
+
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var profile = new HaghighiUserProfile
+                {
+                    UserId = profileDto.UserId,
+                    FirstName = profileDto.FirstName,
+                    LastName = profileDto.LastName,
+                    FathersName = profileDto.FathersName,
+                    NationalNumber = profileDto.NationalNumber,
+                    BirthDate = profileDto.BirthDate,
+                    BirthPlace = profileDto.BirthPlace,
+                    BirthCertificateNumber = profileDto.BirthCertificateNumber,
+                    MaritalStatus = profileDto.MaritalStatus,
+                    Gender = profileDto.Gender,
+                    PostalCode = profileDto.PostalCode,
+                    HomePhone = profileDto.HomePhone,
+                    Fax = profileDto.Fax,
+                    BestTimeToCall = profileDto.BestTimeToCall,
+                    ResidentialAddress = profileDto.ResidentialAddress,
+                    Email = profileDto.Email
+                };
+
+                _context.HaghighiUserProfiles.Add(profile);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetHaghighiUserProfileById), new { id = profile.Id }, profile);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var profile = new HaghighiUserProfile
-            {
-                UserId = profileDto.UserId,
-                FirstName = profileDto.FirstName,
-                LastName = profileDto.LastName,
-                FathersName = profileDto.FathersName,
-                NationalNumber = profileDto.NationalNumber,
-                BirthDate = profileDto.BirthDate,
-                BirthPlace = profileDto.BirthPlace,
-                BirthCertificateNumber = profileDto.BirthCertificateNumber,
-                MaritalStatus = profileDto.MaritalStatus,
-                Gender = profileDto.Gender,
-                PostalCode = profileDto.PostalCode,
-                HomePhone = profileDto.HomePhone,
-                Fax = profileDto.Fax,
-                BestTimeToCall = profileDto.BestTimeToCall,
-                ResidentialAddress = profileDto.ResidentialAddress,
-                Email = profileDto.Email
-            };
 
-            _context.HaghighiUserProfiles.Add(profile);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetHaghighiUserProfileById), new { id = profile.Id }, profile);
         }
 
   
@@ -185,10 +214,18 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearAllHaghighiUserProfiles()
         {
-            _context.HaghighiUserProfiles.RemoveRange(_context.HaghighiUserProfiles);
-            _context.SaveChanges();
+            try
+            {
+                _context.HaghighiUserProfiles.RemoveRange(_context.HaghighiUserProfiles);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         // PUT: api/HaghighiUserProfile/complete/{id}
@@ -199,16 +236,31 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkProfileAsComplete(int id)
         {
-            var profile = _context.HaghighiUserProfiles.FirstOrDefault(e => e.UserId == id);
-            if (profile == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var profile = _context.HaghighiUserProfiles.FirstOrDefault(e => e.UserId == id);
+                if (profile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserProfileNotFound });
+                }
+
+                profile.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            profile.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
 
@@ -218,29 +270,38 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllHaghighiUserProfilesAdmin()
         {
-            var profiles = _context.HaghighiUserProfiles.ToList();
-            var profileDtos = profiles.Select(profile => new HaghighiUserProfileDto
+
+            try
             {
-                UserId = profile.UserId,
-                FirstName = profile.FirstName,
-                LastName = profile.LastName,
-                FathersName = profile.FathersName,
-                NationalNumber = profile.NationalNumber,
-                BirthDate = profile.BirthDate,
-                BirthPlace = profile.BirthPlace,
-                BirthCertificateNumber = profile.BirthCertificateNumber,
-                MaritalStatus = profile.MaritalStatus,
-                Gender = profile.Gender,
-                PostalCode = profile.PostalCode,
-                HomePhone = profile.HomePhone,
-                Fax = profile.Fax,
-                BestTimeToCall = profile.BestTimeToCall,
-                ResidentialAddress = profile.ResidentialAddress,
-                Email = profile.Email,
-                IsComplete = profile.IsComplete,
-                IsDeleted = profile.IsDeleted
-            }).ToList();
-            return Ok(profileDtos);
+                var profiles = _context.HaghighiUserProfiles.ToList();
+                var profileDtos = profiles.Select(profile => new HaghighiUserProfileDto
+                {
+                    UserId = profile.UserId,
+                    FirstName = profile.FirstName,
+                    LastName = profile.LastName,
+                    FathersName = profile.FathersName,
+                    NationalNumber = profile.NationalNumber,
+                    BirthDate = profile.BirthDate,
+                    BirthPlace = profile.BirthPlace,
+                    BirthCertificateNumber = profile.BirthCertificateNumber,
+                    MaritalStatus = profile.MaritalStatus,
+                    Gender = profile.Gender,
+                    PostalCode = profile.PostalCode,
+                    HomePhone = profile.HomePhone,
+                    Fax = profile.Fax,
+                    BestTimeToCall = profile.BestTimeToCall,
+                    ResidentialAddress = profile.ResidentialAddress,
+                    Email = profile.Email,
+                    IsComplete = profile.IsComplete,
+                    IsDeleted = profile.IsDeleted
+                }).ToList();
+                return Ok(profileDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -249,35 +310,50 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserProfileByIdAdmin(int id)
         {
-            var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
-            if (profile == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserProfileNotFound });
+                }
+
+                var profileDto = new HaghighiUserProfileDto
+                {
+                    UserId = profile.UserId,
+                    FirstName = profile.FirstName,
+                    LastName = profile.LastName,
+                    FathersName = profile.FathersName,
+                    NationalNumber = profile.NationalNumber,
+                    BirthDate = profile.BirthDate,
+                    BirthPlace = profile.BirthPlace,
+                    BirthCertificateNumber = profile.BirthCertificateNumber,
+                    MaritalStatus = profile.MaritalStatus,
+                    Gender = profile.Gender,
+                    PostalCode = profile.PostalCode,
+                    HomePhone = profile.HomePhone,
+                    Fax = profile.Fax,
+                    BestTimeToCall = profile.BestTimeToCall,
+                    ResidentialAddress = profile.ResidentialAddress,
+                    Email = profile.Email,
+                    IsComplete = profile.IsComplete,
+                    IsDeleted = profile.IsDeleted
+                };
+
+                return Ok(profileDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var profileDto = new HaghighiUserProfileDto
-            {
-                UserId = profile.UserId,
-                FirstName = profile.FirstName,
-                LastName = profile.LastName,
-                FathersName = profile.FathersName,
-                NationalNumber = profile.NationalNumber,
-                BirthDate = profile.BirthDate,
-                BirthPlace = profile.BirthPlace,
-                BirthCertificateNumber = profile.BirthCertificateNumber,
-                MaritalStatus = profile.MaritalStatus,
-                Gender = profile.Gender,
-                PostalCode = profile.PostalCode,
-                HomePhone = profile.HomePhone,
-                Fax = profile.Fax,
-                BestTimeToCall = profile.BestTimeToCall,
-                ResidentialAddress = profile.ResidentialAddress,
-                Email = profile.Email,
-                IsComplete = profile.IsComplete,
-                IsDeleted = profile.IsDeleted
-            };
 
-            return Ok(profileDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -287,33 +363,47 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHaghighiUserProfileAdmin(int id, [FromBody] HaghighiUserProfileDto profileDto)
         {
-            var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
-            if (profile == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserProfileNotFound });
+                }
+
+                profile.FirstName = profileDto.FirstName;
+                profile.LastName = profileDto.LastName;
+                profile.FathersName = profileDto.FathersName;
+                profile.NationalNumber = profileDto.NationalNumber;
+                profile.BirthDate = profileDto.BirthDate;
+                profile.BirthPlace = profileDto.BirthPlace;
+                profile.BirthCertificateNumber = profileDto.BirthCertificateNumber;
+                profile.MaritalStatus = profileDto.MaritalStatus;
+                profile.Gender = profileDto.Gender;
+                profile.PostalCode = profileDto.PostalCode;
+                profile.HomePhone = profileDto.HomePhone;
+                profile.Fax = profileDto.Fax;
+                profile.BestTimeToCall = profileDto.BestTimeToCall;
+                profile.ResidentialAddress = profileDto.ResidentialAddress;
+                profile.Email = profileDto.Email;
+                //profile.IsComplete = profileDto.IsComplete;
+                //profile.IsDeleted = profileDto.IsDeleted;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            profile.FirstName = profileDto.FirstName;
-            profile.LastName = profileDto.LastName;
-            profile.FathersName = profileDto.FathersName;
-            profile.NationalNumber = profileDto.NationalNumber;
-            profile.BirthDate = profileDto.BirthDate;
-            profile.BirthPlace = profileDto.BirthPlace;
-            profile.BirthCertificateNumber = profileDto.BirthCertificateNumber;
-            profile.MaritalStatus = profileDto.MaritalStatus;
-            profile.Gender = profileDto.Gender;
-            profile.PostalCode = profileDto.PostalCode;
-            profile.HomePhone = profileDto.HomePhone;
-            profile.Fax = profileDto.Fax;
-            profile.BestTimeToCall = profileDto.BestTimeToCall;
-            profile.ResidentialAddress = profileDto.ResidentialAddress;
-            profile.Email = profileDto.Email;
-            //profile.IsComplete = profileDto.IsComplete;
-            //profile.IsDeleted = profileDto.IsDeleted;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -322,16 +412,30 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserProfileAdmin(int id)
         {
-            var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
-            if (profile == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var profile = _context.HaghighiUserProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserProfileNotFound });
+                }
+
+                profile.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            profile.IsDeleted = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -339,10 +443,19 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHaghighiUserProfiles()
         {
-            _context.HaghighiUserProfiles.RemoveRange(_context.HaghighiUserProfiles);
-            _context.SaveChanges();
+            try
+            {
+                _context.HaghighiUserProfiles.RemoveRange(_context.HaghighiUserProfiles);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
 

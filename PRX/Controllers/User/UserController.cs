@@ -48,7 +48,7 @@ namespace PRX.Controllers.User
                 }
                 else
                 {
-                    return Ok(new { messagde = ResponseMessages.PhoneExistanseFalse });
+                    return Ok(new { message = ResponseMessages.PhoneExistanseFalse });
                 }
 
 
@@ -131,7 +131,7 @@ namespace PRX.Controllers.User
 
             if (!_utils.VerifyPassword(userDto.Password, user.Password))
             {
-                return Unauthorized(new {message = ResponseMessages.PasswordIncorrect});
+                return BadRequest(new {message = ResponseMessages.PasswordIncorrect});
             }
 
             try 

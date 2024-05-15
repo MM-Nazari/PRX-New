@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
 using PRX.Models.Haghighi;
+using PRX.Utils;
 
 namespace PRX.Controllers.Haghighi
 {
@@ -23,8 +24,17 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllHaghighiUserFinancialProfiles()
         {
-            var financialProfiles = _context.HaghighiUserFinancialProfiles.ToList();
-            return Ok(financialProfiles);
+            try
+            {
+                var financialProfiles = _context.HaghighiUserFinancialProfiles.ToList();
+                return Ok(financialProfiles);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         // GET: api/HaghighiUserFinancialProfile/5
@@ -36,6 +46,10 @@ namespace PRX.Controllers.Haghighi
         {
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -43,21 +57,19 @@ namespace PRX.Controllers.Haghighi
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (financialProfile == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound});
                 }
                 return Ok(financialProfile);
 
             }
-
             catch (Exception ex)
             {
-
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
         }
@@ -68,26 +80,35 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateHaghighiUserFinancialProfile([FromBody] HaghighiUserFinancialProfileDto financialProfileDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var financialProfile = new HaghighiUserFinancialProfile
+                {
+                    UserId = financialProfileDto.UserId,
+                    MainContinuousIncome = financialProfileDto.MainContinuousIncome,
+                    OtherIncomes = financialProfileDto.OtherIncomes,
+                    SupportFromOthers = financialProfileDto.SupportFromOthers,
+                    ContinuousExpenses = financialProfileDto.ContinuousExpenses,
+                    OccasionalExpenses = financialProfileDto.OccasionalExpenses,
+                    ContributionToOthers = financialProfileDto.ContributionToOthers
+                };
+
+                _context.HaghighiUserFinancialProfiles.Add(financialProfile);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetHaghighiUserFinancialProfileById), new { id = financialProfile.Id }, financialProfile);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var financialProfile = new HaghighiUserFinancialProfile
-            {
-                UserId = financialProfileDto.UserId,
-                MainContinuousIncome = financialProfileDto.MainContinuousIncome,
-                OtherIncomes = financialProfileDto.OtherIncomes,
-                SupportFromOthers = financialProfileDto.SupportFromOthers,
-                ContinuousExpenses = financialProfileDto.ContinuousExpenses,
-                OccasionalExpenses = financialProfileDto.OccasionalExpenses,
-                ContributionToOthers = financialProfileDto.ContributionToOthers
-            };
 
-            _context.HaghighiUserFinancialProfiles.Add(financialProfile);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetHaghighiUserFinancialProfileById), new { id = financialProfile.Id }, financialProfile);
         }
 
         // PUT: api/HaghighiUserFinancialProfile/5
@@ -100,6 +121,10 @@ namespace PRX.Controllers.Haghighi
         {
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -107,12 +132,12 @@ namespace PRX.Controllers.Haghighi
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (financialProfile == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
                 }
 
                 financialProfile.UserId = financialProfileDto.UserId;
@@ -131,8 +156,7 @@ namespace PRX.Controllers.Haghighi
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -148,6 +172,10 @@ namespace PRX.Controllers.Haghighi
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -155,28 +183,26 @@ namespace PRX.Controllers.Haghighi
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (financialProfile == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
                 }
 
                 financialProfile.IsDeleted = true;
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
 
             }
-
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-     
+
         }
 
         // DELETE: api/HaghighiUserFinancialProfile/clear
@@ -184,10 +210,18 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearAllHaghighiUserFinancialProfiles()
         {
-            _context.HaghighiUserFinancialProfiles.RemoveRange(_context.HaghighiUserFinancialProfiles);
-            _context.SaveChanges();
+            try
+            {
+                _context.HaghighiUserFinancialProfiles.RemoveRange(_context.HaghighiUserFinancialProfiles);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         // PUT: api/HaghighiUserProfile/complete/{id}
@@ -198,16 +232,30 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkFinanceProfileAsComplete(int id)
         {
-            var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id);
-            if (financialProfile == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id);
+                if (financialProfile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
+                }
+
+                financialProfile.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            financialProfile.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
 
@@ -217,20 +265,30 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllHaghighiUserFinancialProfilesAdmin()
         {
-            var profiles = _context.HaghighiUserFinancialProfiles.ToList();
-            var profileDtos = profiles.Select(profile => new HaghighiUserFinancialProfileDto
+
+            try
             {
-                UserId = profile.UserId,
-                MainContinuousIncome = profile.MainContinuousIncome,
-                OtherIncomes = profile.OtherIncomes,
-                SupportFromOthers = profile.SupportFromOthers,
-                ContinuousExpenses = profile.ContinuousExpenses,
-                OccasionalExpenses = profile.OccasionalExpenses,
-                ContributionToOthers = profile.ContributionToOthers,
-                IsComplete = profile.IsComplete,
-                IsDeleted = profile.IsDeleted
-            }).ToList();
-            return Ok(profileDtos);
+                var profiles = _context.HaghighiUserFinancialProfiles.ToList();
+                var profileDtos = profiles.Select(profile => new HaghighiUserFinancialProfileDto
+                {
+                    UserId = profile.UserId,
+                    MainContinuousIncome = profile.MainContinuousIncome,
+                    OtherIncomes = profile.OtherIncomes,
+                    SupportFromOthers = profile.SupportFromOthers,
+                    ContinuousExpenses = profile.ContinuousExpenses,
+                    OccasionalExpenses = profile.OccasionalExpenses,
+                    ContributionToOthers = profile.ContributionToOthers,
+                    IsComplete = profile.IsComplete,
+                    IsDeleted = profile.IsDeleted
+                }).ToList();
+                return Ok(profileDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -239,26 +297,40 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserFinancialProfileByIdAdmin(int id)
         {
-            var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
-            if (profile == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
+                }
+
+                var profileDto = new HaghighiUserFinancialProfileDto
+                {
+                    UserId = profile.UserId,
+                    MainContinuousIncome = profile.MainContinuousIncome,
+                    OtherIncomes = profile.OtherIncomes,
+                    SupportFromOthers = profile.SupportFromOthers,
+                    ContinuousExpenses = profile.ContinuousExpenses,
+                    OccasionalExpenses = profile.OccasionalExpenses,
+                    ContributionToOthers = profile.ContributionToOthers,
+                    IsComplete = profile.IsComplete,
+                    IsDeleted = profile.IsDeleted
+                };
+
+                return Ok(profileDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var profileDto = new HaghighiUserFinancialProfileDto
-            {
-                UserId = profile.UserId,
-                MainContinuousIncome = profile.MainContinuousIncome,
-                OtherIncomes = profile.OtherIncomes,
-                SupportFromOthers = profile.SupportFromOthers,
-                ContinuousExpenses = profile.ContinuousExpenses,
-                OccasionalExpenses = profile.OccasionalExpenses,
-                ContributionToOthers = profile.ContributionToOthers,
-                IsComplete = profile.IsComplete,
-                IsDeleted = profile.IsDeleted
-            };
 
-            return Ok(profileDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -268,24 +340,38 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHaghighiUserFinancialProfileAdmin(int id, [FromBody] HaghighiUserFinancialProfileDto profileDto)
         {
-            var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
-            if (profile == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
+                }
+
+                profile.MainContinuousIncome = profileDto.MainContinuousIncome;
+                profile.OtherIncomes = profileDto.OtherIncomes;
+                profile.SupportFromOthers = profileDto.SupportFromOthers;
+                profile.ContinuousExpenses = profileDto.ContinuousExpenses;
+                profile.OccasionalExpenses = profileDto.OccasionalExpenses;
+                profile.ContributionToOthers = profileDto.ContributionToOthers;
+                //profile.IsComplete = profileDto.IsComplete;
+                //profile.IsDeleted = profileDto.IsDeleted;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            profile.MainContinuousIncome = profileDto.MainContinuousIncome;
-            profile.OtherIncomes = profileDto.OtherIncomes;
-            profile.SupportFromOthers = profileDto.SupportFromOthers;
-            profile.ContinuousExpenses = profileDto.ContinuousExpenses;
-            profile.OccasionalExpenses = profileDto.OccasionalExpenses;
-            profile.ContributionToOthers = profileDto.ContributionToOthers;
-            //profile.IsComplete = profileDto.IsComplete;
-            //profile.IsDeleted = profileDto.IsDeleted;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -294,16 +380,30 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserFinancialProfileAdmin(int id)
         {
-            var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
-            if (profile == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
+                }
+
+                profile.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            profile.IsDeleted = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -311,10 +411,19 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHaghighiUserFinancialProfiles()
         {
-            _context.HaghighiUserFinancialProfiles.RemoveRange(_context.HaghighiUserFinancialProfiles);
-            _context.SaveChanges();
+            try
+            {
+                _context.HaghighiUserFinancialProfiles.RemoveRange(_context.HaghighiUserFinancialProfiles);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
     }

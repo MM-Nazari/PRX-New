@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
+using PRX.Utils;
+using System;
+using System.Linq;
 
 namespace PRX.Controllers.User
 {
@@ -19,100 +23,286 @@ namespace PRX.Controllers.User
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllUserAssetTypes()
         {
-            var userAssetTypes = _context.UserAssetTypes.ToList();
-            var userAssetTypeDtos = userAssetTypes.Select(userAssetType => new UserAssetTypeDto
+            try
             {
-                Id = userAssetType.Id,
-                Name = userAssetType.Name
-            }).ToList();
-            return Ok(userAssetTypeDtos);
+                var userAssetTypes = _context.UserAssetTypes.ToList();
+                var userAssetTypeDtos = userAssetTypes.Select(userAssetType => new UserAssetTypeDto
+                {
+                    Id = userAssetType.Id,
+                    Name = userAssetType.Name
+                }).ToList();
+                return Ok(userAssetTypeDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
         }
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetUserAssetTypeById(int id)
         {
-            var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
-            if (userAssetType == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
+                if (userAssetType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserAssetTypeNotFound });
+                }
+                var userAssetTypeDto = new UserAssetTypeDto
+                {
+                    Id = userAssetType.Id,
+                    Name = userAssetType.Name
+                };
+                return Ok(userAssetTypeDto);
             }
-            var userAssetTypeDto = new UserAssetTypeDto
+            catch (Exception ex)
             {
-                Id = userAssetType.Id,
-                Name = userAssetType.Name
-            };
-            return Ok(userAssetTypeDto);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateUserAssetType([FromBody] UserAssetTypeDto userAssetTypeDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userAssetType = new UserAssetType
+                {
+                    Name = userAssetTypeDto.Name
+                };
+
+                _context.UserAssetTypes.Add(userAssetType);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetUserAssetTypeById), new { id = userAssetType.Id }, userAssetType);
             }
-
-            var userAssetType = new UserAssetType
+            catch (Exception ex)
             {
-                Name = userAssetTypeDto.Name
-            };
-
-            _context.UserAssetTypes.Add(userAssetType);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetUserAssetTypeById), new { id = userAssetType.Id }, userAssetType);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateUserAssetType(int id, [FromBody] UserAssetTypeDto userAssetTypeDto)
         {
-            var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
-            if (userAssetType == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
+                if (userAssetType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserAssetTypeNotFound });
+                }
+
+                userAssetType.Name = userAssetTypeDto.Name;
+
+                _context.SaveChanges();
+
+                return NoContent();
             }
-
-            userAssetType.Name = userAssetTypeDto.Name;
-
-            _context.SaveChanges();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteUserAssetType(int id)
         {
-            var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
-            if (userAssetType == null)
+            try
             {
-                return NotFound();
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
+                if (userAssetType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserAssetTypeNotFound });
+                }
+
+                _context.UserAssetTypes.Remove(userAssetType);
+                _context.SaveChanges();
+
+                return Ok(new {message = ResponseMessages.OK });
             }
-
-            _context.UserAssetTypes.Remove(userAssetType);
-            _context.SaveChanges();
-
-            return Ok();
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
         }
 
         [HttpDelete("clear")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult ClearUserAssetTypes()
         {
-            _context.UserAssetTypes.RemoveRange(_context.UserAssetTypes);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserAssetTypes.RemoveRange(_context.UserAssetTypes);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
         }
     }
 }
+
+
+
+//using Microsoft.AspNetCore.Mvc;
+//using PRX.Data;
+//using PRX.Dto.User;
+//using PRX.Models.User;
+
+//namespace PRX.Controllers.User
+//{
+//    [Route("api/[controller]")]
+//    [ApiController]
+//    [ApiExplorerSettings(GroupName = "UserAssetTypes")]
+//    public class UserAssetTypesController : ControllerBase
+//    {
+//        private readonly PRXDbContext _context;
+
+//        public UserAssetTypesController(PRXDbContext context)
+//        {
+//            _context = context;
+//        }
+
+//        [HttpGet]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        public IActionResult GetAllUserAssetTypes()
+//        {
+//            var userAssetTypes = _context.UserAssetTypes.ToList();
+//            var userAssetTypeDtos = userAssetTypes.Select(userAssetType => new UserAssetTypeDto
+//            {
+//                Id = userAssetType.Id,
+//                Name = userAssetType.Name
+//            }).ToList();
+//            return Ok(userAssetTypeDtos);
+//        }
+
+//        [HttpGet("{id}")]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        [ProducesResponseType(StatusCodes.Status404NotFound)]
+//        public IActionResult GetUserAssetTypeById(int id)
+//        {
+//            var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
+//            if (userAssetType == null)
+//            {
+//                return NotFound();
+//            }
+//            var userAssetTypeDto = new UserAssetTypeDto
+//            {
+//                Id = userAssetType.Id,
+//                Name = userAssetType.Name
+//            };
+//            return Ok(userAssetTypeDto);
+//        }
+
+//        [HttpPost]
+//        [ProducesResponseType(StatusCodes.Status201Created)]
+//        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+//        public IActionResult CreateUserAssetType([FromBody] UserAssetTypeDto userAssetTypeDto)
+//        {
+//            if (!ModelState.IsValid)
+//            {
+//                return BadRequest(ModelState);
+//            }
+
+//            var userAssetType = new UserAssetType
+//            {
+//                Name = userAssetTypeDto.Name
+//            };
+
+//            _context.UserAssetTypes.Add(userAssetType);
+//            _context.SaveChanges();
+
+//            return CreatedAtAction(nameof(GetUserAssetTypeById), new { id = userAssetType.Id }, userAssetType);
+//        }
+
+//        [HttpPut("{id}")]
+//        [ProducesResponseType(StatusCodes.Status204NoContent)]
+//        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+//        [ProducesResponseType(StatusCodes.Status404NotFound)]
+//        public IActionResult UpdateUserAssetType(int id, [FromBody] UserAssetTypeDto userAssetTypeDto)
+//        {
+//            var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
+//            if (userAssetType == null)
+//            {
+//                return NotFound();
+//            }
+
+//            userAssetType.Name = userAssetTypeDto.Name;
+
+//            _context.SaveChanges();
+
+//            return NoContent();
+//        }
+
+//        [HttpDelete("{id}")]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        [ProducesResponseType(StatusCodes.Status404NotFound)]
+//        public IActionResult DeleteUserAssetType(int id)
+//        {
+//            var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
+//            if (userAssetType == null)
+//            {
+//                return NotFound();
+//            }
+
+//            _context.UserAssetTypes.Remove(userAssetType);
+//            _context.SaveChanges();
+
+//            return Ok();
+//        }
+
+//        [HttpDelete("clear")]
+//        [ProducesResponseType(StatusCodes.Status200OK)]
+//        public IActionResult ClearUserAssetTypes()
+//        {
+//            _context.UserAssetTypes.RemoveRange(_context.UserAssetTypes);
+//            _context.SaveChanges();
+
+//            return Ok();
+//        }
+//    }
+//}

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
 using PRX.Models.Hoghooghi;
+using PRX.Utils;
 
 namespace PRX.Controllers.Hoghooghi
 {
@@ -23,8 +24,16 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllHoghooghiUsers()
         {
-            var users = _context.HoghooghiUsers.ToList();
-            return Ok(users);
+            try
+            {
+                var users = _context.HoghooghiUsers.ToList();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+  
         }
 
         // GET: api/HoghooghiUser/5
@@ -36,31 +45,32 @@ namespace PRX.Controllers.Hoghooghi
         {
             try
             {
-
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound});
                 }
                 return Ok(user);
 
             }
-
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-        
+
         }
 
         // POST: api/HoghooghiUser
@@ -69,36 +79,44 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateHoghooghiUser([FromBody] HoghooghiUserDto userDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var user = new HoghooghiUser
+                {
+                    UserId = userDto.UserId,
+                    Name = userDto.Name,
+                    RegistrationNumber = userDto.RegistrationNumber,
+                    RegistrationDate = userDto.RegistrationDate,
+                    RegistrationLocation = userDto.RegistrationLocation,
+                    NationalId = userDto.NationalId,
+                    MainActivityBasedOnCharter = userDto.MainActivityBasedOnCharter,
+                    MainActivityBasedOnPastThreeYearsPerformance = userDto.MainActivityBasedOnPastThreeYearsPerformance,
+                    PostalCode = userDto.PostalCode,
+                    LandlinePhone = userDto.LandlinePhone,
+                    Fax = userDto.Fax,
+                    BestTimeToCall = userDto.BestTimeToCall,
+                    Address = userDto.Address,
+                    Email = userDto.Email,
+                    RepresentativeName = userDto.RepresentativeName,
+                    RepresentativeNationalId = userDto.RepresentativeNationalId,
+                    RepresentativeMobilePhone = userDto.RepresentativeMobilePhone
+                };
+
+                _context.HoghooghiUsers.Add(user);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetHoghooghiUserById), new { id = user.Id }, user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var user = new HoghooghiUser
-            {
-                UserId = userDto.UserId,
-                Name = userDto.Name,
-                RegistrationNumber = userDto.RegistrationNumber,
-                RegistrationDate = userDto.RegistrationDate,
-                RegistrationLocation = userDto.RegistrationLocation,
-                NationalId = userDto.NationalId,
-                MainActivityBasedOnCharter = userDto.MainActivityBasedOnCharter,
-                MainActivityBasedOnPastThreeYearsPerformance = userDto.MainActivityBasedOnPastThreeYearsPerformance,
-                PostalCode = userDto.PostalCode,
-                LandlinePhone = userDto.LandlinePhone,
-                Fax = userDto.Fax,
-                BestTimeToCall = userDto.BestTimeToCall,
-                Address = userDto.Address,
-                Email = userDto.Email,
-                RepresentativeName = userDto.RepresentativeName,
-                RepresentativeNationalId = userDto.RepresentativeNationalId,
-                RepresentativeMobilePhone = userDto.RepresentativeMobilePhone
-            };
-
-            _context.HoghooghiUsers.Add(user);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetHoghooghiUserById), new { id = user.Id }, user);
         }
 
         // PUT: api/HoghooghiUser/5
@@ -112,20 +130,23 @@ namespace PRX.Controllers.Hoghooghi
 
             try
             {
-
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
                 }
 
                 user.UserId = userDto.UserId;
@@ -151,14 +172,12 @@ namespace PRX.Controllers.Hoghooghi
                 return Ok(user);
 
             }
-
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            
+
         }
 
         // DELETE: api/HoghooghiUser/5
@@ -171,35 +190,37 @@ namespace PRX.Controllers.Hoghooghi
 
             try
             {
-
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
                 }
 
                 user.IsDeleted = true;
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
 
             }
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-           
+
         }
 
         // DELETE: api/HoghooghiUser
@@ -207,10 +228,18 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearAllHoghooghiUsers()
         {
-            _context.HoghooghiUsers.RemoveRange(_context.HoghooghiUsers);
-            _context.SaveChanges();
+            try
+            {
+                _context.HoghooghiUsers.RemoveRange(_context.HoghooghiUsers);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
 
@@ -221,16 +250,29 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkCompaniesAsComplete(int id)
         {
-            var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
+                }
+
+                user.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            user.IsComplete = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpGet("Admin")]
@@ -239,30 +281,38 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllHoghooghiUsersAdmin()
         {
-            var users = _context.HoghooghiUsers.ToList();
-            var userDtos = users.Select(user => new HoghooghiUserDto
+            try
             {
-                UserId = user.UserId,
-                Name = user.Name,
-                RegistrationNumber = user.RegistrationNumber,
-                RegistrationDate = user.RegistrationDate,
-                RegistrationLocation = user.RegistrationLocation,
-                NationalId = user.NationalId,
-                MainActivityBasedOnCharter = user.MainActivityBasedOnCharter,
-                MainActivityBasedOnPastThreeYearsPerformance = user.MainActivityBasedOnPastThreeYearsPerformance,
-                PostalCode = user.PostalCode,
-                LandlinePhone = user.LandlinePhone,
-                Fax = user.Fax,
-                BestTimeToCall = user.BestTimeToCall,
-                Address = user.Address,
-                Email = user.Email,
-                RepresentativeName = user.RepresentativeName,
-                RepresentativeNationalId = user.RepresentativeNationalId,
-                RepresentativeMobilePhone = user.RepresentativeMobilePhone,
-                IsComplete = user.IsComplete,
-                IsDeleted = user.IsDeleted
-            }).ToList();
-            return Ok(userDtos);
+                var users = _context.HoghooghiUsers.ToList();
+                var userDtos = users.Select(user => new HoghooghiUserDto
+                {
+                    UserId = user.UserId,
+                    Name = user.Name,
+                    RegistrationNumber = user.RegistrationNumber,
+                    RegistrationDate = user.RegistrationDate,
+                    RegistrationLocation = user.RegistrationLocation,
+                    NationalId = user.NationalId,
+                    MainActivityBasedOnCharter = user.MainActivityBasedOnCharter,
+                    MainActivityBasedOnPastThreeYearsPerformance = user.MainActivityBasedOnPastThreeYearsPerformance,
+                    PostalCode = user.PostalCode,
+                    LandlinePhone = user.LandlinePhone,
+                    Fax = user.Fax,
+                    BestTimeToCall = user.BestTimeToCall,
+                    Address = user.Address,
+                    Email = user.Email,
+                    RepresentativeName = user.RepresentativeName,
+                    RepresentativeNationalId = user.RepresentativeNationalId,
+                    RepresentativeMobilePhone = user.RepresentativeMobilePhone,
+                    IsComplete = user.IsComplete,
+                    IsDeleted = user.IsDeleted
+                }).ToList();
+                return Ok(userDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -271,36 +321,49 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHoghooghiUserByIdAdmin(int id)
         {
-            var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
+                }
+
+                var userDto = new HoghooghiUserDto
+                {
+                    UserId = user.UserId,
+                    Name = user.Name,
+                    RegistrationNumber = user.RegistrationNumber,
+                    RegistrationDate = user.RegistrationDate,
+                    RegistrationLocation = user.RegistrationLocation,
+                    NationalId = user.NationalId,
+                    MainActivityBasedOnCharter = user.MainActivityBasedOnCharter,
+                    MainActivityBasedOnPastThreeYearsPerformance = user.MainActivityBasedOnPastThreeYearsPerformance,
+                    PostalCode = user.PostalCode,
+                    LandlinePhone = user.LandlinePhone,
+                    Fax = user.Fax,
+                    BestTimeToCall = user.BestTimeToCall,
+                    Address = user.Address,
+                    Email = user.Email,
+                    RepresentativeName = user.RepresentativeName,
+                    RepresentativeNationalId = user.RepresentativeNationalId,
+                    RepresentativeMobilePhone = user.RepresentativeMobilePhone,
+                    IsComplete = user.IsComplete,
+                    IsDeleted = user.IsDeleted
+                };
+
+                return Ok(userDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userDto = new HoghooghiUserDto
-            {
-                UserId = user.UserId,
-                Name = user.Name,
-                RegistrationNumber = user.RegistrationNumber,
-                RegistrationDate = user.RegistrationDate,
-                RegistrationLocation = user.RegistrationLocation,
-                NationalId = user.NationalId,
-                MainActivityBasedOnCharter = user.MainActivityBasedOnCharter,
-                MainActivityBasedOnPastThreeYearsPerformance = user.MainActivityBasedOnPastThreeYearsPerformance,
-                PostalCode = user.PostalCode,
-                LandlinePhone = user.LandlinePhone,
-                Fax = user.Fax,
-                BestTimeToCall = user.BestTimeToCall,
-                Address = user.Address,
-                Email = user.Email,
-                RepresentativeName = user.RepresentativeName,
-                RepresentativeNationalId = user.RepresentativeNationalId,
-                RepresentativeMobilePhone = user.RepresentativeMobilePhone,
-                IsComplete = user.IsComplete,
-                IsDeleted = user.IsDeleted
-            };
-
-            return Ok(userDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -310,33 +373,41 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHoghooghiUserAdmin(int id, [FromBody] HoghooghiUserDto userDto)
         {
-            var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
-            if (user == null)
+            try
             {
-                return NotFound();
+                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
+                }
+
+                user.Name = userDto.Name;
+                user.RegistrationNumber = userDto.RegistrationNumber;
+                user.RegistrationDate = userDto.RegistrationDate;
+                user.RegistrationLocation = userDto.RegistrationLocation;
+                user.NationalId = userDto.NationalId;
+                user.MainActivityBasedOnCharter = userDto.MainActivityBasedOnCharter;
+                user.MainActivityBasedOnPastThreeYearsPerformance = userDto.MainActivityBasedOnPastThreeYearsPerformance;
+                user.PostalCode = userDto.PostalCode;
+                user.LandlinePhone = userDto.LandlinePhone;
+                user.Fax = userDto.Fax;
+                user.BestTimeToCall = userDto.BestTimeToCall;
+                user.Address = userDto.Address;
+                user.Email = userDto.Email;
+                user.RepresentativeName = userDto.RepresentativeName;
+                user.RepresentativeNationalId = userDto.RepresentativeNationalId;
+                user.RepresentativeMobilePhone = userDto.RepresentativeMobilePhone;
+
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            user.Name = userDto.Name;
-            user.RegistrationNumber = userDto.RegistrationNumber;
-            user.RegistrationDate = userDto.RegistrationDate;
-            user.RegistrationLocation = userDto.RegistrationLocation;
-            user.NationalId = userDto.NationalId;
-            user.MainActivityBasedOnCharter = userDto.MainActivityBasedOnCharter;
-            user.MainActivityBasedOnPastThreeYearsPerformance = userDto.MainActivityBasedOnPastThreeYearsPerformance;
-            user.PostalCode = userDto.PostalCode;
-            user.LandlinePhone = userDto.LandlinePhone;
-            user.Fax = userDto.Fax;
-            user.BestTimeToCall = userDto.BestTimeToCall;
-            user.Address = userDto.Address;
-            user.Email = userDto.Email;
-            user.RepresentativeName = userDto.RepresentativeName;
-            user.RepresentativeNationalId = userDto.RepresentativeNationalId;
-            user.RepresentativeMobilePhone = userDto.RepresentativeMobilePhone;
-
-
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -345,16 +416,29 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHoghooghiUserAdmin(int id)
         {
-            var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
+                }
+
+                user.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            user.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -362,10 +446,18 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHoghooghiUsers()
         {
-            _context.HoghooghiUsers.RemoveRange(_context.HoghooghiUsers);
-            _context.SaveChanges();
+            try
+            {
+                _context.HoghooghiUsers.RemoveRange(_context.HoghooghiUsers);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
     }

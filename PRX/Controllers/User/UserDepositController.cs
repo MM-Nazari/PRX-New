@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
+using PRX.Utils;
 
 namespace PRX.Controllers.User
 {
@@ -21,21 +22,36 @@ namespace PRX.Controllers.User
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllUserDeposits()
         {
-            var userDeposits = _context.UserDeposits.ToList();
-            return Ok(userDeposits);
+            try
+            {
+                var userDeposits = _context.UserDeposits.ToList();
+                return Ok(userDeposits);
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("{id}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetUserDepositById(int id)
         {
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -43,12 +59,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userDeposit == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserDepositNotFound});
                 }
                 return Ok(userDeposit);
 
@@ -56,8 +72,8 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -66,25 +82,37 @@ namespace PRX.Controllers.User
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateUserDeposit([FromBody] UserDepositDto userDepositDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userDeposit = new UserDeposit
+                {
+                    UserId = userDepositDto.UserId,
+                    DepositAmount = userDepositDto.DepositAmount,
+                    DepositDate = userDepositDto.DepositDate,
+                    DepositSource = userDepositDto.DepositSource
+                };
+
+                _context.UserDeposits.Add(userDeposit);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetUserDepositById), new { id = userDeposit.Id }, userDeposit);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userDeposit = new UserDeposit
-            {
-                UserId = userDepositDto.UserId,
-                DepositAmount = userDepositDto.DepositAmount,
-                DepositDate = userDepositDto.DepositDate,
-                DepositSource = userDepositDto.DepositSource
-            };
 
-            _context.UserDeposits.Add(userDeposit);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetUserDepositById), new { id = userDeposit.Id }, userDeposit);
         }
 
         [HttpPut("{id}")]
@@ -92,11 +120,16 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateUserDeposit(int id, [FromBody] UserDepositDto userDepositDto)
         {
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -104,12 +137,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userDeposit == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserDepositNotFound });
                 }
 
                 userDeposit.UserId = userDepositDto.UserId;
@@ -125,8 +158,8 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
   
@@ -135,12 +168,17 @@ namespace PRX.Controllers.User
         [HttpDelete("{id}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserDeposit(int id)
         {
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -148,12 +186,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userDeposit == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserDepositNotFound });
                 }
 
                 userDeposit.IsDeleted = true;
@@ -165,40 +203,68 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
         }
 
         [HttpDelete("clear")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult ClearUserDeposits()
         {
-            _context.UserDeposits.RemoveRange(_context.UserDeposits);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserDeposits.RemoveRange(_context.UserDeposits);
+                _context.SaveChanges();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
 
         [HttpPut("complete/{id}")]
-        //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult MarkCompaniesAsComplete(int id)
         {
-            var record = _context.UserDeposits.FirstOrDefault(e => e.UserId == id);
-            if (record == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var record = _context.UserDeposits.FirstOrDefault(e => e.UserId == id);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.Unauthorized });
+                }
+
+                record.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new {message = ResponseMessages.OK});
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            record.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
 
@@ -206,44 +272,72 @@ namespace PRX.Controllers.User
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllUserDepositsAdmin()
         {
-            var deposits = _context.UserDeposits.ToList();
-            var depositDtos = deposits.Select(deposit => new UserDepositDto
+            try
             {
-                UserId = deposit.UserId,
-                DepositAmount = deposit.DepositAmount,
-                DepositDate = deposit.DepositDate,
-                DepositSource = deposit.DepositSource,
-                IsComplete = deposit.IsComplete,
-                IsDeleted = deposit.IsDeleted
-            }).ToList();
-            return Ok(depositDtos);
+                var deposits = _context.UserDeposits.ToList();
+                var depositDtos = deposits.Select(deposit => new UserDepositDto
+                {
+                    UserId = deposit.UserId,
+                    DepositAmount = deposit.DepositAmount,
+                    DepositDate = deposit.DepositDate,
+                    DepositSource = deposit.DepositSource,
+                    IsComplete = deposit.IsComplete,
+                    IsDeleted = deposit.IsDeleted
+                }).ToList();
+                return Ok(depositDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("Admin/{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetUserDepositByIdAdmin(int id)
         {
-            var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
-            if (deposit == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                if (deposit == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserDepositNotFound });
+                }
+
+                var depositDto = new UserDepositDto
+                {
+                    UserId = deposit.UserId,
+                    DepositAmount = deposit.DepositAmount,
+                    DepositDate = deposit.DepositDate,
+                    DepositSource = deposit.DepositSource,
+                    IsComplete = deposit.IsComplete,
+                    IsDeleted = deposit.IsDeleted
+                };
+
+                return Ok(depositDto);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var depositDto = new UserDepositDto
-            {
-                UserId = deposit.UserId,
-                DepositAmount = deposit.DepositAmount,
-                DepositDate = deposit.DepositDate,
-                DepositSource = deposit.DepositSource,
-                IsComplete = deposit.IsComplete,
-                IsDeleted = deposit.IsDeleted
-            };
 
-            return Ok(depositDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -251,51 +345,89 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateUserDepositAdmin(int id, [FromBody] UserDepositDto depositDto)
         {
-            var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
-            if (deposit == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                if (deposit == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserDepositNotFound });
+                }
+
+                deposit.DepositAmount = depositDto.DepositAmount;
+                deposit.DepositDate = depositDto.DepositDate;
+                deposit.DepositSource = depositDto.DepositSource;
+
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            deposit.DepositAmount = depositDto.DepositAmount;
-            deposit.DepositDate = depositDto.DepositDate;
-            deposit.DepositSource = depositDto.DepositSource;
-  
-
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteUserDepositAdmin(int id)
         {
-            var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
-            if (deposit == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                if (deposit == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserDepositNotFound });
+                }
+
+                deposit.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            deposit.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult ClearUserDepositsAdmin()
         {
-            _context.UserDeposits.RemoveRange(_context.UserDeposits);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserDeposits.RemoveRange(_context.UserDeposits);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
     }

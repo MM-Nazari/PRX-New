@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
 using PRX.Models.Hoghooghi;
+using PRX.Utils;
 
 namespace PRX.Controllers.Hoghooghi
 {
@@ -23,8 +24,16 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAll()
         {
-            var records = _context.HoghooghiUserBoardOfDirectors.ToList();
-            return Ok(records);
+            try
+            {
+                var records = _context.HoghooghiUserBoardOfDirectors.ToList();
+                return Ok(records);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         // GET: api/HoghooghiUserBoardOfDirectors/5
@@ -36,19 +45,22 @@ namespace PRX.Controllers.Hoghooghi
         {
             try
             {
-
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (record == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
                 }
                 return Ok(record);
 
@@ -56,12 +68,11 @@ namespace PRX.Controllers.Hoghooghi
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
-           
+
         }
 
         // POST: api/HoghooghiUserBoardOfDirectors
@@ -70,27 +81,35 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Create([FromBody] HoghooghiUserBoardOfDirectorsDto dto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var record = new HoghooghiUserBoardOfDirectors
+                {
+                    UserId = dto.UserId,
+                    FullName = dto.FullName,
+                    Position = dto.Position,
+                    EducationalLevel = dto.EducationalLevel,
+                    FieldOfStudy = dto.FieldOfStudy,
+                    ExecutiveExperience = dto.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = dto.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = dto.PersonalInvestmentExperienceInStockExchange
+                };
+
+                _context.HoghooghiUserBoardOfDirectors.Add(record);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetById), new { id = record.Id }, record);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var record = new HoghooghiUserBoardOfDirectors
-            {
-                UserId = dto.UserId,
-                FullName = dto.FullName,
-                Position = dto.Position,
-                EducationalLevel = dto.EducationalLevel,
-                FieldOfStudy = dto.FieldOfStudy,
-                ExecutiveExperience = dto.ExecutiveExperience,
-                FamiliarityWithCapitalMarket = dto.FamiliarityWithCapitalMarket,
-                PersonalInvestmentExperienceInStockExchange = dto.PersonalInvestmentExperienceInStockExchange
-            };
-
-            _context.HoghooghiUserBoardOfDirectors.Add(record);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetById), new { id = record.Id }, record);
         }
 
         // PUT: api/HoghooghiUserBoardOfDirectors/5
@@ -103,19 +122,22 @@ namespace PRX.Controllers.Hoghooghi
         {
             try
             {
-
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (record == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
                 }
 
                 record.UserId = dto.UserId;
@@ -135,8 +157,7 @@ namespace PRX.Controllers.Hoghooghi
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -153,6 +174,10 @@ namespace PRX.Controllers.Hoghooghi
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -160,29 +185,28 @@ namespace PRX.Controllers.Hoghooghi
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (record == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
                 }
 
                 record.IsDeleted = true;
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
 
             }
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
-  
+
         }
 
         // DELETE: api/HoghooghiUserBoardOfDirectors
@@ -190,10 +214,18 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearAll()
         {
-            _context.HoghooghiUserBoardOfDirectors.RemoveRange(_context.HoghooghiUserBoardOfDirectors);
-            _context.SaveChanges();
+            try
+            {
+                _context.HoghooghiUserBoardOfDirectors.RemoveRange(_context.HoghooghiUserBoardOfDirectors);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
 
@@ -204,16 +236,29 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkDirectorsAsComplete(int id)
         {
-            var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id);
-            if (record == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
+                }
+
+                record.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            record.IsComplete = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
 
@@ -224,21 +269,29 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllHoghooghiUserBoardOfDirectors()
         {
-            var directors = _context.HoghooghiUserBoardOfDirectors.ToList();
-            var directorDtos = directors.Select(director => new HoghooghiUserBoardOfDirectorsDto
+            try
             {
-                UserId = director.UserId,
-                FullName = director.FullName,
-                Position = director.Position,
-                EducationalLevel = director.EducationalLevel,
-                FieldOfStudy = director.FieldOfStudy,
-                ExecutiveExperience = director.ExecutiveExperience,
-                FamiliarityWithCapitalMarket = director.FamiliarityWithCapitalMarket,
-                PersonalInvestmentExperienceInStockExchange = director.PersonalInvestmentExperienceInStockExchange,
-                IsComplete = director.IsComplete,
-                IsDeleted = director.IsDeleted
-            }).ToList();
-            return Ok(directorDtos);
+                var directors = _context.HoghooghiUserBoardOfDirectors.ToList();
+                var directorDtos = directors.Select(director => new HoghooghiUserBoardOfDirectorsDto
+                {
+                    UserId = director.UserId,
+                    FullName = director.FullName,
+                    Position = director.Position,
+                    EducationalLevel = director.EducationalLevel,
+                    FieldOfStudy = director.FieldOfStudy,
+                    ExecutiveExperience = director.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = director.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = director.PersonalInvestmentExperienceInStockExchange,
+                    IsComplete = director.IsComplete,
+                    IsDeleted = director.IsDeleted
+                }).ToList();
+                return Ok(directorDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -247,27 +300,40 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHoghooghiUserBoardOfDirectorsByIdAdmin(int id)
         {
-            var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
-            if (director == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                if (director == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
+                }
+
+                var directorDto = new HoghooghiUserBoardOfDirectorsDto
+                {
+                    UserId = director.UserId,
+                    FullName = director.FullName,
+                    Position = director.Position,
+                    EducationalLevel = director.EducationalLevel,
+                    FieldOfStudy = director.FieldOfStudy,
+                    ExecutiveExperience = director.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = director.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = director.PersonalInvestmentExperienceInStockExchange,
+                    IsComplete = director.IsComplete,
+                    IsDeleted = director.IsDeleted
+                };
+
+                return Ok(directorDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var directorDto = new HoghooghiUserBoardOfDirectorsDto
-            {
-                UserId = director.UserId,
-                FullName = director.FullName,
-                Position = director.Position,
-                EducationalLevel = director.EducationalLevel,
-                FieldOfStudy = director.FieldOfStudy,
-                ExecutiveExperience = director.ExecutiveExperience,
-                FamiliarityWithCapitalMarket = director.FamiliarityWithCapitalMarket,
-                PersonalInvestmentExperienceInStockExchange = director.PersonalInvestmentExperienceInStockExchange,
-                IsComplete = director.IsComplete,
-                IsDeleted = director.IsDeleted
-            };
-
-            return Ok(directorDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -277,24 +343,37 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHoghooghiUserBoardOfDirectorsAdmin(int id, [FromBody] HoghooghiUserBoardOfDirectorsDto directorDto)
         {
-            var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
-            if (director == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                if (director == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
+                }
+
+                director.FullName = directorDto.FullName;
+                director.Position = directorDto.Position;
+                director.EducationalLevel = directorDto.EducationalLevel;
+                director.FieldOfStudy = directorDto.FieldOfStudy;
+                director.ExecutiveExperience = directorDto.ExecutiveExperience;
+                director.FamiliarityWithCapitalMarket = directorDto.FamiliarityWithCapitalMarket;
+                director.PersonalInvestmentExperienceInStockExchange = directorDto.PersonalInvestmentExperienceInStockExchange;
+
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            director.FullName = directorDto.FullName;
-            director.Position = directorDto.Position;
-            director.EducationalLevel = directorDto.EducationalLevel;
-            director.FieldOfStudy = directorDto.FieldOfStudy;
-            director.ExecutiveExperience = directorDto.ExecutiveExperience;
-            director.FamiliarityWithCapitalMarket = directorDto.FamiliarityWithCapitalMarket;
-            director.PersonalInvestmentExperienceInStockExchange = directorDto.PersonalInvestmentExperienceInStockExchange;
-          
-
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -303,16 +382,29 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHoghooghiUserBoardOfDirectorsAdmin(int id)
         {
-            var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
-            if (director == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                if (director == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound});
+                }
+
+                director.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            director.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -320,10 +412,18 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHoghooghiUserBoardOfDirectors()
         {
-            _context.HoghooghiUserBoardOfDirectors.RemoveRange(_context.HoghooghiUserBoardOfDirectors);
-            _context.SaveChanges();
+            try
+            {
+                _context.HoghooghiUserBoardOfDirectors.RemoveRange(_context.HoghooghiUserBoardOfDirectors);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
     }

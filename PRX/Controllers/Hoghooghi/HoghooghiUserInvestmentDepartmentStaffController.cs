@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
 using PRX.Models.Hoghooghi;
+using PRX.Utils;
 
 namespace PRX.Controllers.Hoghooghi
 {
@@ -23,8 +24,16 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAll()
         {
-            var records = _context.HoghooghiUserInvestmentDepartmentStaff.ToList();
-            return Ok(records);
+            try
+            {
+                var records = _context.HoghooghiUserInvestmentDepartmentStaff.ToList();
+                return Ok(records);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         // GET: api/HoghooghiUserInvestmentDepartmentStaff/5
@@ -36,32 +45,33 @@ namespace PRX.Controllers.Hoghooghi
         {
             try
             {
-
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (record == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound});
                 }
                 return Ok(record);
 
             }
-
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
-      
+
         }
 
         // POST: api/HoghooghiUserInvestmentDepartmentStaff
@@ -70,27 +80,35 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Create([FromBody] HoghooghiUserInvestmentDepartmentStaffDto dto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var record = new HoghooghiUserInvestmentDepartmentStaff
+                {
+                    UserId = dto.UserId,
+                    FullName = dto.FullName,
+                    Position = dto.Position,
+                    EducationalLevel = dto.EducationalLevel,
+                    FieldOfStudy = dto.FieldOfStudy,
+                    ExecutiveExperience = dto.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = dto.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = dto.PersonalInvestmentExperienceInStockExchange
+                };
+
+                _context.HoghooghiUserInvestmentDepartmentStaff.Add(record);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetById), new { id = record.Id }, record);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var record = new HoghooghiUserInvestmentDepartmentStaff
-            {
-                UserId = dto.UserId,
-                FullName = dto.FullName,
-                Position = dto.Position,
-                EducationalLevel = dto.EducationalLevel,
-                FieldOfStudy = dto.FieldOfStudy,
-                ExecutiveExperience = dto.ExecutiveExperience,
-                FamiliarityWithCapitalMarket = dto.FamiliarityWithCapitalMarket,
-                PersonalInvestmentExperienceInStockExchange = dto.PersonalInvestmentExperienceInStockExchange
-            };
-
-            _context.HoghooghiUserInvestmentDepartmentStaff.Add(record);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetById), new { id = record.Id }, record);
         }
 
         // PUT: api/HoghooghiUserInvestmentDepartmentStaff/5
@@ -104,19 +122,22 @@ namespace PRX.Controllers.Hoghooghi
 
             try
             {
-
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (record == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
                 }
 
                 record.UserId = dto.UserId;
@@ -133,11 +154,9 @@ namespace PRX.Controllers.Hoghooghi
                 return Ok(record);
 
             }
-
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -153,35 +172,36 @@ namespace PRX.Controllers.Hoghooghi
 
             try
             {
-
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (record == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
                 }
 
                 record.IsDeleted = true;
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
 
             }
-
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-     
+
         }
 
         // DELETE: api/HoghooghiUserInvestmentDepartmentStaff
@@ -189,10 +209,18 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearAll()
         {
-            _context.HoghooghiUserInvestmentDepartmentStaff.RemoveRange(_context.HoghooghiUserInvestmentDepartmentStaff);
-            _context.SaveChanges();
+            try
+            {
+                _context.HoghooghiUserInvestmentDepartmentStaff.RemoveRange(_context.HoghooghiUserInvestmentDepartmentStaff);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK});
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpPut("complete/{id}")]
@@ -202,16 +230,29 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkCompaniesAsComplete(int id)
         {
-            var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.UserId == id);
-            if (record == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.UserId == id);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
+                }
+
+                record.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            record.IsComplete = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpGet("Admin")]
@@ -220,21 +261,29 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllHoghooghiUserInvestmentDepartmentStaff()
         {
-            var users = _context.HoghooghiUserInvestmentDepartmentStaff.ToList();
-            var userDtos = users.Select(user => new HoghooghiUserInvestmentDepartmentStaffDto
+            try
             {
-                UserId = user.UserId,
-                FullName = user.FullName,
-                Position = user.Position,
-                EducationalLevel = user.EducationalLevel,
-                FieldOfStudy = user.FieldOfStudy,
-                ExecutiveExperience = user.ExecutiveExperience,
-                FamiliarityWithCapitalMarket = user.FamiliarityWithCapitalMarket,
-                PersonalInvestmentExperienceInStockExchange = user.PersonalInvestmentExperienceInStockExchange,
-                IsComplete = user.IsComplete,
-                IsDeleted = user.IsDeleted
-            }).ToList();
-            return Ok(userDtos);
+                var users = _context.HoghooghiUserInvestmentDepartmentStaff.ToList();
+                var userDtos = users.Select(user => new HoghooghiUserInvestmentDepartmentStaffDto
+                {
+                    UserId = user.UserId,
+                    FullName = user.FullName,
+                    Position = user.Position,
+                    EducationalLevel = user.EducationalLevel,
+                    FieldOfStudy = user.FieldOfStudy,
+                    ExecutiveExperience = user.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = user.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = user.PersonalInvestmentExperienceInStockExchange,
+                    IsComplete = user.IsComplete,
+                    IsDeleted = user.IsDeleted
+                }).ToList();
+                return Ok(userDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -243,27 +292,40 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHoghooghiUserInvestmentDepartmentStaffByIdAdmin(int id)
         {
-            var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
+                }
+
+                var userDto = new HoghooghiUserInvestmentDepartmentStaffDto
+                {
+                    UserId = user.UserId,
+                    FullName = user.FullName,
+                    Position = user.Position,
+                    EducationalLevel = user.EducationalLevel,
+                    FieldOfStudy = user.FieldOfStudy,
+                    ExecutiveExperience = user.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = user.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = user.PersonalInvestmentExperienceInStockExchange,
+                    IsComplete = user.IsComplete,
+                    IsDeleted = user.IsDeleted
+                };
+
+                return Ok(userDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userDto = new HoghooghiUserInvestmentDepartmentStaffDto
-            {
-                UserId = user.UserId,
-                FullName = user.FullName,
-                Position = user.Position,
-                EducationalLevel = user.EducationalLevel,
-                FieldOfStudy = user.FieldOfStudy,
-                ExecutiveExperience = user.ExecutiveExperience,
-                FamiliarityWithCapitalMarket = user.FamiliarityWithCapitalMarket,
-                PersonalInvestmentExperienceInStockExchange = user.PersonalInvestmentExperienceInStockExchange,
-                IsComplete = user.IsComplete,
-                IsDeleted = user.IsDeleted
-            };
-
-            return Ok(userDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -273,24 +335,37 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHoghooghiUserInvestmentDepartmentStaffAdmin(int id, [FromBody] HoghooghiUserInvestmentDepartmentStaffDto userDto)
         {
-            var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
+                }
+
+                user.FullName = userDto.FullName;
+                user.Position = userDto.Position;
+                user.EducationalLevel = userDto.EducationalLevel;
+                user.FieldOfStudy = userDto.FieldOfStudy;
+                user.ExecutiveExperience = userDto.ExecutiveExperience;
+                user.FamiliarityWithCapitalMarket = userDto.FamiliarityWithCapitalMarket;
+                user.PersonalInvestmentExperienceInStockExchange = userDto.PersonalInvestmentExperienceInStockExchange;
+
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            user.FullName = userDto.FullName;
-            user.Position = userDto.Position;
-            user.EducationalLevel = userDto.EducationalLevel;
-            user.FieldOfStudy = userDto.FieldOfStudy;
-            user.ExecutiveExperience = userDto.ExecutiveExperience;
-            user.FamiliarityWithCapitalMarket = userDto.FamiliarityWithCapitalMarket;
-            user.PersonalInvestmentExperienceInStockExchange = userDto.PersonalInvestmentExperienceInStockExchange;
-
-
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -299,16 +374,29 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHoghooghiUserInvestmentDepartmentStaffAdmin(int id)
         {
-            var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
-            if (user == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
+                }
+
+                user.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            user.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -316,10 +404,18 @@ namespace PRX.Controllers.Hoghooghi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHoghooghiUserInvestmentDepartmentStaff()
         {
-            _context.HoghooghiUserInvestmentDepartmentStaff.RemoveRange(_context.HoghooghiUserInvestmentDepartmentStaff);
-            _context.SaveChanges();
+            try
+            {
+                _context.HoghooghiUserInvestmentDepartmentStaff.RemoveRange(_context.HoghooghiUserInvestmentDepartmentStaff);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
     }

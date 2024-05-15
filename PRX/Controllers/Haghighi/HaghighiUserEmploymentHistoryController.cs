@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
 using PRX.Models.Haghighi;
+using PRX.Utils;
 
 namespace PRX.Controllers.Haghighi
 {
@@ -23,8 +24,17 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllHaghighiUserEmploymentHistory()
         {
-            var employmentHistory = _context.HaghighiUserEmploymentHistories.ToList();
-            return Ok(employmentHistory);
+            try
+            {
+
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.ToList();
+                return Ok(employmentHistory);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         // GET: api/HaghighiUserEmploymentHistory/5
@@ -37,29 +47,31 @@ namespace PRX.Controllers.Haghighi
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
                 }
                 return Ok(employmentHistory);
 
             }
-
             catch (Exception ex)
             {
-               
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
-       
+
         }
 
         // POST: api/HaghighiUserEmploymentHistory
@@ -68,27 +80,37 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateHaghighiUserEmploymentHistory([FromBody] HaghighiUserEmploymentHistoryDto employmentHistoryDto)
         {
-            if (!ModelState.IsValid)
+
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var employmentHistory = new HaghighiUserEmploymentHistory
+                {
+                    UserId = employmentHistoryDto.UserId,
+                    EmployerLocation = employmentHistoryDto.EmployerLocation,
+                    MainActivity = employmentHistoryDto.MainActivity,
+                    Position = employmentHistoryDto.Position,
+                    StartDate = employmentHistoryDto.StartDate,
+                    EndDate = employmentHistoryDto.EndDate,
+                    WorkAddress = employmentHistoryDto.WorkAddress,
+                    WorkPhone = employmentHistoryDto.WorkPhone
+                };
+
+                _context.HaghighiUserEmploymentHistories.Add(employmentHistory);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetHaghighiUserEmploymentHistoryById), new { id = employmentHistory.Id }, employmentHistory);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var employmentHistory = new HaghighiUserEmploymentHistory
-            {
-                UserId = employmentHistoryDto.UserId,
-                EmployerLocation = employmentHistoryDto.EmployerLocation,
-                MainActivity = employmentHistoryDto.MainActivity,
-                Position = employmentHistoryDto.Position,
-                StartDate = employmentHistoryDto.StartDate,
-                EndDate = employmentHistoryDto.EndDate,
-                WorkAddress = employmentHistoryDto.WorkAddress,
-                WorkPhone = employmentHistoryDto.WorkPhone
-            };
 
-            _context.HaghighiUserEmploymentHistories.Add(employmentHistory);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetHaghighiUserEmploymentHistoryById), new { id = employmentHistory.Id }, employmentHistory);
         }
 
         // PUT: api/HaghighiUserEmploymentHistory/5
@@ -103,18 +125,22 @@ namespace PRX.Controllers.Haghighi
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
                 }
 
                 employmentHistory.UserId = employmentHistoryDto.UserId;
@@ -131,15 +157,13 @@ namespace PRX.Controllers.Haghighi
                 return Ok(employmentHistory);
 
             }
-
             catch (Exception ex)
             {
-
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
-     
+
         }
 
         // DELETE: api/HaghighiUserEmploymentHistory/5
@@ -152,36 +176,38 @@ namespace PRX.Controllers.Haghighi
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
                 }
 
                 _context.HaghighiUserEmploymentHistories.Remove(employmentHistory);
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
 
             }
-
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
-        
+
         }
 
         // DELETE: api/HaghighiUserEmploymentHistory
@@ -189,10 +215,19 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHaghighiUserEmploymentHistory()
         {
-            var employmentHistory = _context.HaghighiUserEmploymentHistories.ToList();
-            _context.HaghighiUserEmploymentHistories.RemoveRange(employmentHistory);
-            _context.SaveChanges();
-            return Ok();
+            try
+            {
+
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.ToList();
+                _context.HaghighiUserEmploymentHistories.RemoveRange(employmentHistory);
+                _context.SaveChanges();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
 
@@ -204,16 +239,31 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkEmploymentAsComplete(int id)
         {
-            var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id);
-            if (employmentHistory == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id);
+                if (employmentHistory == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
+                }
+
+                employmentHistory.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            employmentHistory.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
 
@@ -223,21 +273,30 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllHaghighiUserEmploymentHistories()
         {
-            var histories = _context.HaghighiUserEmploymentHistories.ToList();
-            var historyDtos = histories.Select(history => new HaghighiUserEmploymentHistoryDto
+            try
             {
-                UserId = history.UserId,
-                EmployerLocation = history.EmployerLocation,
-                MainActivity = history.MainActivity,
-                Position = history.Position,
-                StartDate = history.StartDate,
-                EndDate = history.EndDate,
-                WorkAddress = history.WorkAddress,
-                WorkPhone = history.WorkPhone,
-                IsComplete = history.IsComplete,
-                IsDeleted = history.IsDeleted
-            }).ToList();
-            return Ok(historyDtos);
+                var histories = _context.HaghighiUserEmploymentHistories.ToList();
+                var historyDtos = histories.Select(history => new HaghighiUserEmploymentHistoryDto
+                {
+                    UserId = history.UserId,
+                    EmployerLocation = history.EmployerLocation,
+                    MainActivity = history.MainActivity,
+                    Position = history.Position,
+                    StartDate = history.StartDate,
+                    EndDate = history.EndDate,
+                    WorkAddress = history.WorkAddress,
+                    WorkPhone = history.WorkPhone,
+                    IsComplete = history.IsComplete,
+                    IsDeleted = history.IsDeleted
+                }).ToList();
+                return Ok(historyDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -246,27 +305,42 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetHaghighiUserEmploymentHistoryByIdAdmin(int id)
         {
-            var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
-            if (history == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+                if (history == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
+                }
+
+                var historyDto = new HaghighiUserEmploymentHistoryDto
+                {
+                    UserId = history.UserId,
+                    EmployerLocation = history.EmployerLocation,
+                    MainActivity = history.MainActivity,
+                    Position = history.Position,
+                    StartDate = history.StartDate,
+                    EndDate = history.EndDate,
+                    WorkAddress = history.WorkAddress,
+                    WorkPhone = history.WorkPhone,
+                    IsComplete = history.IsComplete,
+                    IsDeleted = history.IsDeleted
+                };
+
+                return Ok(historyDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var historyDto = new HaghighiUserEmploymentHistoryDto
-            {
-                UserId = history.UserId,
-                EmployerLocation = history.EmployerLocation,
-                MainActivity = history.MainActivity,
-                Position = history.Position,
-                StartDate = history.StartDate,
-                EndDate = history.EndDate,
-                WorkAddress = history.WorkAddress,
-                WorkPhone = history.WorkPhone,
-                IsComplete = history.IsComplete,
-                IsDeleted = history.IsDeleted
-            };
 
-            return Ok(historyDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -276,25 +350,40 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateHaghighiUserEmploymentHistoryAdmin(int id, [FromBody] HaghighiUserEmploymentHistoryDto historyDto)
         {
-            var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
-            if (history == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+                if (history == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
+                }
+
+                history.EmployerLocation = historyDto.EmployerLocation;
+                history.MainActivity = historyDto.MainActivity;
+                history.Position = historyDto.Position;
+                history.StartDate = historyDto.StartDate;
+                history.EndDate = historyDto.EndDate;
+                history.WorkAddress = historyDto.WorkAddress;
+                history.WorkPhone = historyDto.WorkPhone;
+                //history.IsComplete = historyDto.IsComplete;
+                //history.IsDeleted = historyDto.IsDeleted;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            history.EmployerLocation = historyDto.EmployerLocation;
-            history.MainActivity = historyDto.MainActivity;
-            history.Position = historyDto.Position;
-            history.StartDate = historyDto.StartDate;
-            history.EndDate = historyDto.EndDate;
-            history.WorkAddress = historyDto.WorkAddress;
-            history.WorkPhone = historyDto.WorkPhone;
-            //history.IsComplete = historyDto.IsComplete;
-            //history.IsDeleted = historyDto.IsDeleted;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -303,16 +392,30 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteHaghighiUserEmploymentHistoryAdmin(int id)
         {
-            var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
-            if (history == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+                if (history == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
+                }
+
+                history.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            history.IsDeleted = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -320,10 +423,19 @@ namespace PRX.Controllers.Haghighi
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearHaghighiUserEmploymentHistories()
         {
-            _context.HaghighiUserEmploymentHistories.RemoveRange(_context.HaghighiUserEmploymentHistories);
-            _context.SaveChanges();
+            try
+            {
+                _context.HaghighiUserEmploymentHistories.RemoveRange(_context.HaghighiUserEmploymentHistories);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+ 
         }
 
     }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
+using PRX.Utils;
 
 namespace PRX.Controllers.User
 {
@@ -23,8 +24,17 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllUserMoreInformation()
         {
-            var userMoreInformation = _context.UserMoreInformations.ToList();
-            return Ok(userMoreInformation);
+            try
+            {
+                var userMoreInformation = _context.UserMoreInformations.ToList();
+                return Ok(userMoreInformation);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("{id}")]
@@ -36,6 +46,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -43,12 +57,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
                 }
                 return Ok(userMoreInformation);
 
@@ -56,9 +70,8 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
-
 
         }
 
@@ -67,21 +80,31 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserMoreInformation([FromBody] UserMoreInformationDto userMoreInformationDto)
         {
-            if (!ModelState.IsValid)
+
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userMoreInformation = new UserMoreInformation
+                {
+                    UserId = userMoreInformationDto.UserId,
+                    Info = userMoreInformationDto.Info
+                };
+
+                _context.UserMoreInformations.Add(userMoreInformation);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetUserMoreInformationById), new { id = userMoreInformation.Id }, userMoreInformation);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userMoreInformation = new UserMoreInformation
-            {
-                UserId = userMoreInformationDto.UserId,
-                Info = userMoreInformationDto.Info
-            };
 
-            _context.UserMoreInformations.Add(userMoreInformation);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetUserMoreInformationById), new { id = userMoreInformation.Id }, userMoreInformation);
         }
 
         [HttpPut("{id}")]
@@ -94,6 +117,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -101,12 +128,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
                 }
 
                 
@@ -120,8 +147,7 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -136,6 +162,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -143,12 +173,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
                 }
 
                 userMoreInformation.IsDeleted = true;
@@ -160,8 +190,7 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-               
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -171,10 +200,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult ClearUserMoreInformations()
         {
-            _context.UserMoreInformations.RemoveRange(_context.UserMoreInformations);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserMoreInformations.RemoveRange(_context.UserMoreInformations);
+                _context.SaveChanges();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         // PUT: api/HaghighiUserProfile/complete/{id}
@@ -185,16 +223,31 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkFinancwChangeAsComplete(int id)
         {
-            var userFinancialChanges = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id);
-            if (userFinancialChanges == null)
+
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userFinancialChanges = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id);
+                if (userFinancialChanges == null)
+                {
+                    return NotFound();
+                }
+
+                userFinancialChanges.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userFinancialChanges.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpGet("Admin")]
@@ -203,15 +256,24 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllUserMoreInformations()
         {
-            var userMoreInformations = _context.UserMoreInformations.ToList();
-            var userMoreInformationDtos = userMoreInformations.Select(info => new UserMoreInformationDto
+            try
             {
-                UserId = info.UserId,
-                Info = info.Info,
-                IsComplete = info.IsComplete,
-                IsDeleted = info.IsDeleted
-            }).ToList();
-            return Ok(userMoreInformationDtos);
+                var userMoreInformations = _context.UserMoreInformations.ToList();
+                var userMoreInformationDtos = userMoreInformations.Select(info => new UserMoreInformationDto
+                {
+                    UserId = info.UserId,
+                    Info = info.Info,
+                    IsComplete = info.IsComplete,
+                    IsDeleted = info.IsDeleted
+                }).ToList();
+                return Ok(userMoreInformationDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -220,21 +282,35 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserMoreInformationByIdAdmin(int id)
         {
-            var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
-            if (userMoreInformation == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+                if (userMoreInformation == null)
+                {
+                    return NotFound();
+                }
+
+                var userMoreInformationDto = new UserMoreInformationDto
+                {
+                    UserId = userMoreInformation.UserId,
+                    Info = userMoreInformation.Info,
+                    IsComplete = userMoreInformation.IsComplete,
+                    IsDeleted = userMoreInformation.IsDeleted
+                };
+
+                return Ok(userMoreInformationDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userMoreInformationDto = new UserMoreInformationDto
-            {
-                UserId = userMoreInformation.UserId,
-                Info = userMoreInformation.Info,
-                IsComplete = userMoreInformation.IsComplete,
-                IsDeleted = userMoreInformation.IsDeleted
-            };
 
-            return Ok(userMoreInformationDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -244,17 +320,31 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserMoreInformationAdmin(int id, [FromBody] UserMoreInformationDto userMoreInformationDto)
         {
-            var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
-            if (userMoreInformation == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+                if (userMoreInformation == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
+                }
+
+                userMoreInformation.Info = userMoreInformationDto.Info;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userMoreInformation.Info = userMoreInformationDto.Info;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -263,16 +353,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserMoreInformationAdmin(int id)
         {
-            var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
-            if (userMoreInformation == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+                if (userMoreInformation == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
+                }
+
+                userMoreInformation.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userMoreInformation.IsDeleted = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -280,10 +384,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearUserMoreInformationsAdmin()
         {
-            _context.UserMoreInformations.RemoveRange(_context.UserMoreInformations);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserMoreInformations.RemoveRange(_context.UserMoreInformations);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
     }

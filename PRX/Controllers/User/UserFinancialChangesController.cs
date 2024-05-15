@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
+using PRX.Utils;
 
 namespace PRX.Controllers.User
 {
@@ -22,8 +23,16 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllUserFinancialChanges()
         {
-            var userFinancialChanges = _context.UserFinancialChanges.ToList();
-            return Ok(userFinancialChanges);
+            try
+            {
+                var userFinancialChanges = _context.UserFinancialChanges.ToList();
+                return Ok(userFinancialChanges);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("{id}")]
@@ -35,18 +44,23 @@ namespace PRX.Controllers.User
             try
             {
 
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userFinancialChanges == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
                 }
                 return Ok(userFinancialChanges);
 
@@ -54,8 +68,8 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
         }
@@ -65,21 +79,29 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserFinancialChanges([FromBody] UserFinancialChangesDto userFinancialChangesDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userFinancialChanges = new UserFinancialChanges
+                {
+                    UserId = userFinancialChangesDto.UserId,
+                    Description = userFinancialChangesDto.Description
+                };
+
+                _context.UserFinancialChanges.Add(userFinancialChanges);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetUserFinancialChangesById), new { id = userFinancialChanges.Id }, userFinancialChanges);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userFinancialChanges = new UserFinancialChanges
-            {
-                UserId = userFinancialChangesDto.UserId,
-                Description = userFinancialChangesDto.Description
-            };
-
-            _context.UserFinancialChanges.Add(userFinancialChanges);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetUserFinancialChangesById), new { id = userFinancialChanges.Id }, userFinancialChanges);
         }
 
         [HttpPut("{id}")]
@@ -92,6 +114,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -99,12 +125,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userFinancialChanges == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
                 }
 
                 userFinancialChanges.UserId = userFinancialChangesDto.UserId;
@@ -118,8 +144,8 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
            
@@ -134,6 +160,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -141,12 +171,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userFinancialChanges == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
                 }
 
                 userFinancialChanges.IsDeleted = true;
@@ -158,8 +188,8 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-               
-                return BadRequest();
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
         }
@@ -168,10 +198,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult ClearUserFinancialChanges()
         {
-            _context.UserFinancialChanges.RemoveRange(_context.UserFinancialChanges);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserFinancialChanges.RemoveRange(_context.UserFinancialChanges);
+                _context.SaveChanges();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         // PUT: api/HaghighiUserProfile/complete/{id}
@@ -182,16 +221,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkFinancwChangeAsComplete(int id)
         {
-            var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id);
-            if (userFinancialChanges == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id);
+                if (userFinancialChanges == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
+                }
+
+                userFinancialChanges.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userFinancialChanges.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
 
@@ -201,15 +254,24 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllUserFinancialChangesAdmin()
         {
-            var financialChanges = _context.UserFinancialChanges.ToList();
-            var financialChangeDtos = financialChanges.Select(change => new UserFinancialChangesDto
+
+            try
             {
-                UserId = change.UserId,
-                Description = change.Description,
-                IsComplete = change.IsComplete,
-                IsDeleted = change.IsDeleted
-            }).ToList();
-            return Ok(financialChangeDtos);
+                var financialChanges = _context.UserFinancialChanges.ToList();
+                var financialChangeDtos = financialChanges.Select(change => new UserFinancialChangesDto
+                {
+                    UserId = change.UserId,
+                    Description = change.Description,
+                    IsComplete = change.IsComplete,
+                    IsDeleted = change.IsDeleted
+                }).ToList();
+                return Ok(financialChangeDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -218,21 +280,34 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserFinancialChangeByIdAdmin(int id)
         {
-            var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
-            if (financialChange == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+                if (financialChange == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
+                }
+
+                var financialChangeDto = new UserFinancialChangesDto
+                {
+                    UserId = financialChange.UserId,
+                    Description = financialChange.Description,
+                    IsComplete = financialChange.IsComplete,
+                    IsDeleted = financialChange.IsDeleted
+                };
+
+                return Ok(financialChangeDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var financialChangeDto = new UserFinancialChangesDto
-            {
-                UserId = financialChange.UserId,
-                Description = financialChange.Description,
-                IsComplete = financialChange.IsComplete,
-                IsDeleted = financialChange.IsDeleted
-            };
-
-            return Ok(financialChangeDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -242,19 +317,33 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserFinancialChangeAdmin(int id, [FromBody] UserFinancialChangesDto financialChangeDto)
         {
-            var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
-            if (financialChange == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+                if (financialChange == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
+                }
+
+                financialChange.Description = financialChangeDto.Description;
+                //financialChange.IsComplete = financialChangeDto.IsComplete;
+                //financialChange.IsDeleted = financialChangeDto.IsDeleted;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK});
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            financialChange.Description = financialChangeDto.Description;
-            //financialChange.IsComplete = financialChangeDto.IsComplete;
-            //financialChange.IsDeleted = financialChangeDto.IsDeleted;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -263,16 +352,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserFinancialChangeAdmin(int id)
         {
-            var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
-            if (financialChange == null)
+            try
             {
-                return NotFound();
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+                if (financialChange == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
+                }
+
+                financialChange.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            financialChange.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/UserFinancialChanges/Clear")]
@@ -280,10 +383,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearUserFinancialChangesAdmin()
         {
-            _context.UserFinancialChanges.RemoveRange(_context.UserFinancialChanges);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserFinancialChanges.RemoveRange(_context.UserFinancialChanges);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK }); ;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
 

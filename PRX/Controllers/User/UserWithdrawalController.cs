@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
+using PRX.Utils;
 
 namespace PRX.Controllers.User
 {
@@ -23,16 +24,25 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllUserWithdrawals()
         {
-            var userWithdrawals = _context.UserWithdrawals.ToList();
-            var userWithdrawalDtos = userWithdrawals.Select(userWithdrawal => new UserWithdrawalDto
+            try
             {
-                Id = userWithdrawal.Id,
-                UserId = userWithdrawal.UserId,
-                WithdrawalAmount = userWithdrawal.WithdrawalAmount,
-                WithdrawalDate = userWithdrawal.WithdrawalDate,
-                WithdrawalReason = userWithdrawal.WithdrawalReason
-            }).ToList();
-            return Ok(userWithdrawalDtos);
+
+                var userWithdrawals = _context.UserWithdrawals.ToList();
+                var userWithdrawalDtos = userWithdrawals.Select(userWithdrawal => new UserWithdrawalDto
+                {
+                    Id = userWithdrawal.Id,
+                    UserId = userWithdrawal.UserId,
+                    WithdrawalAmount = userWithdrawal.WithdrawalAmount,
+                    WithdrawalDate = userWithdrawal.WithdrawalDate,
+                    WithdrawalReason = userWithdrawal.WithdrawalReason
+                }).ToList();
+                return Ok(userWithdrawalDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("{id}")]
@@ -44,6 +54,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -51,12 +65,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userWithdrawal == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
                 }
                 var userWithdrawalDto = new UserWithdrawalDto
                 {
@@ -72,8 +86,7 @@ namespace PRX.Controllers.User
 
             catch (Exception ex)
             {
-                
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -84,23 +97,32 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserWithdrawal([FromBody] UserWithdrawalDto userWithdrawalDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userWithdrawal = new UserWithdrawal
+                {
+                    UserId = userWithdrawalDto.UserId,
+                    WithdrawalAmount = userWithdrawalDto.WithdrawalAmount,
+                    WithdrawalDate = userWithdrawalDto.WithdrawalDate,
+                    WithdrawalReason = userWithdrawalDto.WithdrawalReason
+                };
+
+                _context.UserWithdrawals.Add(userWithdrawal);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetUserWithdrawalById), new { id = userWithdrawal.Id }, userWithdrawal);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userWithdrawal = new UserWithdrawal
-            {
-                UserId = userWithdrawalDto.UserId,
-                WithdrawalAmount = userWithdrawalDto.WithdrawalAmount,
-                WithdrawalDate = userWithdrawalDto.WithdrawalDate,
-                WithdrawalReason = userWithdrawalDto.WithdrawalReason
-            };
 
-            _context.UserWithdrawals.Add(userWithdrawal);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetUserWithdrawalById), new { id = userWithdrawal.Id }, userWithdrawal);
         }
 
         [HttpPut("{id}")]
@@ -113,6 +135,10 @@ namespace PRX.Controllers.User
 
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -120,12 +146,12 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userWithdrawal == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
                 }
 
                 
@@ -135,13 +161,13 @@ namespace PRX.Controllers.User
 
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
 
             }
 
             catch (Exception ex)
             {
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -155,6 +181,10 @@ namespace PRX.Controllers.User
         {
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -162,24 +192,24 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own profile
                 if (id != tokenUserId)
                 {
-                    return Forbid(); // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
                 if (userWithdrawal == null)
                 {
-                    return NotFound();
+                    return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
                 }
 
                 userWithdrawal.IsDeleted = true;
                 _context.SaveChanges();
 
-                return Ok();
+                return Ok(new { message = ResponseMessages.OK });
 
             }
 
             catch (Exception ex)
             {
-                return BadRequest();
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
 
@@ -189,9 +219,18 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearUserWithdrawals()
         {
-            _context.UserWithdrawals.RemoveRange(_context.UserWithdrawals);
-            _context.SaveChanges();
-            return Ok();
+            try
+            {
+                _context.UserWithdrawals.RemoveRange(_context.UserWithdrawals);
+                _context.SaveChanges();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
 
@@ -203,16 +242,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult MarkFinancwChangeAsComplete(int id)
         {
-            var userFinancialChanges = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id);
-            if (userFinancialChanges == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userWithdrawl = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id);
+                if (userWithdrawl == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
+                }
+
+                userWithdrawl.IsComplete = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userFinancialChanges.IsComplete = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpGet("Admin")]
@@ -221,18 +274,27 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllUserWithdrawalsAdmin()
         {
-            var withdrawals = _context.UserWithdrawals.ToList();
-            var withdrawalDtos = withdrawals.Select(withdrawal => new UserWithdrawalDto
+            try
             {
-                Id = withdrawal.Id,
-                UserId = withdrawal.UserId,
-                WithdrawalAmount = withdrawal.WithdrawalAmount,
-                WithdrawalDate = withdrawal.WithdrawalDate,
-                WithdrawalReason = withdrawal.WithdrawalReason,
-                IsComplete = withdrawal.IsComplete,
-                IsDeleted = withdrawal.IsDeleted
-            }).ToList();
-            return Ok(withdrawalDtos);
+                var withdrawals = _context.UserWithdrawals.ToList();
+                var withdrawalDtos = withdrawals.Select(withdrawal => new UserWithdrawalDto
+                {
+                    Id = withdrawal.Id,
+                    UserId = withdrawal.UserId,
+                    WithdrawalAmount = withdrawal.WithdrawalAmount,
+                    WithdrawalDate = withdrawal.WithdrawalDate,
+                    WithdrawalReason = withdrawal.WithdrawalReason,
+                    IsComplete = withdrawal.IsComplete,
+                    IsDeleted = withdrawal.IsDeleted
+                }).ToList();
+                return Ok(withdrawalDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("Admin/{id}")]
@@ -241,24 +303,38 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserWithdrawalByIdAdmin(int id)
         {
-            var withdrawal = _context.UserWithdrawals.FirstOrDefault(w => w.Id == id && !w.IsDeleted);
-            if (withdrawal == null)
+            try
             {
-                return NotFound();
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var withdrawal = _context.UserWithdrawals.FirstOrDefault(w => w.Id == id && !w.IsDeleted);
+                if (withdrawal == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
+                }
+
+                var withdrawalDto = new UserWithdrawalDto
+                {
+                    Id = withdrawal.Id,
+                    UserId = withdrawal.UserId,
+                    WithdrawalAmount = withdrawal.WithdrawalAmount,
+                    WithdrawalDate = withdrawal.WithdrawalDate,
+                    WithdrawalReason = withdrawal.WithdrawalReason,
+                    IsComplete = withdrawal.IsComplete,
+                    IsDeleted = withdrawal.IsDeleted
+                };
+
+                return Ok(withdrawalDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var withdrawalDto = new UserWithdrawalDto
-            {
-                Id = withdrawal.Id,
-                UserId = withdrawal.UserId,
-                WithdrawalAmount = withdrawal.WithdrawalAmount,
-                WithdrawalDate = withdrawal.WithdrawalDate,
-                WithdrawalReason = withdrawal.WithdrawalReason,
-                IsComplete = withdrawal.IsComplete,
-                IsDeleted = withdrawal.IsDeleted
-            };
-
-            return Ok(withdrawalDto);
         }
 
         [HttpPut("Admin/{id}")]
@@ -268,20 +344,34 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserWithdrawalAdmin(int id, [FromBody] UserWithdrawalDto withdrawalDto)
         {
-            var withdrawal = _context.UserWithdrawals.FirstOrDefault(w => w.Id == id && !w.IsDeleted);
-            if (withdrawal == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var withdrawal = _context.UserWithdrawals.FirstOrDefault(w => w.Id == id && !w.IsDeleted);
+                if (withdrawal == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
+                }
+
+                withdrawal.UserId = withdrawalDto.UserId;
+                withdrawal.WithdrawalAmount = withdrawalDto.WithdrawalAmount;
+                withdrawal.WithdrawalDate = withdrawalDto.WithdrawalDate;
+                withdrawal.WithdrawalReason = withdrawalDto.WithdrawalReason;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            withdrawal.UserId = withdrawalDto.UserId;
-            withdrawal.WithdrawalAmount = withdrawalDto.WithdrawalAmount;
-            withdrawal.WithdrawalDate = withdrawalDto.WithdrawalDate;
-            withdrawal.WithdrawalReason = withdrawalDto.WithdrawalReason;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/{id}")]
@@ -290,16 +380,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserWithdrawalAdmin(int id)
         {
-            var withdrawal = _context.UserWithdrawals.FirstOrDefault(w => w.Id == id && !w.IsDeleted);
-            if (withdrawal == null)
+            try
             {
-                return NotFound();
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var withdrawal = _context.UserWithdrawals.FirstOrDefault(w => w.Id == id && !w.IsDeleted);
+                if (withdrawal == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
+                }
+
+                withdrawal.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            withdrawal.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         [HttpDelete("Admin/Clear")]
@@ -307,10 +411,19 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearUserWithdrawalsAdmin()
         {
-            _context.UserWithdrawals.RemoveRange(_context.UserWithdrawals);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserWithdrawals.RemoveRange(_context.UserWithdrawals);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
     }

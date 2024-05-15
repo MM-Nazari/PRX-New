@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PRX.Data;
 using PRX.Dto.Quiz;
 using PRX.Models.Quiz;
+using PRX.Utils;
 
 namespace PRX.Controllers.Quiz
 {
@@ -24,8 +25,16 @@ namespace PRX.Controllers.Quiz
         
         public IActionResult GetAll()
         {
-            var records = _context.UserAnswers.ToList();
-            return Ok(records);
+            try 
+            {
+                var records = _context.UserAnswers.ToList();
+                return Ok(records);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         // GET: api/UserAnswer/5
@@ -34,12 +43,25 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetByUserId(int id)
         {
-            var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
-            if (record == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.QuizAnswerNotFound});
+                }
+                return Ok(record);
             }
-            return Ok(record);
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
 
@@ -49,12 +71,25 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
         {
-            var record = _context.UserAnswers.FirstOrDefault(e => e.Id == id && !e.IsDeleted);
-            if (record == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var record = _context.UserAnswers.FirstOrDefault(e => e.Id == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });
+                }
+                return Ok(record);
             }
-            return Ok(record);
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
 
@@ -64,12 +99,25 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetByUserIds(int id)
         {
-            var records = _context.UserAnswers.Where(e => e.UserId == id && !e.IsDeleted).ToList();
-            if (records == null || records.Count == 0)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var records = _context.UserAnswers.Where(e => e.UserId == id && !e.IsDeleted).ToList();
+                if (records == null || records.Count == 0)
+                {
+                    return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });
+                }
+                return Ok(records);
             }
-            return Ok(records);
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
 
@@ -79,34 +127,45 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Create(int userId, [FromBody] UserAnswerDto dto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (userId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Find the corresponding UserAnswerOption
+                var userAnswer = _context.UserAnswers
+                    .FirstOrDefault(o => o.UserId == userId && !o.IsDeleted);
+
+                if (userAnswer == null)
+                {
+                    return BadRequest(new { message = ResponseMessages.QuizAnswerIsNull});
+                }
+
+                var record = new UserAnswer
+                {
+                    UserId = userId, // Assign userId parameter here
+                    AnswerOptionId = dto.AnswerOptionId,
+                    AnswerText = dto.AnswerText
+                };
+
+                _context.UserAnswers.Add(record);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetById), new { id = record.Id }, record);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            // Find the corresponding UserAnswerOption
-            var userAnswer = _context.UserAnswers
-                .FirstOrDefault(o => o.UserId == userId && !o.IsDeleted);
-
-            if (userAnswer == null)
-            {
-                return BadRequest();
-            }
-
-            var record = new UserAnswer
-            {
-                UserId = userId, // Assign userId parameter here
-                AnswerOptionId = dto.AnswerOptionId,
-                AnswerText = dto.AnswerText
-            };
-
-            _context.UserAnswers.Add(record);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetById), new { id = record.Id }, record);
         }
-
-
 
 
         // PUT: api/UserAnswer/5
@@ -116,19 +175,32 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Update(int id, [FromBody] UserAnswerDto dto)
         {
-            var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
-            if (record == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.QuizAnswerNotFound});
+                }
+
+                record.UserId = dto.UserId;
+                record.AnswerOptionId = dto.AnswerOptionId;
+                record.AnswerText = dto.AnswerText;
+
+                _context.SaveChanges();
+
+                return Ok(record);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            record.UserId = dto.UserId;
-            record.AnswerOptionId = dto.AnswerOptionId;
-            record.AnswerText = dto.AnswerText;
-
-            _context.SaveChanges();
-
-            return Ok(record);
         }
 
         // DELETE: api/UserAnswer/5
@@ -137,16 +209,29 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
         {
-            var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
-            if (record == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });
+                }
+
+                record.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            record.IsDeleted = true;
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         // DELETE: api/UserAnswer
@@ -154,10 +239,18 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearAll()
         {
-            _context.UserAnswers.RemoveRange(_context.UserAnswers);
-            _context.SaveChanges();
+            try
+            {
+                _context.UserAnswers.RemoveRange(_context.UserAnswers);
+                _context.SaveChanges();
 
-            return Ok();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
     }
 }

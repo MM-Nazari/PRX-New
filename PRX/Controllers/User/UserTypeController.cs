@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
+using PRX.Utils;
 
 namespace PRX.Controllers.User
 {
@@ -23,14 +24,22 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAllUserTypes()
         {
-            var userTypes = _context.UserTypes.ToList();
-            var userTypeDtos = userTypes.Select(userType => new UserTypeDto
+            try
             {
-                Id = userType.Id,
-                UserId = userType.UserId,
-                Type = userType.Type
-            }).ToList();
-            return Ok(userTypeDtos);
+                var userTypes = _context.UserTypes.ToList();
+                var userTypeDtos = userTypes.Select(userType => new UserTypeDto
+                {
+                    Id = userType.Id,
+                    UserId = userType.UserId,
+                    Type = userType.Type
+                }).ToList();
+                return Ok(userTypeDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
         [HttpGet("GetById/{id}")]
@@ -38,18 +47,32 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserTypeById(int id)
         {
-            var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
-            if (userType == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (userType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserTypeNotFound });
+                }
+                var userTypeDto = new UserTypeDto
+                {
+                    Id = userType.Id,
+                    UserId = userType.UserId,
+                    Type = userType.Type
+                };
+                return Ok(userTypeDto);
             }
-            var userTypeDto = new UserTypeDto
+            catch (Exception ex)
             {
-                Id = userType.Id,
-                UserId = userType.UserId,
-                Type = userType.Type
-            };
-            return Ok(userTypeDto);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
         [HttpGet("GetByUserId/{id}")]
@@ -57,18 +80,32 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUserTypeByUserId(int id)
         {
-            var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
-            if (userType == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserTypeNotFound });
+                }
+                var userTypeDto = new UserTypeDto
+                {
+                    Id = userType.Id,
+                    UserId = userType.UserId,
+                    Type = userType.Type
+                };
+                return Ok(userTypeDto);
             }
-            var userTypeDto = new UserTypeDto
+            catch (Exception ex)
             {
-                Id = userType.Id,
-                UserId = userType.UserId,
-                Type = userType.Type
-            };
-            return Ok(userTypeDto);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
 
 
@@ -78,21 +115,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserType([FromBody] UserTypeDto userTypeDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userType = new UserType
+                {
+                    UserId = userTypeDto.UserId,
+                    Type = userTypeDto.Type
+                };
+
+                _context.UserTypes.Add(userType);
+                _context.SaveChanges();
+
+                return CreatedAtAction(nameof(GetUserTypeById), new { id = userType.Id }, userType);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            var userType = new UserType
-            {
-                UserId = userTypeDto.UserId,
-                Type = userTypeDto.Type
-            };
 
-            _context.UserTypes.Add(userType);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetUserTypeById), new { id = userType.Id }, userType);
         }
 
         [HttpPut("PutById/{id}")]
@@ -101,18 +147,32 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserType(int id, [FromBody] UserTypeDto userTypeDto)
         {
-            var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
-            if (userType == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (userType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserTypeNotFound });
+                }
+
+                userType.UserId = userTypeDto.UserId;
+                userType.Type = userTypeDto.Type;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userType.UserId = userTypeDto.UserId;
-            userType.Type = userTypeDto.Type;
 
-            _context.SaveChanges();
-
-            return Ok();
         }
 
 
@@ -122,18 +182,32 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdateUserTypeBy(int id, [FromBody] UserTypeDto userTypeDto)
         {
-            var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
-            if (userType == null)
+            try
             {
-                return NotFound();
+
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserTypeNotFound });
+                }
+
+                userType.Id = userTypeDto.Id;
+                userType.Type = userTypeDto.Type;
+
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userType.Id = userTypeDto.Id;
-            userType.Type = userTypeDto.Type;
-
-            _context.SaveChanges();
-
-            return Ok();
         }
 
 
@@ -142,16 +216,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserType(int id)
         {
-            var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id);
-            if (userType == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id);
+                if (userType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserTypeNotFound });
+                }
+
+                userType.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userType.IsDeleted = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
         [HttpDelete("DeleteByUserId/{id}")]
@@ -159,16 +247,30 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult DeleteUserTypeBy(int id)
         {
-            var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id);
-            if (userType == null)
+            try
             {
-                return NotFound();
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id);
+                if (userType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserTypeNotFound });
+                }
+
+                userType.IsDeleted = true;
+                _context.SaveChanges();
+
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
-            userType.IsDeleted = true;
-            _context.SaveChanges();
 
-            return Ok();
         }
 
 
@@ -176,9 +278,18 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult ClearUserTypes()
         {
-            _context.UserTypes.RemoveRange(_context.UserTypes);
-            _context.SaveChanges();
-            return Ok();
+            try
+            {
+                _context.UserTypes.RemoveRange(_context.UserTypes);
+                _context.SaveChanges();
+                return Ok(new { message = ResponseMessages.OK });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
+
         }
     }
 }
