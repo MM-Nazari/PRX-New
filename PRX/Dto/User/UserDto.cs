@@ -10,7 +10,7 @@ namespace PRX.Dto.User
         
         public string Password { get; set; } // Add Password field
         
-        public int? ReferenceCode { get; set; }
+        public string ReferenceCode { get; set; } = string.Empty;
 
         public string Role { get; set; } = "User";
         public bool IsComplete { get; set; } = false;

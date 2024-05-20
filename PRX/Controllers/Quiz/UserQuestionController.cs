@@ -38,7 +38,9 @@ namespace PRX.Controllers.Quiz
         // GET: api/UserQuestion/5
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetById(int id)
         {
             try
@@ -66,6 +68,7 @@ namespace PRX.Controllers.Quiz
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Create([FromBody] UserQuestionDto dto)
         {
             try
@@ -97,6 +100,7 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Update(int id, [FromBody] UserQuestionDto dto)
         {
             try
@@ -128,7 +132,9 @@ namespace PRX.Controllers.Quiz
         // DELETE: api/UserQuestion/5
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Delete(int id)
         {
             try
@@ -159,6 +165,7 @@ namespace PRX.Controllers.Quiz
         // DELETE: api/UserQuestion
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult ClearAll()
         {
             try

@@ -15,7 +15,7 @@
         public int PostalCode { get; set; }
         public string HomePhone { get; set; }
         public string Fax { get; set; }
-        public DateTime BestTimeToCall { get; set; }
+        public string BestTimeToCall { get; set; }
         public string ResidentialAddress { get; set; }
         public string Email { get; set; }
 

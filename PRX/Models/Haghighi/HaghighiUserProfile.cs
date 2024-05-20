@@ -36,7 +36,7 @@ namespace PRX.Models.Haghighi
         [Required]
         public string Fax { get; set; }
         [Required]
-        public DateTime BestTimeToCall { get; set; }
+        public string BestTimeToCall { get; set; }
         [Required]
         public string ResidentialAddress { get; set; }
         [Required]

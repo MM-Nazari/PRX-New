@@ -16,7 +16,7 @@ namespace PRX.Models.User
         [Required]
         public string PhoneNumber { get; set; }
         [Required]
-        public int? ReferenceCode { get; set; }
+        public string ReferenceCode { get; set; } = string.Empty;
 
         public string Role { get; set; } = "User";
         public bool IsDeleted { get; set; } = false;
@@ -40,6 +40,7 @@ namespace PRX.Models.User
         public List<UserType> UserTypes { get; set; }
         public UserState UserState { get; set; }
         public List<UserDocument> UserDocs { get; set; }
+        public UserReference UserReference { get; set; }
 
 
         // Haghighi

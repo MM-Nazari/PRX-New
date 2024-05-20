@@ -77,6 +77,10 @@
         // User Withdrawl 
         public const string UserWithdrawlNotFound = "برداشت متناسب با کاربر یافت نشد";
 
+        // User References
+        public const string UserRefernceCodeFormatIsInvalid = "فرمت کد معرف صحیح نمیباشد ";
+        public const string UserRefernceCodeIsInvalid = "کد معرف صحیح نیست ";
+
 
 
         // Haghighi User Education Status
@@ -90,6 +94,7 @@
 
         // Haghighi User Profile
         public const string HaghighiUserProfileNotFound = "پروفایل متناسب با کاربر حقیقی یافت نشد";
+        public const string HaghighiUserProfileDuplicateBirthCertificate = "شماره ملی وارد شده تکراری است";
 
         // Haghighi User Relationship 
         public const string HaghighiUserRelationNotFound = "رابطه متناسب با کاربر حقیقی یافت نشد";

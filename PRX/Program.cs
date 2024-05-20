@@ -148,7 +148,7 @@ builder.Services.AddSwaggerGen(c =>
 
         // Users Groups
         // Include controllers with specific group names
-        var allowedGroups = new[] { "Users", "UserDocuments", "Admins", "UserAssets", "UserAssetTypes", "UserDebts", "UserFinancialChanges", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"}; 
+        var allowedGroups = new[] { "Users", "UserDocuments", "Admins", "UserAssets", "UserAssetTypes", "UserDebts", "UserFinancialChanges", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles"/*, "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"*/}; 
         return allowedGroups.Contains(apiDesc.GroupName);
 
 

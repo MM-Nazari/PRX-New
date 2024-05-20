@@ -43,6 +43,7 @@ namespace PRX.Data
         public DbSet<UserState> UserStates { get; set; }
         public DbSet<UserType> UserTypes { get; set; }
         public DbSet<UserDocument> UserDocuments { get; set; }
+        public DbSet<UserReference> UserReferences { get; set; }
 
 
 
@@ -174,6 +175,11 @@ namespace PRX.Data
             .ValueGeneratedOnAdd()
             .IsRequired();
 
+            modelBuilder.Entity<UserReference>()
+           .Property(e => e.Id)
+           .ValueGeneratedOnAdd()
+           .IsRequired();
+
 
             // Haghighi
 
@@ -277,7 +283,7 @@ namespace PRX.Data
             // User
 
             modelBuilder.Entity<User>()
-            .HasIndex(p => new { p.PhoneNumber, p.ReferenceCode })
+            .HasIndex(p => new { p.PhoneNumber })
             .IsUnique();
 
 
@@ -584,6 +590,11 @@ namespace PRX.Data
                 .HasMany(u => u.UserDocs)
                 .WithOne(r => r.User)
                 .HasForeignKey(r => r.UserId);
+
+            modelBuilder.Entity<User>()
+               .HasOne(u => u.UserReference)
+               .WithOne(p => p.User)
+               .HasForeignKey<UserReference>(p => p.UserId);
 
 
 

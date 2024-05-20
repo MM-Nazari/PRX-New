@@ -175,6 +175,15 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(ModelState);
                 }
 
+                // Check for unique BirthCertificateNumber
+                var existingProfile = _context.HaghighiUserProfiles
+                    .FirstOrDefault(p => p.BirthCertificateNumber == profileDto.BirthCertificateNumber);
+
+                if (existingProfile != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.HaghighiUserProfileDuplicateBirthCertificate });
+                }
+
                 var profile = new HaghighiUserProfile
                 {
                     UserId = profileDto.UserId,
@@ -194,6 +203,9 @@ namespace PRX.Controllers.Haghighi
                     ResidentialAddress = profileDto.ResidentialAddress,
                     Email = profileDto.Email
                 };
+
+
+
 
                 _context.HaghighiUserProfiles.Add(profile);
                 _context.SaveChanges();
