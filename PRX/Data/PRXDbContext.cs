@@ -55,6 +55,7 @@ namespace PRX.Data
         public DbSet<HaghighiUserFinancialProfile> HaghighiUserFinancialProfiles { get; set; }
         public DbSet<HaghighiUserEducationStatus> HaghighiUserEducationStatuses { get; set; }
         public DbSet<HaghighiUserEmploymentHistory> HaghighiUserEmploymentHistories { get; set; }
+        public DbSet<HaghighiUserBankInfo> HaghighiUserBankInfos { get; set; }
 
 
         // Hoghooghi Set
@@ -204,6 +205,11 @@ namespace PRX.Data
             .IsRequired();
 
             modelBuilder.Entity<HaghighiUserRelationships>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .IsRequired();
+
+            modelBuilder.Entity<HaghighiUserBankInfo>()
             .Property(e => e.Id)
             .ValueGeneratedOnAdd()
             .IsRequired();
@@ -622,6 +628,11 @@ namespace PRX.Data
                .HasOne(u => u.HaghighiUserEducationStatus)
                .WithOne(p => p.User)
                .HasForeignKey<HaghighiUserEducationStatus>(p => p.UserId);
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.HaghighiUserBankInfos)
+                .WithOne(p => p.User)
+                .HasForeignKey<HaghighiUserBankInfo>(p => p.UserId);
 
 
 

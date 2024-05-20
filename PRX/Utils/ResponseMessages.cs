@@ -99,6 +99,9 @@
         // Haghighi User Relationship 
         public const string HaghighiUserRelationNotFound = "رابطه متناسب با کاربر حقیقی یافت نشد";
 
+        // Haghighi User Bank Info
+        public const string HaghighiUserBankInfoNotFound = "اطلاعات بانکی متناسب با کاربر حقیقی یافت نشد";
+
 
 
         // Hoghooghi User Asset Income
