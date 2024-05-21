@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using PRX.Utils;
+using Microsoft.Extensions.Caching.Memory;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
+
+builder.Services.AddMemoryCache();
 
 builder.Services.AddCors(options =>
 {
@@ -59,10 +62,25 @@ builder.Services.AddAuthentication(options =>
 
     o.Events = new JwtBearerEvents
     {
+        //OnMessageReceived = context =>
+        //{
+        //    var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+        //    context.Token = accessToken;
+        //    return Task.CompletedTask;
+        //},
         OnMessageReceived = context =>
         {
             var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
             context.Token = accessToken;
+
+            if (accessToken != null)
+            {
+                var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+                if (memoryCache.TryGetValue(accessToken, out _))
+                {
+                    context.Fail("This token is blacklisted.");
+                }
+            }
             return Task.CompletedTask;
         },
         OnAuthenticationFailed = context =>
@@ -150,7 +168,7 @@ builder.Services.AddSwaggerGen(c =>
 
         // Users Groups
         // Include controllers with specific group names
-        var allowedGroups = new[] { "Users", "HaghighiUserBankInfo", "Admins","HaghighiUserFinancialProfiles", "UserDocuments", "UserAssets", "UserAssetTypes", "UserDebts", "UserFinancialChanges", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"}; 
+        var allowedGroups = new[] { "Users", "HaghighiUserBankInfo", "Admins" /*,"HaghighiUserFinancialProfiles", "UserDocuments", "UserAssets", "UserAssetTypes", "UserDebts", "UserFinancialChanges", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"*/}; 
         return allowedGroups.Contains(apiDesc.GroupName);
 
 

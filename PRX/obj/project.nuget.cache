@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "/QNi+4lPfXHBpGfxD8HRMp2hDt4a6FWhxNfaKCaAnKKWH1jOdTbmj3wfbiN7HsauRWq1mtuRwubdfLTyuB1lnw==",
+  "dgSpecHash": "hUE+1/JjdNghMgfR59mGsR0rmHaXtptGv9pJvvfVBZi5XpgOGtX8EgDpB4FuAc9HspmLLpm+4WMmBnoTpgCL8w==",
   "success": true,
   "projectFilePath": "C:\\Users\\M.Nazari\\source\\repos\\PRX\\PRX\\PRX.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,7 @@
     "C:\\Users\\M.Nazari\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
     "C:\\Users\\M.Nazari\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\M.Nazari\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\M.Nazari\\.nuget\\packages\\kavenegar\\1.2.4\\kavenegar.1.2.4.nupkg.sha512",
     "C:\\Users\\M.Nazari\\.nuget\\packages\\microsoft.aspnetcore.authentication\\2.2.0\\microsoft.aspnetcore.authentication.2.2.0.nupkg.sha512",
     "C:\\Users\\M.Nazari\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.2.0\\microsoft.aspnetcore.authentication.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\M.Nazari\\.nuget\\packages\\microsoft.aspnetcore.authentication.cookies\\2.2.0\\microsoft.aspnetcore.authentication.cookies.2.2.0.nupkg.sha512",

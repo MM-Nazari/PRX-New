@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using Kavenegar;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace PRX.Controllers.User
 {
@@ -24,14 +26,17 @@ namespace PRX.Controllers.User
         private readonly PRXDbContext _context;
         private readonly Utils.Utils _utils; // Add Utils instance
         private readonly IConfiguration _configuration;
+        private readonly IMemoryCache _cache;
+        //private readonly KavenegarApi kavenegar;
         //private readonly Random _random;
 
-        public UsersController(PRXDbContext context, IConfiguration configuration/*, Random random*/)
+        public UsersController(PRXDbContext context, IConfiguration configuration, IMemoryCache cache /*, Random random*/)
         {
             _context = context;
             _utils = new Utils.Utils(); // Instantiate Utils
             _configuration = configuration;
-           // _random = random;
+            _cache = cache;
+            // _random = random;
         }
 
         [HttpGet("PhoneExistance/{phoneNumber}")]
@@ -261,6 +266,15 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Login([FromBody] UserDto userDto)
         {
+            //var sender = "1000689696";
+            //var receptor = "09393691800";
+            //var message = ".وب سرویس پیام کوتاه کاوه نگار";
+            //var api = new Kavenegar.KavenegarApi("306A654573316748434365654D6143304969562F652F706679696755434652574735385149706C685654413D");
+            //api.Send(sender, receptor, message);
+
+            //Kavenegar.KavenegarApi api = new Kavenegar.KavenegarApi("306A654573316748434365654D6143304969562F652F706679696755434652574735385149706C685654413D");
+            //var result = api.Send("1000689696", "09393691800", "خدمات پیام کوتاه کاوه نگار");
+
             var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
             if (user == null)
             {
@@ -290,6 +304,44 @@ namespace PRX.Controllers.User
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
 
+        }
+
+
+        [HttpPost("logout")]
+        [Authorize(Roles = "User")]
+        public IActionResult Logout()
+        {
+            try
+            {
+                var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (token == null)
+                {
+                    return BadRequest(new { message = "Token is required" });
+                }
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+
+                if (jwtToken == null)
+                {
+                    return BadRequest(new { message = "Invalid token" });
+                }
+
+                // Calculate token expiry
+                var expiry = jwtToken.ValidTo;
+
+                // Blacklist the token
+                _cache.Set(token, "blacklisted", new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = expiry
+                });
+
+                return Ok(new { message = "Logged out successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Internal Server Error", detail = ex.Message });
+            }
         }
 
         private void LogUserLogin(int userId)

@@ -72,6 +72,18 @@
           }
         }
       },
+      "Kavenegar/1.2.4": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "12.0.3"
+        },
+        "compile": {
+          "lib/netstandard2.0/Kavenegar.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Kavenegar.dll": {}
+        }
+      },
       "Microsoft.AspNetCore.Authentication/2.2.0": {
         "type": "package",
         "dependencies": {
@@ -2303,6 +2315,19 @@
         "lib/netstandard2.0/Humanizer.dll",
         "lib/netstandard2.0/Humanizer.xml",
         "logo.png"
+      ]
+    },
+    "Kavenegar/1.2.4": {
+      "sha512": "JyT2+5aCpb8+3rCxcZXY7Nc7rABR4OIeryM3TWkHts6HLOL/7IPhJ2iAnxQswyeDsFObGGb0qqg1nChi+40JvQ==",
+      "type": "package",
+      "path": "kavenegar/1.2.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "kavenegar.1.2.4.nupkg.sha512",
+        "kavenegar.nuspec",
+        "lib/net35/Kavenegar.dll",
+        "lib/netstandard2.0/Kavenegar.dll"
       ]
     },
     "Microsoft.AspNetCore.Authentication/2.2.0": {
@@ -5623,6 +5648,7 @@
   "projectFileDependencyGroups": {
     "net8.0": [
       "BCrypt.Net-Next >= 4.0.3",
+      "Kavenegar >= 1.2.4",
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 8.0.4",
       "Microsoft.AspNetCore.Cors >= 2.2.0",
       "Microsoft.AspNetCore.Http >= 2.2.2",
@@ -5632,6 +5658,7 @@
       "Microsoft.EntityFrameworkCore.Design >= 8.0.4",
       "Microsoft.EntityFrameworkCore.SqlServer >= 8.0.4",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.4",
+      "Microsoft.Extensions.Caching.Memory >= 8.0.0",
       "Microsoft.Extensions.Http >= 8.0.0",
       "Newtonsoft.Json >= 13.0.3",
       "Swashbuckle.AspNetCore >= 6.4.0",
@@ -5681,6 +5708,10 @@
             "target": "Package",
             "version": "[4.0.3, )"
           },
+          "Kavenegar": {
+            "target": "Package",
+            "version": "[1.2.4, )"
+          },
           "Microsoft.AspNetCore.Authentication.JwtBearer": {
             "target": "Package",
             "version": "[8.0.4, )"
@@ -5720,6 +5751,10 @@
             "suppressParent": "All",
             "target": "Package",
             "version": "[8.0.4, )"
+          },
+          "Microsoft.Extensions.Caching.Memory": {
+            "target": "Package",
+            "version": "[8.0.0, )"
           },
           "Microsoft.Extensions.Http": {
             "target": "Package",
