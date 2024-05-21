@@ -275,6 +275,43 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
+        [HttpGet("isComplete/{id}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult CheckCompletionStatus(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                if (id != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+
+                var record = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
+                }
+
+                return Ok(new { isComplete = record.IsComplete });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
         [HttpGet("Admin")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
