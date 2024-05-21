@@ -15,6 +15,7 @@ using System.Security.Claims;
 using System.Text.RegularExpressions;
 using Kavenegar;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 
 namespace PRX.Controllers.User
 {
@@ -43,7 +44,7 @@ namespace PRX.Controllers.User
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckPhoneNumberExists(string phoneNumber)
+        public async Task<IActionResult> CheckPhoneNumberExistsAsync(string phoneNumber)
         {
 
             try 
@@ -56,6 +57,12 @@ namespace PRX.Controllers.User
                 }
                 else
                 {
+                    // Call the SMS sending API to send the OTP
+                    var isOtpSent = await SendOtp(phoneNumber);
+                    if (!isOtpSent)
+                    {
+                        return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Failed to send OTP." });
+                    }
                     return Ok(new { message = ResponseMessages.PhoneExistanseFalse });
                 }
 
@@ -74,7 +81,7 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateUser([FromBody] UserDto userDto)
+        public async Task<IActionResult> CreateUserAsync([FromBody] UserDto userDto)
         {
             // Validate the DTO if necessary
             if (!ModelState.IsValid)
@@ -90,6 +97,7 @@ namespace PRX.Controllers.User
                 {
                     return BadRequest(new { message = ResponseMessages.UsersPhoneExists });
                 }
+
 
                 int referencedUserId;
 
@@ -136,6 +144,15 @@ namespace PRX.Controllers.User
                 _context.Users.Add(user);
                 _context.SaveChanges();
 
+
+                //// Call the SMS verification API to verify the OTP
+                //var isOtpVerified = await VerifyOtp(userDto.PhoneNumber, userDto.otp);
+                //if (!isOtpVerified)
+                //{
+                //    return BadRequest(new { message = "OTP verification failed." });
+                //}
+
+
                 // Generate reference code using the user's ID
                 var referenceCode = GenerateReferenceCode(user.Id);
 
@@ -177,6 +194,88 @@ namespace PRX.Controllers.User
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+        [HttpPost("verify-otp")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> VerifyOtpAsync([FromBody] OtpDto otpVerificationDto)
+        {
+            try
+            {
+                var isOtpVerified = await VerifyOtp(otpVerificationDto.PhoneNumber, otpVerificationDto.Otp);
+                if (!isOtpVerified)
+                {
+                    return BadRequest(new { message = "OTP verification failed." });
+                }
+
+
+                return Ok(new { message = "OTP verified successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+
+
+        private async Task<bool> SendOtp(string mobile)
+        {
+            try
+            {
+                var requestBody = new
+                {
+                    mobile,
+                    user = 0,
+                    template = "prx"
+                };
+
+                var jsonContent = JsonConvert.SerializeObject(requestBody);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.DefaultRequestHeaders.Add("Key", "9ac6bc9a-cca3-4779-8640-6836b6ab1daa");
+                    var response = await httpClient.PostAsync("http://172.21.30.78:8000/api/v1/sms/send_code/", httpContent);
+                    return response.IsSuccessStatusCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the error
+                return false;
+            }
+        }
+
+        private async Task<bool> VerifyOtp(string mobile, int code)
+        {
+            try
+            {
+                var requestBody = new
+                {
+                    mobile,
+                    user = 0,
+                    template = "prx",
+                    code
+                };
+
+                var jsonContent = JsonConvert.SerializeObject(requestBody);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.DefaultRequestHeaders.Add("Key", "9ac6bc9a-cca3-4779-8640-6836b6ab1daa");
+                    var response = await httpClient.PostAsync("http://172.21.30.78:8000/api/v1/sms/verify_code/", httpContent);
+                    return response.IsSuccessStatusCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the error
+                return false;
             }
         }
 
