@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PRX.Data;
 using PRX.Dto.Quiz;
@@ -38,7 +39,8 @@ namespace PRX.Controllers.Quiz
         }
 
         // GET: api/UserAnswer/5
-        [HttpGet("GetOneByUserId{id}")]
+        [HttpGet("GetOneByUserId/{id}")]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetByUserId(int id)
@@ -48,6 +50,12 @@ namespace PRX.Controllers.Quiz
                 if (id <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                if (id != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
@@ -66,7 +74,7 @@ namespace PRX.Controllers.Quiz
 
 
         // GET: api/UserAnswer/5
-        [HttpGet("GetOneById{id}")]
+        [HttpGet("GetOneById/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetById(int id)
@@ -76,6 +84,12 @@ namespace PRX.Controllers.Quiz
                 if (id <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                if (id != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 var record = _context.UserAnswers.FirstOrDefault(e => e.Id == id && !e.IsDeleted);
@@ -95,6 +109,7 @@ namespace PRX.Controllers.Quiz
 
         // GET: api/UserAnswer/5
         [HttpGet("GetAllByUserId/{id}")]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetByUserIds(int id)
@@ -104,6 +119,12 @@ namespace PRX.Controllers.Quiz
                 if (id <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                if (id != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 var records = _context.UserAnswers.Where(e => e.UserId == id && !e.IsDeleted).ToList();
@@ -123,6 +144,7 @@ namespace PRX.Controllers.Quiz
 
 
         [HttpPost]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Create(int userId, [FromBody] UserAnswerDto dto)
@@ -139,14 +161,15 @@ namespace PRX.Controllers.Quiz
                     return BadRequest(ModelState);
                 }
 
-                // Find the corresponding UserAnswerOption
-                var userAnswer = _context.UserAnswers
-                    .FirstOrDefault(o => o.UserId == userId && !o.IsDeleted);
 
-                if (userAnswer == null)
-                {
-                    return BadRequest(new { message = ResponseMessages.QuizAnswerIsNull});
-                }
+                //// Find the corresponding UserAnswerOption
+                //var userAnswer = _context.UserAnswers
+                //    .FirstOrDefault(o => o.UserId == userId && !o.IsDeleted);
+
+                //if (userAnswer == null)
+                //{
+                //    return BadRequest(new { message = ResponseMessages.QuizAnswerIsNull});
+                //}
 
                 var record = new UserAnswer
                 {
@@ -170,6 +193,7 @@ namespace PRX.Controllers.Quiz
 
         // PUT: api/UserAnswer/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -182,6 +206,11 @@ namespace PRX.Controllers.Quiz
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                if (id != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
                 var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
                 if (record == null)
                 {
