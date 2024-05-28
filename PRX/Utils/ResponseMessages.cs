@@ -139,9 +139,18 @@
         // Admin
         public const string AdminNotFound = "ادمین با مشخصات داده شده یافت نشد";
 
+        // Ticket 
+        public const string TicketNotFound = "تیکت متناسب با کاربر یافت نشد";
+        public const string MessageNotFound = "پیام متناسب با کاربر یا ادمین یافت نشد";
 
 
-        // 
+        // Token 
+
+        public const string TokenIsInvalid = "فرمت توکن اشتباه است";
+
+
+
+        // 500
         public const string InternalServerError = "ارور داخلی سرور";
     }
 }

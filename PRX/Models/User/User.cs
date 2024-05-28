@@ -4,6 +4,7 @@ using PRX.Models.Haghighi;
 using PRX.Models.Hoghooghi;
 using PRX.Models.Hoghooghis.Hoghooghi;
 using PRX.Models.Quiz;
+using PRX.Models.Ticket;
 
 namespace PRX.Models.User
 {
@@ -73,6 +74,12 @@ namespace PRX.Models.User
         // Log
 
         public List<UserLoginLog> UserLoginLogs { get; set; }
+
+
+        // Ticket
+
+        public List<PRX.Models.Ticket.Ticket> Tickets { get; set; }
+        public List<PRX.Models.Ticket.Message> Messages { get; set; }
 
 
 

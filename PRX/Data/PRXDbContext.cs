@@ -7,6 +7,7 @@ using PRX.Models.User;
 using PRX.Models.Admin;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using PRX.Models.Ticket;
 
 namespace PRX.Data
 {
@@ -80,6 +81,12 @@ namespace PRX.Data
         // Log
 
         public DbSet<UserLoginLog> UserLoginLog { get; set; }
+
+
+        // Ticket
+
+        public DbSet<PRX.Models.Ticket.Ticket> Tickets { get; set; } 
+        public DbSet<PRX.Models.Ticket.Message> Messages { get; set; } 
 
 
 
@@ -272,6 +279,33 @@ namespace PRX.Data
              .ValueGeneratedOnAdd()
              .IsRequired();
 
+
+            // Ticket
+
+            modelBuilder.Entity<PRX.Models.Ticket.Ticket>()
+             .Property(e => e.Id)
+             .ValueGeneratedOnAdd()
+             .IsRequired();
+
+            modelBuilder.Entity<PRX.Models.Ticket.Message>()
+             .Property(e => e.Id)
+             .ValueGeneratedOnAdd()
+             .IsRequired();
+
+
+
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.UserSender)
+                .WithMany()
+                .HasForeignKey(m => m.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.AdminSender)
+                .WithMany()
+                .HasForeignKey(m => m.AdminId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
 
@@ -703,7 +737,28 @@ namespace PRX.Data
                 .HasForeignKey(r => r.UserId);
 
 
+            // Ticket
 
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Tickets)
+                .WithOne(r => r.User)
+                .HasForeignKey(r => r.UserId);
+
+            modelBuilder.Entity<PRX.Models.Ticket.Ticket>()
+                .HasMany(u => u.Messages)
+                .WithOne(r => r.Ticket)
+                .HasForeignKey(r => r.TicketId);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Messages)
+                .WithOne(r => r.UserSender)
+                .HasForeignKey(r => r.SenderId);
+
+            modelBuilder.Entity<Admin>()
+                .HasMany(u => u.Messages)
+                .WithOne(r => r.AdminSender)
+                .HasForeignKey(r => r.SenderId);
 
         }
     }
