@@ -92,6 +92,15 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(ModelState);
                 }
 
+                // Check for unique UserId
+                var existingEducationStatus = _context.HaghighiUserEducationStatuses
+                                                      .FirstOrDefault(es => es.UserId == educationStatusDto.UserId);
+
+                if (existingEducationStatus != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.HaghighiUserEducationStatusDuplicate });
+                }
+
                 var educationStatus = new HaghighiUserEducationStatus
                 {
                     UserId = educationStatusDto.UserId,

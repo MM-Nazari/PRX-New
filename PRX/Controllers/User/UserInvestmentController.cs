@@ -77,6 +77,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPost]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserInvestment([FromBody] UserInvestmentDto userInvestmentDto)
@@ -87,6 +88,14 @@ namespace PRX.Controllers.User
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                // Check if the user ID already exists in the database
+                var existingUserInvestment = _context.UserInvestments.FirstOrDefault(ui => ui.UserId == userInvestmentDto.UserId);
+                if (existingUserInvestment != null)
+                {
+                    // Handle the case where the user ID is a duplicate
+                    return BadRequest(new { message = ResponseMessages.UserInvestmentDuplicate});
                 }
 
                 var userInvestment = new UserInvestment

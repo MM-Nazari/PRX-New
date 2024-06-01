@@ -94,6 +94,53 @@ namespace PRX.Controllers.Quiz
 
         }
 
+        // POST: api/UserAnswerOption/GetByQuestionType
+        [HttpPost("GetByQuestionType")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetByQuestionType([FromBody] AnswerOptionsFilterDto filterDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var questions = _context.UserQuestions.Where(q => q.Type == filterDto.Type).ToList();
+                if (questions == null || questions.Count == 0)
+                {
+                    return NotFound(new { message = $"Questions with type '{filterDto.Type}' not found." });
+                }
+
+                //var questionIds = questions.Select(q => q.Id).ToList();
+                //var answerOptions = _context.UserAnswerOptions.Where(ao => questionIds.Contains(ao.QuestionId)).ToList();
+                //if (answerOptions == null || answerOptions.Count == 0)
+                //{
+                //    return NotFound(new { message = "Answer options not found for the specified question type." });
+                //}
+
+                var questionIds = questions.Select(q => q.Id).ToList();
+                var answerOptions = _context.UserAnswerOptions
+                    .Where(ao => questionIds.Contains(ao.QuestionId))
+                    .Select(ao => new AnswerOptionsFilterDto
+                    {
+                        QuestionId = ao.QuestionId,
+                        Text = ao.Text
+                    })
+                    .ToList();
+
+                return Ok(answerOptions);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+
         // POST: api/UserAnswerOption
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]

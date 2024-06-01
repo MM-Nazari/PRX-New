@@ -75,6 +75,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPost]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserFinancialChanges([FromBody] UserFinancialChangesDto userFinancialChangesDto)
@@ -84,6 +85,14 @@ namespace PRX.Controllers.User
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                // Check if the UserId already exists
+                var existingUserFinancialChange = _context.UserFinancialChanges
+                                                          .FirstOrDefault(ufc => ufc.UserId == userFinancialChangesDto.UserId);
+                if (existingUserFinancialChange != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.UserFinancialChangeDuplicate });
                 }
 
                 var userFinancialChanges = new UserFinancialChanges

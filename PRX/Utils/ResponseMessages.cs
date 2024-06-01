@@ -54,19 +54,23 @@
         // User Financial Change
 
         public const string UserFinancialChangeNotFound = "تغییر مالی متناسب با کاربر یافت نشد";
+        public const string UserFinancialChangeDuplicate = "تغییر مالی متناسب این کاربر قبلا ثبت شده است";
 
         // User Future Plans
 
         public const string UserFuturePlanNotFound = " برنامه آینده متناسب با کاربر یافت نشد";
+        public const string UserFuturePlanDuplicate = " برنامه آینده این کاربر قبلا ثبت شده است";
 
         // User Investment
         public const string UserInvestmentNotFound = "سرمایه گذاری متناسب با کاربر یافت نشد";
+        public const string UserInvestmentDuplicate = "سرمایه گذاری متناسب با این کاربر قبلا ثبت شده است";
 
         // User Investment Experience
         public const string UserInvestmentExperienceNotFound = "تجربه سرمایه گذاری متناسب با کاربر یافت نشد";
 
         // User More Information
         public const string UserMoreInfoNotFound = "اطلاعات اضافی متناسب با کاربر یافت نشد";
+        public const string UserMoreInfoDuplicate = "اطلاعات اضافی متناسب با این کاربر قبلا ثبت شده است";
 
         // User State
         public const string UserStateNotFound = "وضعیت متناسب با کاربر یافت نشد";
@@ -85,22 +89,26 @@
 
         // Haghighi User Education Status
         public const string HaghighiUserEducationStatusNotFound = "وضعیت تحصیلی متناسب با کاربر حقیقی یافت نشد";
+        public const string HaghighiUserEducationStatusDuplicate = "وضعیت تحصیلی متناسب با این کاربر حقیقی قبلا ثبت شده است";
 
         // Haghighi User Employment History
         public const string HaghighiUserEmploymentHistoryNotFound = "سابقه اشتغال متناسب با کاربر حقیقی یافت نشد";
 
         // Haghighi User Financial Profile
         public const string HaghighiUserFinancialProfileNotFound = "پروفایل مالی متناسب با کاربر حقیقی یافت نشد ";
+        public const string HaghighiUserFinancialProfileDuplicate = "پروفایل مالی متناسب با این کاربر حقیقی قبلا ثبت شده است ";
 
         // Haghighi User Profile
         public const string HaghighiUserProfileNotFound = "پروفایل متناسب با کاربر حقیقی یافت نشد";
         public const string HaghighiUserProfileDuplicateBirthCertificate = "شماره ملی وارد شده تکراری است";
+        public const string HaghighiUserProfileDuplicate = "پروفایل متناسب با این کاربر حقیقی قبلا ثبت شده است";
 
         // Haghighi User Relationship 
         public const string HaghighiUserRelationNotFound = "رابطه متناسب با کاربر حقیقی یافت نشد";
 
         // Haghighi User Bank Info
         public const string HaghighiUserBankInfoNotFound = "اطلاعات بانکی متناسب با کاربر حقیقی یافت نشد";
+        public const string HaghighiUserBankInfoDuplicate = "اطلاعات بانکی متناسب این کاربر حقیقی قبلا ثبت شده است";
 
 
 
@@ -115,6 +123,7 @@
 
         // Hoghooghi User
         public const string HoghooghiUserNotFound = "کاربر حقوقی با مشخصات داده شده دیافت نشد";
+        public const string HoghooghiUserDuplicate = "کاربر حقوقی با مشخصات داده شده قبلا ثبت شده است";
 
         // Hoghooghi User Department
         public const string HoghooghiDepartmentNotFound = "هیأت کارشناس و مدیران متناسب با کاربر حقوقی یافت نشد";
@@ -130,6 +139,7 @@
 
         // Quiz Question
         public const string QuizQuestionNotFound = "سوال متناسب با کاربر یافت نشد";
+        public const string QuizQuestionFilterNotFound = "سوال متناسب با فیلتر داده شده یافت نشد";
 
         // Quiz Score
         public const string QuizScoreNotFound = "نمره متناسب با کاربر یافت نشد";

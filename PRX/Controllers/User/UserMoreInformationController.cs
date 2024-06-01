@@ -88,6 +88,14 @@ namespace PRX.Controllers.User
                     return BadRequest(ModelState);
                 }
 
+                // Check if the UserId already exists
+                var existingUserMoreInformation = _context.UserMoreInformations
+                                                          .FirstOrDefault(umi => umi.UserId == userMoreInformationDto.UserId);
+                if (existingUserMoreInformation != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.UserMoreInfoDuplicate });
+                }
+
                 var userMoreInformation = new UserMoreInformation
                 {
                     UserId = userMoreInformationDto.UserId,

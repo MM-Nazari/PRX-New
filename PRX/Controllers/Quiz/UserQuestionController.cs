@@ -95,6 +95,85 @@ namespace PRX.Controllers.Quiz
 
         }
 
+        // GET: api/UserQuestion/GetByFilter
+        [HttpGet("GetByTypeOrNumber")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetByFilter([FromQuery] QuestionsFilterDto filterDto)
+        {
+            //try
+            //{
+            //    if (!ModelState.IsValid)
+            //    {
+            //        return BadRequest(ModelState);
+            //    }
+
+            //    var query = _context.UserQuestions.AsQueryable();
+
+            //    if (!string.IsNullOrEmpty(filterDto.Type))
+            //    {
+            //        query = query.Where(q => q.Type == filterDto.Type);
+            //    }
+
+            //    if (filterDto.QuestionNumber > 0)
+            //    {
+            //        query = query.Where(q => q.QuestionNumber == filterDto.QuestionNumber);
+            //    }
+
+            //    var userQuestions = query.ToList();
+
+            //    if (userQuestions == null || userQuestions.Count == 0)
+            //    {
+            //        return NotFound(new { message = "User questions not found for the specified filter criteria." });
+            //    }
+
+            //    return Ok(userQuestions);
+            //}
+
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var query = _context.UserQuestions.AsQueryable();
+
+                if (!string.IsNullOrEmpty(filterDto.Type))
+                {
+                    query = query.Where(q => q.Type == filterDto.Type);
+                }
+
+                if (filterDto.QuestionNumber > 0 && string.IsNullOrEmpty(filterDto.Type))
+                {
+                    // If no type is specified and question number is provided, filter by question number only
+                    query = query.Where(q => q.QuestionNumber == filterDto.QuestionNumber);
+                }
+                else if (filterDto.QuestionNumber > 0)
+                {
+                    // If type is specified and question number is provided, filter by both type and question number
+                    query = query.Where(q => q.Type == filterDto.Type && q.QuestionNumber == filterDto.QuestionNumber);
+                }
+
+                var userQuestions = query.ToList();
+
+                if (userQuestions == null || userQuestions.Count == 0)
+                {
+                    return NotFound(new { message = ResponseMessages.QuizQuestionFilterNotFound });
+                }
+
+                return Ok(userQuestions);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+
+
         // PUT: api/UserQuestion/5
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

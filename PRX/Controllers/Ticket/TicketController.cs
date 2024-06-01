@@ -7,6 +7,7 @@ using PRX.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace PRX.Controllers.Ticket
 {
@@ -99,6 +100,21 @@ namespace PRX.Controllers.Ticket
                 }
             }
 
+            [HttpGet("GetByTrackingCode/{trackingCode}")]
+            [ProducesResponseType(StatusCodes.Status200OK)]
+            [ProducesResponseType(StatusCodes.Status404NotFound)]
+            public IActionResult GetTicketByTrackingCode(string trackingCode)
+            {
+                var ticket = _context.Tickets.FirstOrDefault(t => t.TrackingCode == trackingCode);
+
+                if (ticket == null)
+                {
+                    return NotFound(new { message = ResponseMessages.TicketNotFound });
+                }
+
+                return Ok(ticket);
+            }
+
             [HttpPost]
             //[Authorize(Roles = "User")]
             [ProducesResponseType(StatusCodes.Status201Created)]
@@ -117,7 +133,7 @@ namespace PRX.Controllers.Ticket
                     var ticket = new PRX.Models.Ticket.Ticket
                     {
                         UserId = ticketDto.UserId,
-                        TrackingCode = ticketDto.TrackingCode,
+                        TrackingCode = GenerateTrackingCode(),
                         Subject = ticketDto.Subject,
                         Description = ticketDto.Description,
                         Status = ticketDto.Status,
@@ -134,6 +150,44 @@ namespace PRX.Controllers.Ticket
                 catch (Exception ex)
                 {
                     return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+                }
+            }
+
+            public static string GenerateTrackingCode()
+            {
+                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+                var randomString = GenerateRandomString(6);
+
+                return $"{timestamp}-{randomString}";
+            }
+
+            private static string GenerateRandomString(int length)
+            {
+                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                using (var crypto = new RNGCryptoServiceProvider())
+                {
+                    var data = new byte[length];
+                    var buffer = new byte[128]; // larger buffer size to reduce entropy exhaustion
+                    int maxRandom = byte.MaxValue - ((byte.MaxValue + 1) % chars.Length);
+
+                    int count = 0;
+                    while (count < length)
+                    {
+                        crypto.GetBytes(buffer);
+                        for (int i = 0; i < buffer.Length && count < length; i++)
+                        {
+                            if (buffer[i] > maxRandom) continue;
+                            data[count++] = (byte)(buffer[i] % chars.Length);
+                        }
+                    }
+
+                    var result = new char[length];
+                    for (int i = 0; i < data.Length; i++)
+                    {
+                        result[i] = chars[data[i]];
+                    }
+
+                    return new string(result);
                 }
             }
 
@@ -377,8 +431,7 @@ namespace PRX.Controllers.Ticket
                     return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
                 }
             }
-    }
 
+        }
 
-    
 }

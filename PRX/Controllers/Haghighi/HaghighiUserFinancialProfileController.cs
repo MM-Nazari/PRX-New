@@ -87,6 +87,15 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(ModelState);
                 }
 
+                // Check for unique UserId
+                var existingFinancialProfile = _context.HaghighiUserFinancialProfiles
+                                                       .FirstOrDefault(fp => fp.UserId == financialProfileDto.UserId);
+
+                if (existingFinancialProfile != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.HaghighiUserFinancialProfileDuplicate });
+                }
+
                 var financialProfile = new HaghighiUserFinancialProfile
                 {
                     UserId = financialProfileDto.UserId,

@@ -86,6 +86,15 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(ModelState);
                 }
 
+                // Check for unique UserId
+                var existingUser = _context.HoghooghiUsers
+                                           .FirstOrDefault(u => u.UserId == userDto.UserId);
+
+                if (existingUser != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.HoghooghiUserDuplicate });
+                }
+
                 var user = new HoghooghiUser
                 {
                     UserId = userDto.UserId,

@@ -12,5 +12,10 @@ namespace PRX.Models.Quiz
 
         public List<UserAnswerOption> AnswerOptions { get; set; }
         //public HaghighiUserAnswer UserAnswers { get; set; }
+
+        
+        // New fields
+        public string Type { get; set; }
+        public int QuestionNumber { get; set; }
     }
 }

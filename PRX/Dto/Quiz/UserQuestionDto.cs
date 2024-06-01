@@ -5,5 +5,8 @@
         public string Text { get; set; }
 
         public bool IsDeleted { get; set; }
+
+        public string Type { get; set; }
+        public int QuestionNumber { get; set; }
     }
 }

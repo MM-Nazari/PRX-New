@@ -86,6 +86,15 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(ModelState);
                 }
 
+                // Check for unique UserId
+                var existingBankInfo = _context.HaghighiUserBankInfos
+                                               .FirstOrDefault(bi => bi.UserId == bankInfoDto.UserId);
+
+                if (existingBankInfo != null)
+                {
+                    return BadRequest(new { message = "UserId already exists." });
+                }
+
                 var bankInfo = new HaghighiUserBankInfo
                 {
                     UserId = bankInfoDto.UserId,

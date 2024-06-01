@@ -79,6 +79,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpPost]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateUserFuturePlans([FromBody] UserFuturePlansDto userFuturePlansDto)
@@ -88,6 +89,14 @@ namespace PRX.Controllers.User
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                // Check if the UserId already exists
+                var existingUserFuturePlan = _context.UserFuturePlans
+                                                     .FirstOrDefault(ufp => ufp.UserId == userFuturePlansDto.UserId);
+                if (existingUserFuturePlan != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.UserFuturePlanDuplicate });
                 }
 
                 var userFuturePlans = new UserFuturePlans

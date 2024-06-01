@@ -184,6 +184,15 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.HaghighiUserProfileDuplicateBirthCertificate });
                 }
 
+                // Check for unique UserId
+                var existingProfileByUserId = _context.HaghighiUserProfiles
+                    .FirstOrDefault(p => p.UserId == profileDto.UserId);
+
+                if (existingProfileByUserId != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.HaghighiUserProfileDuplicate });
+                }
+
                 var profile = new HaghighiUserProfile
                 {
                     UserId = profileDto.UserId,
