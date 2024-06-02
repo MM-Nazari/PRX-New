@@ -144,3 +144,9 @@ C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Microsoft.Extensions.Opt
 C:\Users\M.Nazari\source\repos\PRX\PRX\obj\Debug\net8.0\PRX.csproj.CopyComplete
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Kavenegar.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\AsyncKeyedLock.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\DotNet.RateLimiter.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Pipelines.Sockets.Unofficial.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\RedLockNet.Abstractions.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\RedLockNet.SERedis.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\StackExchange.Redis.dll

@@ -159,6 +159,18 @@
         public const string TokenIsInvalid = "فرمت توکن اشتباه است";
 
 
+        // OTP
+
+        public const string OTPCouldntBeSent = "بدلیل ناتوانی برقراری ارتباط با سرور امکان ارسال پیامک وجود دارد ";
+        public const string OTPVerificationFailed = "کد وارد شده صحیح نمیباشد ";
+        public const string OTPVerificationSucceded = "احراز هویت با سرویس پیامک کوتاه با موفقیت انجام شد ";
+
+
+        // logout
+
+        public const string LogoutSuccessfully = "عملیات خروج کاربر از سامانه با موفقیت انجام شد";
+        public const string LogoutNotLoggedin = "کاربر قبلا به سامانه وارد نشده است";
+        public const string LogoutInvalidToken = "توکن نامعتبر است";
 
         // 500
         public const string InternalServerError = "ارور داخلی سرور";

@@ -12,9 +12,12 @@ using System.Text;
 using System.Text.Json.Serialization;
 using PRX.Utils;
 using Microsoft.Extensions.Caching.Memory;
+using DotNet.RateLimiter;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddRateLimitService(builder.Configuration);
 
 // Add services to the container.
 

@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using Kavenegar;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
+using DotNet.RateLimiter.ActionFilters;
 
 namespace PRX.Controllers.User
 {
@@ -42,6 +43,7 @@ namespace PRX.Controllers.User
 
         [HttpGet("PhoneExistance/{phoneNumber}")]
         [AllowAnonymous]
+        [RateLimit(PeriodInSec = 60, Limit = 3)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CheckPhoneNumberExistsAsync(string phoneNumber)
@@ -61,7 +63,7 @@ namespace PRX.Controllers.User
                     var isOtpSent = await SendOtp(phoneNumber);
                     if (!isOtpSent)
                     {
-                        return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Failed to send OTP." });
+                        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.OTPCouldntBeSent });
                     }
                     return Ok(new { message = ResponseMessages.PhoneExistanseFalse });
                 }
@@ -208,11 +210,11 @@ namespace PRX.Controllers.User
                 var isOtpVerified = await VerifyOtp(otpVerificationDto.PhoneNumber, otpVerificationDto.Otp);
                 if (!isOtpVerified)
                 {
-                    return BadRequest(new { message = "OTP verification failed." });
+                    return BadRequest(new { message = ResponseMessages.OTPVerificationFailed });
                 }
 
 
-                return Ok(new { message = "OTP verified successfully." });
+                return Ok(new { message = ResponseMessages.OTPVerificationSucceded });
             }
             catch (Exception ex)
             {
@@ -415,7 +417,7 @@ namespace PRX.Controllers.User
                 var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
                 if (token == null)
                 {
-                    return BadRequest(new { message = "Token is required" });
+                    return BadRequest(new { message = ResponseMessages.LogoutNotLoggedin });
                 }
 
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -423,7 +425,7 @@ namespace PRX.Controllers.User
 
                 if (jwtToken == null)
                 {
-                    return BadRequest(new { message = "Invalid token" });
+                    return BadRequest(new { message = ResponseMessages.LogoutInvalidToken });
                 }
 
                 // Calculate token expiry
@@ -435,11 +437,11 @@ namespace PRX.Controllers.User
                     AbsoluteExpiration = expiry
                 });
 
-                return Ok(new { message = "Logged out successfully" });
+                return Ok(new { message = ResponseMessages.LogoutSuccessfully });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Internal Server Error", detail = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
