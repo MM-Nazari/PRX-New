@@ -13,11 +13,14 @@ using System.Text.Json.Serialization;
 using PRX.Utils;
 using Microsoft.Extensions.Caching.Memory;
 using DotNet.RateLimiter;
+using PRX;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRateLimitService(builder.Configuration);
+
 
 // Add services to the container.
 
@@ -45,6 +48,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
             options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX_BACKUP;Integrated Security=True;TrustServerCertificate=True;"));
 
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,18 +63,13 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = false,
-        ValidateIssuerSigningKey = true
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero // Reduce the clock skew
     };
 
     o.Events = new JwtBearerEvents
     {
-        //OnMessageReceived = context =>
-        //{
-        //    var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
-        //    context.Token = accessToken;
-        //    return Task.CompletedTask;
-        //},
         OnMessageReceived = context =>
         {
             var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
@@ -90,32 +89,111 @@ builder.Services.AddAuthentication(options =>
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            var result = JsonConvert.SerializeObject(new { message = "Authentication failed." });
+            var result = JsonConvert.SerializeObject(new { message = "Authentication failed.", detail = context.Exception?.Message });
             return context.Response.WriteAsync(result);
         },
         OnForbidden = context =>
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            var result = JsonConvert.SerializeObject(new { message = ResponseMessages.Forbidden });
+            var result = JsonConvert.SerializeObject(new { message = "Forbidden." });
             return context.Response.WriteAsync(result);
         }
     };
-
-    //o.Events = new JwtBearerEvents
-    //{
-    //    OnMessageReceived = context =>
-    //    {
-    //        // Get token from the 'Authorization' header, removing the 'Bearer ' prefix
-    //        var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
-
-    //        // Set the token retrieved from the header
-    //        context.Token = accessToken;
-
-    //        return Task.CompletedTask;
-    //    }
-    //};
 });
+
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+//}).AddJwtBearer(o =>
+//{
+//    o.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+//        ValidAudience = builder.Configuration["Jwt:Audience"],
+//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
+//        ValidateIssuer = true,
+//        ValidateAudience = true,
+//        ValidateLifetime = true,
+//        ValidateIssuerSigningKey = true
+//    };
+
+//    //o.Events = new JwtBearerEvents
+//    //{
+//    //    OnMessageReceived = context =>
+//    //    {
+//    //        var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+//    //        context.Token = accessToken;
+
+//    //        if (accessToken != null)
+//    //        {
+//    //            var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+//    //            if (memoryCache.TryGetValue(accessToken, out _))
+//    //            {
+//    //                context.Fail("This token is blacklisted.");
+//    //            }
+//    //        }
+//    //        return Task.CompletedTask;
+//    //    },
+//    //    OnAuthenticationFailed = context =>
+//    //    {
+//    //        context.Response.ContentType = "application/json";
+//    //        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+//    //        var result = JsonConvert.SerializeObject(new { message = "Authentication failed." });
+//    //        return context.Response.WriteAsync(result);
+//    //    },
+//    //    OnForbidden = context =>
+//    //    {
+//    //        context.Response.ContentType = "application/json";
+//    //        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+//    //        var result = JsonConvert.SerializeObject(new { message = "Forbidden." });
+//    //        return context.Response.WriteAsync(result);
+//    //    }
+//    //};
+
+
+//    o.Events = new JwtBearerEvents
+//    {
+//        //OnMessageReceived = context =>
+//        //{
+//        //    var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+//        //    context.Token = accessToken;
+//        //    return Task.CompletedTask;
+//        //},
+//        OnMessageReceived = context =>
+//        {
+//            var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+//            context.Token = accessToken;
+
+//            if (accessToken != null)
+//            {
+//                var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+//                if (memoryCache.TryGetValue(accessToken, out _))
+//                {
+//                    context.Fail("This token is blacklisted.");
+//                }
+//            }
+//            return Task.CompletedTask;
+//        },
+//        OnAuthenticationFailed = context =>
+//        {
+//            context.Response.ContentType = "application/json";
+//            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+//            var result = JsonConvert.SerializeObject(new { message = "Authentication failed." });
+//            return context.Response.WriteAsync(result);
+//        },
+//        OnForbidden = context =>
+//        {
+//            context.Response.ContentType = "application/json";
+//            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+//            var result = JsonConvert.SerializeObject(new { message = ResponseMessages.Forbidden });
+//            return context.Response.WriteAsync(result);
+//        }
+//    };
+
+//});
 
 
 builder.Services.AddAuthorization(options =>
@@ -180,6 +258,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseExceptionHandlingMiddleware();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

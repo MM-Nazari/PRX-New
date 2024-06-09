@@ -162,7 +162,7 @@ namespace PRX.Controllers.Haghighi
 
         // POST: api/HaghighiUserProfile
         [HttpPost]
-        [AllowAnonymous]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CreateHaghighiUserProfile([FromBody] HaghighiUserProfileDto profileDto)
