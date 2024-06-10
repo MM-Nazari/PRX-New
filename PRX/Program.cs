@@ -14,6 +14,7 @@ using PRX.Utils;
 using Microsoft.Extensions.Caching.Memory;
 using DotNet.RateLimiter;
 using PRX;
+using Microsoft.AspNetCore.Authorization;
 
 
 
@@ -72,15 +73,22 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
-            context.Token = accessToken;
+            var endpoint = context.HttpContext.GetEndpoint();
+            var authorizeAttribute = endpoint?.Metadata?.GetMetadata<AuthorizeAttribute>();
 
-            if (accessToken != null)
+            // Only check for tokens if the endpoint requires authorization
+            if (authorizeAttribute != null)
             {
-                var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
-                if (memoryCache.TryGetValue(accessToken, out _))
+                var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+                context.Token = accessToken;
+
+                if (accessToken != null)
                 {
-                    context.Fail("This token is blacklisted.");
+                    var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+                    if (memoryCache.TryGetValue(accessToken, out _))
+                    {
+                        context.Fail("This token is blacklisted.");
+                    }
                 }
             }
             return Task.CompletedTask;
@@ -101,6 +109,59 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+//}).AddJwtBearer(o =>
+//{
+//    o.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+//        ValidAudience = builder.Configuration["Jwt:Audience"],
+//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
+//        ValidateIssuer = true,
+//        ValidateAudience = true,
+//        ValidateLifetime = true,
+//        ValidateIssuerSigningKey = true,
+//        ClockSkew = TimeSpan.Zero // Reduce the clock skew
+//    };
+
+//    o.Events = new JwtBearerEvents
+//    {
+//        OnMessageReceived = context =>
+//        {
+//            var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+//            context.Token = accessToken;
+
+//            if (accessToken != null)
+//            {
+//                var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+//                if (memoryCache.TryGetValue(accessToken, out _))
+//                {
+//                    context.Fail("This token is blacklisted.");
+//                }
+//            }
+//            return Task.CompletedTask;
+//        },
+//        OnAuthenticationFailed = context =>
+//        {
+//            context.Response.ContentType = "application/json";
+//            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+//            var result = JsonConvert.SerializeObject(new { message = "Authentication failed.", detail = context.Exception?.Message });
+//            return context.Response.WriteAsync(result);
+//        },
+//        OnForbidden = context =>
+//        {
+//            context.Response.ContentType = "application/json";
+//            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+//            var result = JsonConvert.SerializeObject(new { message = "Forbidden." });
+//            return context.Response.WriteAsync(result);
+//        }
+//    };
+//});
 
 //builder.Services.AddAuthentication(options =>
 //{

@@ -60,11 +60,11 @@ namespace PRX.Controllers.User
                 else
                 {
                     // Call the SMS sending API to send the OTP
-                    var isOtpSent = await SendOtp(phoneNumber);
-                    if (!isOtpSent)
-                    {
-                        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.OTPCouldntBeSent });
-                    }
+                    //var isOtpSent = await SendOtp(phoneNumber);
+                    //if (!isOtpSent)
+                    //{
+                    //    return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.OTPCouldntBeSent });
+                    //}
                     return Ok(new { message = ResponseMessages.PhoneExistanseFalse });
                 }
 
