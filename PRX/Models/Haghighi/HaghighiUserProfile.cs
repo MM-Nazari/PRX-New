@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PRX.Models.User;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRX.Models.Haghighi
 {
@@ -7,7 +9,11 @@ namespace PRX.Models.Haghighi
     {
 
         public int Id { get; set; }
-        public int UserId { get; set; }
+
+        [Required]
+        [ForeignKey("Request")]
+        public int RequestId { get; set; }
+        //public int UserId { get; set; }
         [Required]
         public string FirstName { get; set; }
         [Required]
@@ -48,6 +54,6 @@ namespace PRX.Models.Haghighi
 
 
         // Navigation property for one-to-one relationship with User
-        public PRX.Models.User.User User { get; set; }
+        public Request Request { get; set; }
     }
 }

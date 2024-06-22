@@ -22,6 +22,102 @@ namespace PRX.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("PRX.Models.Admin.Admin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Admins");
+                });
+
+            modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserBankInfo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BranchCity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BranchCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BranchName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("CapitalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CapitalType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IBAN")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsComplete")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SejamCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TradeCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId")
+                        .IsUnique();
+
+                    b.ToTable("HaghighiUserBankInfos");
+                });
+
             modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserEducationStatus", b =>
                 {
                     b.Property<int>("Id")
@@ -51,12 +147,12 @@ namespace PRX.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("RequestId")
                         .IsUnique();
 
                     b.ToTable("HaghighiUserEducationStatuses");
@@ -91,11 +187,11 @@ namespace PRX.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.Property<string>("WorkAddress")
                         .IsRequired()
@@ -107,7 +203,7 @@ namespace PRX.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("HaghighiUserEmploymentHistories");
                 });
@@ -141,15 +237,15 @@ namespace PRX.Migrations
                     b.Property<decimal>("OtherIncomes")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("SupportFromOthers")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("RequestId")
                         .IsUnique();
 
                     b.ToTable("HaghighiUserFinancialProfiles");
@@ -163,8 +259,9 @@ namespace PRX.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("BestTimeToCall")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("BestTimeToCall")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BirthCertificateNumber")
                         .IsRequired()
@@ -225,16 +322,16 @@ namespace PRX.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("int");
 
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ResidentialAddress")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("RequestId")
                         .IsUnique();
 
                     b.HasIndex("NationalNumber", "Email", "BirthCertificateNumber")
@@ -288,12 +385,12 @@ namespace PRX.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("HaghighiUserRelationships");
                 });
@@ -379,12 +476,12 @@ namespace PRX.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("RequestId")
                         .IsUnique();
 
                     b.ToTable("HoghooghiUsers");
@@ -432,12 +529,12 @@ namespace PRX.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("HoghooghiUserBoardOfDirectors");
                 });
@@ -467,12 +564,12 @@ namespace PRX.Migrations
                     b.Property<decimal>("PercentageOfTotal")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("HoghooghiUserCompaniesWithMajorInvestors");
                 });
@@ -519,12 +616,12 @@ namespace PRX.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("HoghooghiUserInvestmentDepartmentStaff");
                 });
@@ -573,18 +670,18 @@ namespace PRX.Migrations
                     b.Property<decimal>("RegisteredCapital")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("TotalInvestments")
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<decimal>("TotalLiabilities")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("HoghooghiUsersAssets");
                 });
@@ -606,7 +703,7 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -614,7 +711,7 @@ namespace PRX.Migrations
                     b.HasIndex("AnswerOptionId")
                         .IsUnique();
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("UserAnswers");
                 });
@@ -631,6 +728,9 @@ namespace PRX.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Score")
                         .HasColumnType("int");
 
                     b.Property<string>("Text")
@@ -655,7 +755,14 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<int>("QuestionNumber")
+                        .HasColumnType("int");
+
                     b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -675,18 +782,133 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Score")
+                    b.Property<int>("QuizScore")
                         .HasColumnType("int");
+
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId")
+                        .IsUnique();
+
+                    b.ToTable("UserTestScores");
+                });
+
+            modelBuilder.Entity("PRX.Models.Ticket.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AdminId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SenderType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("PRX.Models.Ticket.Ticket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TrackingCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
-                    b.ToTable("UserTestScores");
+                    b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.Request", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsComplete")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RequestType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Requests");
                 });
 
             modelBuilder.Entity("PRX.Models.User.User", b =>
@@ -697,8 +919,20 @@ namespace PRX.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BirthCertificateNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -708,13 +942,17 @@ namespace PRX.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("ReferenceCode")
+                    b.Property<string>("ReferenceCode")
                         .IsRequired()
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PhoneNumber", "ReferenceCode")
+                    b.HasIndex("PhoneNumber")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -743,14 +981,14 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AssetTypeId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("UserAssets");
                 });
@@ -799,12 +1037,12 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("UserDebts");
                 });
@@ -833,14 +1071,43 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("UserDeposits");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.UserDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId");
+
+                    b.ToTable("UserDocuments");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserFinancialChanges", b =>
@@ -861,12 +1128,12 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("RequestId")
                         .IsUnique();
 
                     b.ToTable("UserFinancialChanges");
@@ -890,12 +1157,12 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("RequestId")
                         .IsUnique();
 
                     b.ToTable("UserFuturePlans");
@@ -918,12 +1185,12 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("RequestId")
                         .IsUnique();
 
                     b.ToTable("UserInvestments");
@@ -964,6 +1231,27 @@ namespace PRX.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId");
+
+                    b.ToTable("UserInvestmentExperiences");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.UserLoginLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("LoginTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -971,7 +1259,7 @@ namespace PRX.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserInvestmentExperiences");
+                    b.ToTable("UserLoginLog");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserMoreInformation", b =>
@@ -992,6 +1280,31 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId")
+                        .IsUnique();
+
+                    b.ToTable("UserMoreInformations");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.UserReference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ReferencedUser")
+                        .HasColumnType("int");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -1000,7 +1313,7 @@ namespace PRX.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("UserMoreInformations");
+                    b.ToTable("UserReferences");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserState", b =>
@@ -1068,7 +1381,7 @@ namespace PRX.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RequestId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("WithdrawalAmount")
@@ -1083,119 +1396,130 @@ namespace PRX.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RequestId");
 
                     b.ToTable("UserWithdrawals");
                 });
 
-            modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserEducationStatus", b =>
+            modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserBankInfo", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
-                        .WithOne("HaghighiUserEducationStatus")
-                        .HasForeignKey("PRX.Models.Haghighi.HaghighiUserEducationStatus", "UserId")
+                    b.HasOne("PRX.Models.User.Request", "Request")
+                        .WithOne("HaghighiUserBankInfos")
+                        .HasForeignKey("PRX.Models.Haghighi.HaghighiUserBankInfo", "RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserEducationStatus", b =>
+                {
+                    b.HasOne("PRX.Models.User.Request", "Request")
+                        .WithOne("HaghighiUserEducationStatus")
+                        .HasForeignKey("PRX.Models.Haghighi.HaghighiUserEducationStatus", "RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserEmploymentHistory", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("EmploymentHistories")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserFinancialProfile", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithOne("HaghighiUserFinancialProfiles")
-                        .HasForeignKey("PRX.Models.Haghighi.HaghighiUserFinancialProfile", "UserId")
+                        .HasForeignKey("PRX.Models.Haghighi.HaghighiUserFinancialProfile", "RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserProfile", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithOne("HaghighiUserProfile")
-                        .HasForeignKey("PRX.Models.Haghighi.HaghighiUserProfile", "UserId")
+                        .HasForeignKey("PRX.Models.Haghighi.HaghighiUserProfile", "RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserRelationships", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("HaghighiUserRelationships")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Hoghooghi.HoghooghiUser", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithOne("HoghooghiUser")
-                        .HasForeignKey("PRX.Models.Hoghooghi.HoghooghiUser", "UserId")
+                        .HasForeignKey("PRX.Models.Hoghooghi.HoghooghiUser", "RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Hoghooghi.HoghooghiUserBoardOfDirectors", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("HoghooghiUserBoardOfDirectors")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Hoghooghi.HoghooghiUserCompaniesWithMajorInvestors", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("HoghooghiUserCompaniesWithMajorInvestors")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Hoghooghi.HoghooghiUserInvestmentDepartmentStaff", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("HoghooghiUserInvestmentDepartmentStaff")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Hoghooghis.Hoghooghi.HoghooghiUserAssetIncomeStatusTwoYearsAgo", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("HoghooghiUserAssetIncomeStatusTwoYearsAgos")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.Quiz.UserAnswer", b =>
@@ -1206,13 +1530,13 @@ namespace PRX.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("UserAnswer")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
 
                     b.Navigation("answerOption");
                 });
@@ -1230,9 +1554,58 @@ namespace PRX.Migrations
 
             modelBuilder.Entity("PRX.Models.Quiz.UserTestScore", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithOne("UserTestScore")
-                        .HasForeignKey("PRX.Models.Quiz.UserTestScore", "UserId")
+                        .HasForeignKey("PRX.Models.Quiz.UserTestScore", "RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("PRX.Models.Ticket.Message", b =>
+                {
+                    b.HasOne("PRX.Models.Admin.Admin", "AdminSender")
+                        .WithMany("Messages")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PRX.Models.User.User", "UserSender")
+                        .WithMany("Messages")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PRX.Models.Ticket.Ticket", "Ticket")
+                        .WithMany("Messages")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminSender");
+
+                    b.Navigation("Ticket");
+
+                    b.Navigation("UserSender");
+                });
+
+            modelBuilder.Entity("PRX.Models.Ticket.Ticket", b =>
+                {
+                    b.HasOne("PRX.Models.User.User", "User")
+                        .WithMany("Tickets")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.Request", b =>
+                {
+                    b.HasOne("PRX.Models.User.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1247,76 +1620,98 @@ namespace PRX.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("UserAssets")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
 
                     b.Navigation("UserAssetType");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserDebt", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("UserDebts")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserDeposit", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("UserDeposits")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.UserDocument", b =>
+                {
+                    b.HasOne("PRX.Models.User.Request", "Request")
+                        .WithMany("UserDocs")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserFinancialChanges", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithOne("UserFinancialChanges")
-                        .HasForeignKey("PRX.Models.User.UserFinancialChanges", "UserId")
+                        .HasForeignKey("PRX.Models.User.UserFinancialChanges", "RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserFuturePlans", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithOne("UserFuturePlans")
-                        .HasForeignKey("PRX.Models.User.UserFuturePlans", "UserId")
+                        .HasForeignKey("PRX.Models.User.UserFuturePlans", "RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserInvestment", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithOne("UserInvestment")
-                        .HasForeignKey("PRX.Models.User.UserInvestment", "UserId")
+                        .HasForeignKey("PRX.Models.User.UserInvestment", "RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserInvestmentExperience", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("UserInvestmentExperiences")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.UserLoginLog", b =>
+                {
+                    b.HasOne("PRX.Models.User.User", "User")
+                        .WithMany("UserLoginLogs")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1326,9 +1721,20 @@ namespace PRX.Migrations
 
             modelBuilder.Entity("PRX.Models.User.UserMoreInformation", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithOne("UserMoreInformations")
-                        .HasForeignKey("PRX.Models.User.UserMoreInformation", "UserId")
+                        .HasForeignKey("PRX.Models.User.UserMoreInformation", "RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.UserReference", b =>
+                {
+                    b.HasOne("PRX.Models.User.User", "User")
+                        .WithOne("UserReference")
+                        .HasForeignKey("PRX.Models.User.UserReference", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1359,13 +1765,18 @@ namespace PRX.Migrations
 
             modelBuilder.Entity("PRX.Models.User.UserWithdrawal", b =>
                 {
-                    b.HasOne("PRX.Models.User.User", "User")
+                    b.HasOne("PRX.Models.User.Request", "Request")
                         .WithMany("UserWithdrawals")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("PRX.Models.Admin.Admin", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("PRX.Models.Quiz.UserAnswerOption", b =>
@@ -1379,9 +1790,17 @@ namespace PRX.Migrations
                     b.Navigation("AnswerOptions");
                 });
 
-            modelBuilder.Entity("PRX.Models.User.User", b =>
+            modelBuilder.Entity("PRX.Models.Ticket.Ticket", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.Request", b =>
                 {
                     b.Navigation("EmploymentHistories");
+
+                    b.Navigation("HaghighiUserBankInfos")
+                        .IsRequired();
 
                     b.Navigation("HaghighiUserEducationStatus")
                         .IsRequired();
@@ -1413,6 +1832,8 @@ namespace PRX.Migrations
 
                     b.Navigation("UserDeposits");
 
+                    b.Navigation("UserDocs");
+
                     b.Navigation("UserFinancialChanges")
                         .IsRequired();
 
@@ -1427,15 +1848,27 @@ namespace PRX.Migrations
                     b.Navigation("UserMoreInformations")
                         .IsRequired();
 
-                    b.Navigation("UserState")
-                        .IsRequired();
-
                     b.Navigation("UserTestScore")
                         .IsRequired();
 
-                    b.Navigation("UserTypes");
-
                     b.Navigation("UserWithdrawals");
+                });
+
+            modelBuilder.Entity("PRX.Models.User.User", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("Tickets");
+
+                    b.Navigation("UserLoginLogs");
+
+                    b.Navigation("UserReference")
+                        .IsRequired();
+
+                    b.Navigation("UserState")
+                        .IsRequired();
+
+                    b.Navigation("UserTypes");
                 });
 
             modelBuilder.Entity("PRX.Models.User.UserAssetType", b =>

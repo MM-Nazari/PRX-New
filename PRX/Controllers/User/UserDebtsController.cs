@@ -40,12 +40,21 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                
-                var userDebt = _context.UserDebts.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound});
@@ -76,7 +85,7 @@ namespace PRX.Controllers.User
 
                 var userDebt = new UserDebt
                 {
-                    UserId = userDebtDto.UserId,
+                    RequestId = userDebtDto.RequestId,
                     DebtTitle = userDebtDto.DebtTitle,
                     DebtAmount = userDebtDto.DebtAmount,
                     DebtDueDate = userDebtDto.DebtDueDate,
@@ -110,17 +119,27 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userDebt = _context.UserDebts.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
                 }
 
-                userDebt.UserId = userDebtDto.UserId;
+                userDebt.RequestId = userDebtDto.RequestId;
                 userDebt.DebtTitle = userDebtDto.DebtTitle;
                 userDebt.DebtAmount = userDebtDto.DebtAmount;
                 userDebt.DebtDueDate = userDebtDto.DebtDueDate;
@@ -151,11 +170,20 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userDebt = _context.UserDebts.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -187,7 +215,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserDebts.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserDebts.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -221,13 +249,21 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-
-                var record = _context.UserDebts.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserDebts.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -254,7 +290,7 @@ namespace PRX.Controllers.User
                 var userDebts = _context.UserDebts.ToList();
                 var userDebtDtos = userDebts.Select(debt => new UserDebtDto
                 {
-                    UserId = debt.UserId,
+                    RequestId = debt.RequestId,
                     DebtTitle = debt.DebtTitle,
                     DebtAmount = debt.DebtAmount,
                     DebtDueDate = debt.DebtDueDate,
@@ -284,7 +320,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.UserId == id && !debt.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == id && !debt.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -292,7 +328,7 @@ namespace PRX.Controllers.User
 
                 var userDebtDto = new UserDebtDto
                 {
-                    UserId = userDebt.UserId,
+                    RequestId = userDebt.RequestId,
                     DebtTitle = userDebt.DebtTitle,
                     DebtAmount = userDebt.DebtAmount,
                     DebtDueDate = userDebt.DebtDueDate,
@@ -325,7 +361,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.UserId == id && !debt.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == id && !debt.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -360,7 +396,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.UserId == id && !debt.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == id && !debt.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });

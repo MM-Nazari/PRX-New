@@ -31,7 +31,7 @@ namespace PRX.Controllers.User
                 var userWithdrawalDtos = userWithdrawals.Select(userWithdrawal => new UserWithdrawalDto
                 {
                     Id = userWithdrawal.Id,
-                    UserId = userWithdrawal.UserId,
+                    RequestId = userWithdrawal.RequestId,
                     WithdrawalAmount = userWithdrawal.WithdrawalAmount,
                     WithdrawalDate = userWithdrawal.WithdrawalDate,
                     WithdrawalReason = userWithdrawal.WithdrawalReason
@@ -62,12 +62,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userWithdrawal == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
@@ -75,7 +84,7 @@ namespace PRX.Controllers.User
                 var userWithdrawalDto = new UserWithdrawalDto
                 {
                     Id = userWithdrawal.Id,
-                    UserId = userWithdrawal.UserId,
+                    RequestId = userWithdrawal.RequestId,
                     WithdrawalAmount = userWithdrawal.WithdrawalAmount,
                     WithdrawalDate = userWithdrawal.WithdrawalDate,
                     WithdrawalReason = userWithdrawal.WithdrawalReason
@@ -106,7 +115,7 @@ namespace PRX.Controllers.User
 
                 var userWithdrawal = new UserWithdrawal
                 {
-                    UserId = userWithdrawalDto.UserId,
+                    RequestId = userWithdrawalDto.RequestId,
                     WithdrawalAmount = userWithdrawalDto.WithdrawalAmount,
                     WithdrawalDate = userWithdrawalDto.WithdrawalDate,
                     WithdrawalReason = userWithdrawalDto.WithdrawalReason
@@ -143,12 +152,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userWithdrawal == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
@@ -189,12 +207,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userWithdrawal == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
@@ -249,7 +276,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userWithdrawl = _context.UserWithdrawals.FirstOrDefault(u => u.UserId == id);
+                var userWithdrawl = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id);
                 if (userWithdrawl == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
@@ -285,13 +312,22 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.UserWithdrawals.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserWithdrawals.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
@@ -318,7 +354,7 @@ namespace PRX.Controllers.User
                 var withdrawalDtos = withdrawals.Select(withdrawal => new UserWithdrawalDto
                 {
                     Id = withdrawal.Id,
-                    UserId = withdrawal.UserId,
+                    RequestId = withdrawal.RequestId,
                     WithdrawalAmount = withdrawal.WithdrawalAmount,
                     WithdrawalDate = withdrawal.WithdrawalDate,
                     WithdrawalReason = withdrawal.WithdrawalReason,
@@ -358,7 +394,7 @@ namespace PRX.Controllers.User
                 var withdrawalDto = new UserWithdrawalDto
                 {
                     Id = withdrawal.Id,
-                    UserId = withdrawal.UserId,
+                    RequestId = withdrawal.RequestId,
                     WithdrawalAmount = withdrawal.WithdrawalAmount,
                     WithdrawalDate = withdrawal.WithdrawalDate,
                     WithdrawalReason = withdrawal.WithdrawalReason,
@@ -395,7 +431,7 @@ namespace PRX.Controllers.User
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
                 }
 
-                withdrawal.UserId = withdrawalDto.UserId;
+                withdrawal.RequestId = withdrawalDto.RequestId;
                 withdrawal.WithdrawalAmount = withdrawalDto.WithdrawalAmount;
                 withdrawal.WithdrawalDate = withdrawalDto.WithdrawalDate;
                 withdrawal.WithdrawalReason = withdrawalDto.WithdrawalReason;

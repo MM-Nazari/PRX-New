@@ -4,10 +4,11 @@ namespace PRX.Dto.User
 {
     public class UserInvestmentDto
     {
-        [Required(ErrorMessage = "User ID is required")]
-        public int UserId { get; set; }
 
-        [Required(ErrorMessage = "Amount is required")]
+        //public int UserId { get; set; }
+        public int RequestId { get; set; }
+
+
         [Range(0, double.MaxValue, ErrorMessage = "Amount must be greater than or equal to 0")]
         public decimal Amount { get; set; }
 

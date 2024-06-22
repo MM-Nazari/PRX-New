@@ -1,5 +1,6 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using PRX.Models.User;
 
 namespace PRX.Models.Quiz
@@ -8,7 +9,10 @@ namespace PRX.Models.Quiz
     {
         public int Id { get; set; }
 
-        public int UserId { get; set; }
+        [Required]
+        [ForeignKey("Request")]
+        public int RequestId { get; set; }
+        //public int UserId { get; set; }
         //public int QusetionId { get; set; }
 
         public int AnswerOptionId { get; set; }
@@ -16,7 +20,8 @@ namespace PRX.Models.Quiz
 
         public bool IsDeleted { get; set; } = false;
 
-        public User.User User { get; set; }
+        //public User.User User { get; set; }
+        public Request Request { get; set; }
         public UserAnswerOption answerOption { get; set; }
     }
 }

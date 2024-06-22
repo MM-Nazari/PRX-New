@@ -4,10 +4,11 @@ namespace PRX.Dto.User
 {
     public class UserFuturePlansDto
     {
-        [Required(ErrorMessage = "User ID is required")]
-        public int UserId { get; set; }
 
-        [Required(ErrorMessage = "Description is required")]
+        //public int UserId { get; set; }
+        public int RequestId { get; set; }
+
+
         public string Description { get; set; }
         public bool IsComplete { get; set; }
         public bool IsDeleted { get; set; }

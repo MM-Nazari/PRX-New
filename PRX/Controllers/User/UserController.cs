@@ -139,7 +139,10 @@ namespace PRX.Controllers.User
                 var user = new PRX.Models.User.User
                 {
                     Password = hashedPassword,
-                    PhoneNumber = userDto.PhoneNumber
+                    PhoneNumber = userDto.PhoneNumber,
+                    FirstName = userDto.FirstName,
+                    LastName = userDto.LastName,    
+                    BirthCertificateNumber = userDto.BirthCertificateNumber
                 };
 
                 // Add user to database
@@ -365,7 +368,7 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Login([FromBody] UserDto userDto)
+        public IActionResult Login([FromBody] UserLoginDto userLoginDto)
         {
             //var sender = "1000689696";
             //var receptor = "09393691800";
@@ -376,7 +379,7 @@ namespace PRX.Controllers.User
             //Kavenegar.KavenegarApi api = new Kavenegar.KavenegarApi("306A654573316748434365654D6143304969562F652F706679696755434652574735385149706C685654413D");
             //var result = api.Send("1000689696", "09393691800", "خدمات پیام کوتاه کاوه نگار");
 
-            var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
+            var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == userLoginDto.PhoneNumber);
             if (user == null)
             {
                 //Response.Headers.Add("message", "User does not exist");
@@ -384,7 +387,7 @@ namespace PRX.Controllers.User
             }
 
 
-            if (!_utils.VerifyPassword(userDto.Password, user.Password))
+            if (!_utils.VerifyPassword(userLoginDto.Password, user.Password))
             {
                 return BadRequest(new {message = ResponseMessages.PasswordIncorrect});
             }
@@ -498,7 +501,10 @@ namespace PRX.Controllers.User
                 {
                     Id = user.Id,
                     PhoneNumber = user.PhoneNumber,
-                    ReferenceCode = user.ReferenceCode
+                    ReferenceCode = user.ReferenceCode,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    BirthCertificateNumber = user.BirthCertificateNumber
                 };
 
                 return Ok(userDto);
@@ -554,6 +560,9 @@ namespace PRX.Controllers.User
                 // Update the user properties
                 user.PhoneNumber = userDto.PhoneNumber;
                 user.ReferenceCode = userDto.ReferenceCode;
+                user.FirstName = userDto.FirstName;
+                user.LastName = userDto.LastName;
+                user.BirthCertificateNumber = userDto.BirthCertificateNumber;
 
                 // If password is provided in the DTO, hash and update the password
                 if (!string.IsNullOrEmpty(userDto.Password))
@@ -646,7 +655,10 @@ namespace PRX.Controllers.User
                     Id = user.Id,
                     PhoneNumber = user.PhoneNumber,
                     ReferenceCode = user.ReferenceCode,
-                    IsDeleted = user.IsDeleted
+                    IsDeleted = user.IsDeleted,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    BirthCertificateNumber = user.BirthCertificateNumber
                 }).ToList();
 
                 return Ok(userDtos);
@@ -687,6 +699,9 @@ namespace PRX.Controllers.User
                     Id = user.Id,
                     PhoneNumber = user.PhoneNumber,
                     ReferenceCode = user.ReferenceCode,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    BirthCertificateNumber = user.BirthCertificateNumber,
                     IsDeleted = user.IsDeleted
                 };
 
@@ -726,6 +741,9 @@ namespace PRX.Controllers.User
 
                 user.PhoneNumber = userDto.PhoneNumber;
                 user.ReferenceCode = userDto.ReferenceCode;
+                user.FirstName = userDto.FirstName;
+                user.LastName = userDto.LastName;
+                user.BirthCertificateNumber = userDto.BirthCertificateNumber;
 
                 _context.SaveChanges();
 

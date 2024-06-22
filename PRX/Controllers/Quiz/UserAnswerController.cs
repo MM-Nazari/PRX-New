@@ -53,12 +53,21 @@ namespace PRX.Controllers.Quiz
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound});
@@ -122,12 +131,21 @@ namespace PRX.Controllers.Quiz
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var records = _context.UserAnswers.Where(e => e.UserId == id && !e.IsDeleted).ToList();
+                var records = _context.UserAnswers.Where(e => e.RequestId == id && !e.IsDeleted).ToList();
                 if (records == null || records.Count == 0)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });
@@ -171,9 +189,19 @@ namespace PRX.Controllers.Quiz
                 //    return BadRequest(new { message = ResponseMessages.QuizAnswerIsNull});
                 //}
 
+                // Find the corresponding UserAnswerOption
+                var userAnswer = _context.UserAnswers
+                    .FirstOrDefault(o => o.RequestId == userId && o.AnswerOptionId == dto.AnswerOptionId && !o.IsDeleted);
+
+                if (userAnswer != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.DuplicateAnswerOption });
+                }
+
+
                 var record = new UserAnswer
                 {
-                    UserId = userId, // Assign userId parameter here
+                    RequestId = userId, // Assign userId parameter here
                     AnswerOptionId = dto.AnswerOptionId,
                     AnswerText = dto.AnswerText
                 };
@@ -207,17 +235,27 @@ namespace PRX.Controllers.Quiz
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound});
                 }
 
-                record.UserId = dto.UserId;
+                record.RequestId = dto.RequestId;
                 record.AnswerOptionId = dto.AnswerOptionId;
                 record.AnswerText = dto.AnswerText;
 
@@ -245,7 +283,7 @@ namespace PRX.Controllers.Quiz
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserAnswers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });

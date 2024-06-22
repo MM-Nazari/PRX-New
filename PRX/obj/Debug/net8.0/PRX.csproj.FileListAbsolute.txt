@@ -141,7 +141,6 @@ C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Microsoft.AspNetCore.Ide
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Microsoft.Extensions.Identity.Core.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Microsoft.Extensions.Identity.Stores.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
-C:\Users\M.Nazari\source\repos\PRX\PRX\obj\Debug\net8.0\PRX.csproj.CopyComplete
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Kavenegar.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\AsyncKeyedLock.dll
@@ -150,3 +149,4 @@ C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Pipelines.Sockets.Unoffi
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\RedLockNet.Abstractions.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\RedLockNet.SERedis.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\StackExchange.Redis.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\obj\Debug\net8.0\PRX.csproj.CopyComplete

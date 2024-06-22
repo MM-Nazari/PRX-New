@@ -52,12 +52,21 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound});
@@ -88,7 +97,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 // Check for unique UserId
                 var existingUser = _context.HoghooghiUsers
-                                           .FirstOrDefault(u => u.UserId == userDto.UserId);
+                                           .FirstOrDefault(u => u.RequestId == userDto.RequestId);
 
                 if (existingUser != null)
                 {
@@ -97,7 +106,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var user = new HoghooghiUser
                 {
-                    UserId = userDto.UserId,
+                    RequestId = userDto.RequestId,
                     Name = userDto.Name,
                     RegistrationNumber = userDto.RegistrationNumber,
                     RegistrationDate = userDto.RegistrationDate,
@@ -145,20 +154,27 @@ namespace PRX.Controllers.Hoghooghi
                 }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
                 }
 
-                user.UserId = userDto.UserId;
+                user.RequestId = userDto.RequestId;
                 user.Name = userDto.Name;
                 user.RegistrationNumber = userDto.RegistrationNumber;
                 user.RegistrationDate = userDto.RegistrationDate;
@@ -206,12 +222,21 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
@@ -266,7 +291,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id);
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.RequestId == id);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
@@ -301,13 +326,21 @@ namespace PRX.Controllers.Hoghooghi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-
-                var record = _context.HoghooghiUsers.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HoghooghiUsers.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
@@ -332,7 +365,7 @@ namespace PRX.Controllers.Hoghooghi
                 var users = _context.HoghooghiUsers.ToList();
                 var userDtos = users.Select(user => new HoghooghiUserDto
                 {
-                    UserId = user.UserId,
+                    RequestId = user.RequestId,
                     Name = user.Name,
                     RegistrationNumber = user.RegistrationNumber,
                     RegistrationDate = user.RegistrationDate,
@@ -374,7 +407,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
@@ -382,7 +415,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var userDto = new HoghooghiUserDto
                 {
-                    UserId = user.UserId,
+                    RequestId = user.RequestId,
                     Name = user.Name,
                     RegistrationNumber = user.RegistrationNumber,
                     RegistrationDate = user.RegistrationDate,
@@ -421,7 +454,7 @@ namespace PRX.Controllers.Hoghooghi
         {
             try
             {
-                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
@@ -469,7 +502,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var user = _context.HoghooghiUsers.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });

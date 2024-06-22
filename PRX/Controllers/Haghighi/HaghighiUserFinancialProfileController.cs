@@ -54,12 +54,20 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (financialProfile == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound});
@@ -89,7 +97,7 @@ namespace PRX.Controllers.Haghighi
 
                 // Check for unique UserId
                 var existingFinancialProfile = _context.HaghighiUserFinancialProfiles
-                                                       .FirstOrDefault(fp => fp.UserId == financialProfileDto.UserId);
+                                                       .FirstOrDefault(fp => fp.RequestId == financialProfileDto.RequestId);
 
                 if (existingFinancialProfile != null)
                 {
@@ -98,7 +106,7 @@ namespace PRX.Controllers.Haghighi
 
                 var financialProfile = new HaghighiUserFinancialProfile
                 {
-                    UserId = financialProfileDto.UserId,
+                    RequestId = financialProfileDto.RequestId,
                     MainContinuousIncome = financialProfileDto.MainContinuousIncome,
                     OtherIncomes = financialProfileDto.OtherIncomes,
                     SupportFromOthers = financialProfileDto.SupportFromOthers,
@@ -138,18 +146,27 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (financialProfile == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
                 }
 
-                financialProfile.UserId = financialProfileDto.UserId;
+                financialProfile.RequestId = financialProfileDto.RequestId;
                 financialProfile.MainContinuousIncome = financialProfileDto.MainContinuousIncome;
                 financialProfile.OtherIncomes = financialProfileDto.OtherIncomes;
                 financialProfile.SupportFromOthers = financialProfileDto.SupportFromOthers;
@@ -189,12 +206,21 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (financialProfile == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
@@ -248,7 +274,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id);
+                var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.RequestId == id);
                 if (financialProfile == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
@@ -284,13 +310,22 @@ namespace PRX.Controllers.Haghighi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
@@ -317,7 +352,7 @@ namespace PRX.Controllers.Haghighi
                 var profiles = _context.HaghighiUserFinancialProfiles.ToList();
                 var profileDtos = profiles.Select(profile => new HaghighiUserFinancialProfileDto
                 {
-                    UserId = profile.UserId,
+                    RequestId = profile.RequestId,
                     MainContinuousIncome = profile.MainContinuousIncome,
                     OtherIncomes = profile.OtherIncomes,
                     SupportFromOthers = profile.SupportFromOthers,
@@ -350,7 +385,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.RequestId == id && !p.IsDeleted);
                 if (profile == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
@@ -358,7 +393,7 @@ namespace PRX.Controllers.Haghighi
 
                 var profileDto = new HaghighiUserFinancialProfileDto
                 {
-                    UserId = profile.UserId,
+                    RequestId = profile.RequestId,
                     MainContinuousIncome = profile.MainContinuousIncome,
                     OtherIncomes = profile.OtherIncomes,
                     SupportFromOthers = profile.SupportFromOthers,
@@ -393,7 +428,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.RequestId == id && !p.IsDeleted);
                 if (profile == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
@@ -433,7 +468,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.UserId == id && !p.IsDeleted);
+                var profile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(p => p.RequestId == id && !p.IsDeleted);
                 if (profile == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });

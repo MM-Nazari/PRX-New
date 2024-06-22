@@ -45,6 +45,7 @@ namespace PRX.Data
         public DbSet<UserType> UserTypes { get; set; }
         public DbSet<UserDocument> UserDocuments { get; set; }
         public DbSet<UserReference> UserReferences { get; set; }
+        public DbSet<Request> Requests { get; set; }
 
 
 
@@ -184,6 +185,11 @@ namespace PRX.Data
             .IsRequired();
 
             modelBuilder.Entity<UserReference>()
+           .Property(e => e.Id)
+           .ValueGeneratedOnAdd()
+           .IsRequired();
+
+            modelBuilder.Entity<Request>()
            .Property(e => e.Id)
            .ValueGeneratedOnAdd()
            .IsRequired();
@@ -559,55 +565,55 @@ namespace PRX.Data
             });
 
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                .HasOne(u => u.UserFinancialChanges)
-               .WithOne(p => p.User)
-               .HasForeignKey<UserFinancialChanges>(p => p.UserId);
+               .WithOne(p => p.Request)
+               .HasForeignKey<UserFinancialChanges>(p => p.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                .HasMany(u => u.EmploymentHistories)
-               .WithOne(r => r.User)
-               .HasForeignKey(r => r.UserId);
+               .WithOne(r => r.Request)
+               .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasOne(u => u.UserFuturePlans)
-                .WithOne(p => p.User)
-                .HasForeignKey<UserFuturePlans>(p => p.UserId);
+                .WithOne(p => p.Request)
+                .HasForeignKey<UserFuturePlans>(p => p.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.UserInvestmentExperiences)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.UserAssets)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.UserWithdrawals)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.UserDeposits)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.UserDebts)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasOne(u => u.UserInvestment)
-                .WithOne(p => p.User)
-                .HasForeignKey<UserInvestment>(p => p.UserId);
+                .WithOne(p => p.Request)
+                .HasForeignKey<UserInvestment>(p => p.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasOne(u => u.UserMoreInformations)
-                .WithOne(p => p.User)
-                .HasForeignKey<UserMoreInformation>(p => p.UserId);
+                .WithOne(p => p.Request)
+                .HasForeignKey<UserMoreInformation>(p => p.RequestId);
 
             //modelBuilder.Entity<UserAssetType>()
             //    .HasMany(u => u.UserAssets)
@@ -626,10 +632,10 @@ namespace PRX.Data
                 .HasForeignKey<UserState>(p => p.UserId);
 
             
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.UserDocs)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
             modelBuilder.Entity<User>()
                .HasOne(u => u.UserReference)
@@ -642,73 +648,73 @@ namespace PRX.Data
 
 
             // Define one-to-one relationship between User and HaghighiUserProfile
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasOne(u => u.HaghighiUserProfile)
-                .WithOne(p => p.User)
-                .HasForeignKey<HaghighiUserProfile>(p => p.UserId);
+                .WithOne(p => p.Request)
+                .HasForeignKey<HaghighiUserProfile>(p => p.RequestId);
 
             // Define one-to-many relationship between User and HaghighiUserRelationships
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.HaghighiUserRelationships)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                .HasOne(u => u.HaghighiUserFinancialProfiles)
-               .WithOne(p => p.User)
-               .HasForeignKey<HaghighiUserFinancialProfile>(p => p.UserId);
+               .WithOne(p => p.Request)
+               .HasForeignKey<HaghighiUserFinancialProfile>(p => p.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                .HasOne(u => u.HaghighiUserEducationStatus)
-               .WithOne(p => p.User)
-               .HasForeignKey<HaghighiUserEducationStatus>(p => p.UserId);
+               .WithOne(p => p.Request)
+               .HasForeignKey<HaghighiUserEducationStatus>(p => p.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasOne(u => u.HaghighiUserBankInfos)
-                .WithOne(p => p.User)
-                .HasForeignKey<HaghighiUserBankInfo>(p => p.UserId);
+                .WithOne(p => p.Request)
+                .HasForeignKey<HaghighiUserBankInfo>(p => p.RequestId);
 
 
 
             // Hoghooghi
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                .HasOne(u => u.HoghooghiUser)
-               .WithOne(p => p.User)
-               .HasForeignKey<HoghooghiUser>(p => p.UserId);
+               .WithOne(p => p.Request)
+               .HasForeignKey<HoghooghiUser>(p => p.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.HoghooghiUserBoardOfDirectors)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.HoghooghiUserCompaniesWithMajorInvestors)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.HoghooghiUserInvestmentDepartmentStaff)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasMany(u => u.HoghooghiUserAssetIncomeStatusTwoYearsAgos)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserId);
+                .WithOne(r => r.Request)
+                .HasForeignKey(r => r.RequestId);
 
 
             // Quiz
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                .HasMany(u => u.UserAnswer)
-               .WithOne(r => r.User)
-               .HasForeignKey(r => r.UserId);
+               .WithOne(r => r.Request)
+               .HasForeignKey(r => r.RequestId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Request>()
                 .HasOne(u => u.UserTestScore)
-                .WithOne(p => p.User)
-                .HasForeignKey<UserTestScore>(p => p.UserId);
+                .WithOne(p => p.Request)
+                .HasForeignKey<UserTestScore>(p => p.RequestId);
 
             modelBuilder.Entity<UserQuestion>()
                 .HasMany(u => u.AnswerOptions)

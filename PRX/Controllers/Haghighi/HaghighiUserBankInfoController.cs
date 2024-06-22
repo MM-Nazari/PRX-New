@@ -55,12 +55,21 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -88,7 +97,7 @@ namespace PRX.Controllers.Haghighi
 
                 // Check for unique UserId
                 var existingBankInfo = _context.HaghighiUserBankInfos
-                                               .FirstOrDefault(bi => bi.UserId == bankInfoDto.UserId);
+                                               .FirstOrDefault(bi => bi.RequestId == bankInfoDto.RequestId);
 
                 if (existingBankInfo != null)
                 {
@@ -97,7 +106,7 @@ namespace PRX.Controllers.Haghighi
 
                 var bankInfo = new HaghighiUserBankInfo
                 {
-                    UserId = bankInfoDto.UserId,
+                    RequestId = bankInfoDto.RequestId,
                     TradeCode = bankInfoDto.TradeCode,
                     SejamCode = bankInfoDto.SejamCode,
                     BankName = bankInfoDto.BankName,
@@ -139,13 +148,21 @@ namespace PRX.Controllers.Haghighi
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -190,13 +207,21 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -226,7 +251,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.UserId == id);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -260,13 +285,22 @@ namespace PRX.Controllers.Haghighi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -311,7 +345,7 @@ namespace PRX.Controllers.Haghighi
                 var bankInfos = _context.HaghighiUserBankInfos.ToList();
                 var bankInfoDtos = bankInfos.Select(bankInfo => new HaghighiUserBankInfoDto
                 {
-                    UserId = bankInfo.UserId,
+                    RequestId = bankInfo.RequestId,
                     TradeCode = bankInfo.TradeCode,
                     SejamCode = bankInfo.SejamCode,
                     BankName = bankInfo.BankName,
@@ -349,7 +383,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.UserId == id);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == id);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -357,7 +391,7 @@ namespace PRX.Controllers.Haghighi
 
                 var bankInfoDto = new HaghighiUserBankInfoDto
                 {
-                    UserId = bankInfo.UserId,
+                    RequestId = bankInfo.RequestId,
                     TradeCode = bankInfo.TradeCode,
                     SejamCode = bankInfo.SejamCode,
                     BankName = bankInfo.BankName,
@@ -396,7 +430,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.UserId == id && !b.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == id && !b.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -438,7 +472,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.UserId == id && !b.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == id && !b.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });

@@ -2,7 +2,8 @@
 {
     public class HaghighiUserRelationshipsDto
     {
-        public int UserId { get; set; }
+        //public int UserId { get; set; }
+        public int RequestId { get; set; }
         public string FullName { get; set; }
         public string RelationshipStatus { get; set; }
         public int BirthYear { get; set; }

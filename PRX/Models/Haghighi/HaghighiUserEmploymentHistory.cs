@@ -1,5 +1,7 @@
-﻿using System;
+﻿using PRX.Models.User;
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRX.Models.Haghighi
 {
@@ -7,8 +9,12 @@ namespace PRX.Models.Haghighi
     {
         public int Id { get; set; }
 
+        //[Required]
+        //public int UserId { get; set; }
+
         [Required]
-        public int UserId { get; set; }
+        [ForeignKey("Request")]
+        public int RequestId { get; set; }
 
         [Required]
         public string EmployerLocation { get; set; }
@@ -34,6 +40,6 @@ namespace PRX.Models.Haghighi
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
 
-        public PRX.Models.User.User User { get; set; }
+        public Request Request { get; set; }
     }
 }

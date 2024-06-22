@@ -55,12 +55,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userFuturePlans == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
@@ -93,7 +102,7 @@ namespace PRX.Controllers.User
 
                 // Check if the UserId already exists
                 var existingUserFuturePlan = _context.UserFuturePlans
-                                                     .FirstOrDefault(ufp => ufp.UserId == userFuturePlansDto.UserId);
+                                                     .FirstOrDefault(ufp => ufp.RequestId == userFuturePlansDto.RequestId);
                 if (existingUserFuturePlan != null)
                 {
                     return BadRequest(new { message = ResponseMessages.UserFuturePlanDuplicate });
@@ -101,7 +110,7 @@ namespace PRX.Controllers.User
 
                 var userFuturePlans = new UserFuturePlans
                 {
-                    UserId = userFuturePlansDto.UserId,
+                    RequestId = userFuturePlansDto.RequestId,
                     Description = userFuturePlansDto.Description
                 };
 
@@ -137,18 +146,27 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userFuturePlans == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
                 }
 
-                userFuturePlans.UserId = userFuturePlansDto.UserId;
+                userFuturePlans.RequestId = userFuturePlansDto.RequestId;
                 userFuturePlans.Description = userFuturePlansDto.Description;
 
                 _context.SaveChanges();
@@ -183,12 +201,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userFuturePlans == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
@@ -244,7 +271,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userFinancialChanges = _context.UserFuturePlans.FirstOrDefault(u => u.UserId == id);
+                var userFinancialChanges = _context.UserFuturePlans.FirstOrDefault(u => u.RequestId == id);
                 if (userFinancialChanges == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
@@ -281,13 +308,21 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-
-                var record = _context.UserFuturePlans.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserFuturePlans.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
@@ -313,7 +348,7 @@ namespace PRX.Controllers.User
                 var futurePlans = _context.UserFuturePlans.ToList();
                 var futurePlanDtos = futurePlans.Select(plan => new UserFuturePlansDto
                 {
-                    UserId = plan.UserId,
+                    RequestId = plan.RequestId,
                     Description = plan.Description,
                     IsComplete = plan.IsComplete,
                     IsDeleted = plan.IsDeleted
@@ -341,7 +376,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.RequestId == id && !plan.IsDeleted);
                 if (futurePlan == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
@@ -349,7 +384,7 @@ namespace PRX.Controllers.User
 
                 var futurePlanDto = new UserFuturePlansDto
                 {
-                    UserId = futurePlan.UserId,
+                    RequestId = futurePlan.RequestId,
                     Description = futurePlan.Description,
                     IsComplete = futurePlan.IsComplete,
                     IsDeleted = futurePlan.IsDeleted
@@ -379,7 +414,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.RequestId == id && !plan.IsDeleted);
                 if (futurePlan == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
@@ -411,7 +446,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.UserId == id && !plan.IsDeleted);
+                var futurePlan = _context.UserFuturePlans.FirstOrDefault(plan => plan.RequestId == id && !plan.IsDeleted);
                 if (futurePlan == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });

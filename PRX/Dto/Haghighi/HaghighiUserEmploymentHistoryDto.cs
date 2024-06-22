@@ -2,7 +2,8 @@
 {
     public class HaghighiUserEmploymentHistoryDto
     {
-        public int UserId { get; set; }
+        //public int UserId { get; set; }
+        public int RequestId { get; set; }
         public string EmployerLocation { get; set; }
         public string MainActivity { get; set; }
         public string Position { get; set; }

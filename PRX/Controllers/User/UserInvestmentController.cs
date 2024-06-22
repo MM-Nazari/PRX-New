@@ -54,12 +54,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userInvestment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound});
@@ -91,7 +100,7 @@ namespace PRX.Controllers.User
                 }
 
                 // Check if the user ID already exists in the database
-                var existingUserInvestment = _context.UserInvestments.FirstOrDefault(ui => ui.UserId == userInvestmentDto.UserId);
+                var existingUserInvestment = _context.UserInvestments.FirstOrDefault(ui => ui.RequestId == userInvestmentDto.RequestId);
                 if (existingUserInvestment != null)
                 {
                     // Handle the case where the user ID is a duplicate
@@ -100,7 +109,7 @@ namespace PRX.Controllers.User
 
                 var userInvestment = new UserInvestment
                 {
-                    UserId = userInvestmentDto.UserId,
+                    RequestId = userInvestmentDto.RequestId,
                     Amount = userInvestmentDto.Amount
                 };
 
@@ -134,18 +143,27 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userInvestment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
                 }
 
-                userInvestment.UserId = userInvestmentDto.UserId;
+                userInvestment.RequestId = userInvestmentDto.RequestId;
                 userInvestment.Amount = userInvestmentDto.Amount;
 
                 _context.SaveChanges();
@@ -178,12 +196,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userInvestment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -238,7 +265,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userInvestments = _context.UserInvestments.FirstOrDefault(u => u.UserId == id);
+                var userInvestments = _context.UserInvestments.FirstOrDefault(u => u.RequestId == id);
                 if (userInvestments == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -274,13 +301,22 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.UserInvestments.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserInvestments.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -306,7 +342,7 @@ namespace PRX.Controllers.User
                 var investments = _context.UserInvestments.ToList();
                 var investmentDtos = investments.Select(investment => new UserInvestmentDto
                 {
-                    UserId = investment.UserId,
+                    RequestId = investment.RequestId,
                     Amount = investment.Amount,
                     IsComplete = investment.IsComplete,
                     IsDeleted = investment.IsDeleted
@@ -334,7 +370,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == id && !inv.IsDeleted);
                 if (investment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -342,7 +378,7 @@ namespace PRX.Controllers.User
 
                 var investmentDto = new UserInvestmentDto
                 {
-                    UserId = investment.UserId,
+                    RequestId = investment.RequestId,
                     Amount = investment.Amount,
                     IsComplete = investment.IsComplete,
                     IsDeleted = investment.IsDeleted
@@ -372,7 +408,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == id && !inv.IsDeleted);
                 if (investment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -406,7 +442,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.UserId == id && !inv.IsDeleted);
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == id && !inv.IsDeleted);
                 if (investment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });

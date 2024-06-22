@@ -12,5 +12,6 @@ namespace PRX.Models.User
 
         public bool IsDeleted { get; set; } = false;
         public User User { get; set; }
+        //public Request Request { get; set; }
     }
 }

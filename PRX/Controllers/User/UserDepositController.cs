@@ -38,7 +38,7 @@ namespace PRX.Controllers.User
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -56,12 +56,20 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userDeposit == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound});
@@ -95,7 +103,7 @@ namespace PRX.Controllers.User
 
                 var userDeposit = new UserDeposit
                 {
-                    UserId = userDepositDto.UserId,
+                    RequestId = userDepositDto.RequestId,
                     DepositAmount = userDepositDto.DepositAmount,
                     DepositDate = userDepositDto.DepositDate,
                     DepositSource = userDepositDto.DepositSource
@@ -134,18 +142,26 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userDeposit == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound });
                 }
 
-                userDeposit.UserId = userDepositDto.UserId;
+                userDeposit.RequestId = userDepositDto.RequestId;
                 userDeposit.DepositAmount = userDepositDto.DepositAmount;
                 userDeposit.DepositDate = userDepositDto.DepositDate;
                 userDeposit.DepositSource = userDepositDto.DepositSource;
@@ -183,12 +199,20 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userDeposit == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound });
@@ -247,7 +271,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserDeposits.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserDeposits.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound });
@@ -284,13 +308,21 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-
-                var record = _context.UserDeposits.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserDeposits.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound });
@@ -317,7 +349,7 @@ namespace PRX.Controllers.User
                 var deposits = _context.UserDeposits.ToList();
                 var depositDtos = deposits.Select(deposit => new UserDepositDto
                 {
-                    UserId = deposit.UserId,
+                    RequestId = deposit.RequestId,
                     DepositAmount = deposit.DepositAmount,
                     DepositDate = deposit.DepositDate,
                     DepositSource = deposit.DepositSource,
@@ -350,7 +382,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                var deposit = _context.UserDeposits.FirstOrDefault(d => d.RequestId == id && !d.IsDeleted);
                 if (deposit == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound });
@@ -358,7 +390,7 @@ namespace PRX.Controllers.User
 
                 var depositDto = new UserDepositDto
                 {
-                    UserId = deposit.UserId,
+                    RequestId = deposit.RequestId,
                     DepositAmount = deposit.DepositAmount,
                     DepositDate = deposit.DepositDate,
                     DepositSource = deposit.DepositSource,
@@ -392,7 +424,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                var deposit = _context.UserDeposits.FirstOrDefault(d => d.RequestId == id && !d.IsDeleted);
                 if (deposit == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound });
@@ -429,7 +461,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var deposit = _context.UserDeposits.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                var deposit = _context.UserDeposits.FirstOrDefault(d => d.RequestId == id && !d.IsDeleted);
                 if (deposit == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound });

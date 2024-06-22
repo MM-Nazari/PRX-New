@@ -54,12 +54,20 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -90,7 +98,7 @@ namespace PRX.Controllers.User
 
                 // Check if the UserId already exists
                 var existingUserMoreInformation = _context.UserMoreInformations
-                                                          .FirstOrDefault(umi => umi.UserId == userMoreInformationDto.UserId);
+                                                          .FirstOrDefault(umi => umi.RequestId == userMoreInformationDto.RequestId);
                 if (existingUserMoreInformation != null)
                 {
                     return BadRequest(new { message = ResponseMessages.UserMoreInfoDuplicate });
@@ -98,7 +106,7 @@ namespace PRX.Controllers.User
 
                 var userMoreInformation = new UserMoreInformation
                 {
-                    UserId = userMoreInformationDto.UserId,
+                    RequestId = userMoreInformationDto.RequestId,
                     Info = userMoreInformationDto.Info
                 };
 
@@ -133,12 +141,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -178,12 +195,21 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -239,7 +265,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userFinancialChanges = _context.UserMoreInformations.FirstOrDefault(u => u.UserId == id);
+                var userFinancialChanges = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == id);
                 if (userFinancialChanges == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -275,13 +301,22 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.UserMoreInformations.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserMoreInformations.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -307,7 +342,7 @@ namespace PRX.Controllers.User
                 var userMoreInformations = _context.UserMoreInformations.ToList();
                 var userMoreInformationDtos = userMoreInformations.Select(info => new UserMoreInformationDto
                 {
-                    UserId = info.UserId,
+                    RequestId = info.RequestId,
                     Info = info.Info,
                     IsComplete = info.IsComplete,
                     IsDeleted = info.IsDeleted
@@ -335,7 +370,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == id && !info.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound();
@@ -343,7 +378,7 @@ namespace PRX.Controllers.User
 
                 var userMoreInformationDto = new UserMoreInformationDto
                 {
-                    UserId = userMoreInformation.UserId,
+                    RequestId = userMoreInformation.RequestId,
                     Info = userMoreInformation.Info,
                     IsComplete = userMoreInformation.IsComplete,
                     IsDeleted = userMoreInformation.IsDeleted
@@ -373,7 +408,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == id && !info.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -406,7 +441,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.UserId == id && !info.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == id && !info.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });

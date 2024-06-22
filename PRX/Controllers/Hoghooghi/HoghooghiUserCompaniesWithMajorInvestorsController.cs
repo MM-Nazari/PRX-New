@@ -53,12 +53,21 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound();
@@ -90,7 +99,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var record = new HoghooghiUserCompaniesWithMajorInvestors
                 {
-                    UserId = dto.UserId,
+                    RequestId = dto.RequestId,
                     CompanyName = dto.CompanyName,
                     CompanySubject = dto.CompanySubject,
                     PercentageOfTotal = dto.PercentageOfTotal
@@ -125,18 +134,27 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiCompaniesNotFound });
                 }
 
-                record.UserId = dto.UserId;
+                record.RequestId = dto.RequestId;
                 record.CompanyName = dto.CompanyName;
                 record.CompanySubject = dto.CompanySubject;
                 record.PercentageOfTotal = dto.PercentageOfTotal;
@@ -172,12 +190,21 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiCompaniesNotFound });
@@ -232,7 +259,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiCompaniesNotFound });
@@ -267,13 +294,21 @@ namespace PRX.Controllers.Hoghooghi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-
-                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiCompaniesNotFound });
@@ -299,7 +334,7 @@ namespace PRX.Controllers.Hoghooghi
                 var companies = _context.HoghooghiUserCompaniesWithMajorInvestors.ToList();
                 var companyDtos = companies.Select(company => new HoghooghiUserCompaniesWithMajorInvestorsDto
                 {
-                    UserId = company.UserId,
+                    RequestId = company.RequestId,
                     CompanyName = company.CompanyName,
                     CompanySubject = company.CompanySubject,
                     PercentageOfTotal = company.PercentageOfTotal,
@@ -328,7 +363,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.UserId == id && !c.IsDeleted);
+                var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.RequestId == id && !c.IsDeleted);
                 if (company == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiCompaniesNotFound});
@@ -336,7 +371,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var companyDto = new HoghooghiUserCompaniesWithMajorInvestorsDto
                 {
-                    UserId = company.UserId,
+                    RequestId = company.RequestId,
                     CompanyName = company.CompanyName,
                     CompanySubject = company.CompanySubject,
                     PercentageOfTotal = company.PercentageOfTotal,
@@ -367,7 +402,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.UserId == id && !c.IsDeleted);
+                var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.RequestId == id && !c.IsDeleted);
                 if (company == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiCompaniesNotFound });
@@ -402,7 +437,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.UserId == id && !c.IsDeleted);
+                var company = _context.HoghooghiUserCompaniesWithMajorInvestors.FirstOrDefault(c => c.RequestId == id && !c.IsDeleted);
                 if (company == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiCompaniesNotFound});

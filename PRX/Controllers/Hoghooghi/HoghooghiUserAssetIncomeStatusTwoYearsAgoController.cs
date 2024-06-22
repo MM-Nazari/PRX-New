@@ -54,12 +54,21 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound});
@@ -90,7 +99,7 @@ namespace PRX.Controllers.Hoghooghi
                 }
                 var record = new HoghooghiUserAssetIncomeStatusTwoYearsAgo
                 {
-                    UserId = dto.UserId,
+                    RequestId = dto.RequestId,
                     FiscalYear = dto.FiscalYear,
                     RegisteredCapital = dto.RegisteredCapital,
                     ApproximateAssetValue = dto.ApproximateAssetValue,
@@ -135,18 +144,27 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
                 }
 
-                record.UserId = dto.UserId;
+                record.RequestId = dto.RequestId;
                 record.FiscalYear = dto.FiscalYear;
                 record.RegisteredCapital = dto.RegisteredCapital;
                 record.ApproximateAssetValue = dto.ApproximateAssetValue;
@@ -191,12 +209,21 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -250,7 +277,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -285,13 +312,21 @@ namespace PRX.Controllers.Hoghooghi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -317,7 +352,7 @@ namespace PRX.Controllers.Hoghooghi
                 var statuses = _context.HoghooghiUsersAssets.ToList();
                 var statusDtos = statuses.Select(status => new HoghooghiUserAssetIncomeStatusTwoYearsAgoDto
                 {
-                    UserId = status.UserId,
+                    RequestId = status.RequestId,
                     FiscalYear = status.FiscalYear,
                     RegisteredCapital = status.RegisteredCapital,
                     ApproximateAssetValue = status.ApproximateAssetValue,
@@ -355,7 +390,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.RequestId == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -363,7 +398,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var statusDto = new HoghooghiUserAssetIncomeStatusTwoYearsAgoDto
                 {
-                    UserId = status.UserId,
+                    RequestId = status.RequestId,
                     FiscalYear = status.FiscalYear,
                     RegisteredCapital = status.RegisteredCapital,
                     ApproximateAssetValue = status.ApproximateAssetValue,
@@ -403,7 +438,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.RequestId == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -448,7 +483,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.RequestId == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });

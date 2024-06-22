@@ -51,7 +51,7 @@ namespace PRX.Controllers.Quiz
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserTestScores.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizScoreNotFound});
@@ -81,7 +81,7 @@ namespace PRX.Controllers.Quiz
 
                 var record = new UserTestScore
                 {
-                    UserId = dto.UserId,
+                    RequestId = dto.RequestId,
                     QuizScore = dto.QuizScore
                 };
 
@@ -112,13 +112,13 @@ namespace PRX.Controllers.Quiz
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserTestScores.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizScoreNotFound });
                 }
 
-                record.UserId = dto.UserId;
+                record.RequestId = dto.RequestId;
                 record.QuizScore = dto.QuizScore;
 
                 _context.SaveChanges();
@@ -149,7 +149,7 @@ namespace PRX.Controllers.Quiz
                 // Retrieve all user's answer options with their scores
                 var answerOptions = _context.UserAnswers
                     .Include(ua => ua.answerOption)
-                    .Where(ua => ua.UserId == userId && !ua.IsDeleted && !ua.answerOption.IsDeleted)
+                    .Where(ua => ua.RequestId == userId && !ua.IsDeleted && !ua.answerOption.IsDeleted)
                     .ToList();
 
                 // Calculate total score
@@ -161,13 +161,13 @@ namespace PRX.Controllers.Quiz
 
                 // Retrieve or create UserTestScore record
                 var userTestScore = _context.UserTestScores
-                    .FirstOrDefault(uts => uts.UserId == userId && !uts.IsDeleted);
+                    .FirstOrDefault(uts => uts.RequestId == userId && !uts.IsDeleted);
 
                 if (userTestScore == null)
                 {
                     userTestScore = new UserTestScore
                     {
-                        UserId = userId,
+                        RequestId = userId,
                         QuizScore = totalScore
                     };
                     _context.UserTestScores.Add(userTestScore);
@@ -205,7 +205,7 @@ namespace PRX.Controllers.Quiz
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserTestScores.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizScoreNotFound });

@@ -17,5 +17,10 @@ namespace PRX.Dto.User
         public string Role { get; set; } = "User";
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
+
+        // New fields
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string BirthCertificateNumber { get; set; }
     }
 }

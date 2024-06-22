@@ -54,12 +54,21 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -90,7 +99,7 @@ namespace PRX.Controllers.Haghighi
 
                 var employmentHistory = new HaghighiUserEmploymentHistory
                 {
-                    UserId = employmentHistoryDto.UserId,
+                    RequestId = employmentHistoryDto.RequestId,
                     EmployerLocation = employmentHistoryDto.EmployerLocation,
                     MainActivity = employmentHistoryDto.MainActivity,
                     Position = employmentHistoryDto.Position,
@@ -132,18 +141,27 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
                 }
 
-                employmentHistory.UserId = employmentHistoryDto.UserId;
+                employmentHistory.RequestId = employmentHistoryDto.RequestId;
                 employmentHistory.EmployerLocation = employmentHistoryDto.EmployerLocation;
                 employmentHistory.MainActivity = employmentHistoryDto.MainActivity;
                 employmentHistory.Position = employmentHistoryDto.Position;
@@ -183,13 +201,21 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -247,7 +273,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id);
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id);
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -283,13 +309,21 @@ namespace PRX.Controllers.Haghighi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-
-                var record = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -315,7 +349,7 @@ namespace PRX.Controllers.Haghighi
                 var histories = _context.HaghighiUserEmploymentHistories.ToList();
                 var historyDtos = histories.Select(history => new HaghighiUserEmploymentHistoryDto
                 {
-                    UserId = history.UserId,
+                    RequestId = history.RequestId,
                     EmployerLocation = history.EmployerLocation,
                     MainActivity = history.MainActivity,
                     Position = history.Position,
@@ -350,7 +384,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == id && !h.IsDeleted);
                 if (history == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -358,7 +392,7 @@ namespace PRX.Controllers.Haghighi
 
                 var historyDto = new HaghighiUserEmploymentHistoryDto
                 {
-                    UserId = history.UserId,
+                    RequestId = history.RequestId,
                     EmployerLocation = history.EmployerLocation,
                     MainActivity = history.MainActivity,
                     Position = history.Position,
@@ -395,7 +429,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == id && !h.IsDeleted);
                 if (history == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -436,7 +470,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.UserId == id && !h.IsDeleted);
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == id && !h.IsDeleted);
                 if (history == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });

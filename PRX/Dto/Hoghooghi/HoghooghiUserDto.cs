@@ -2,7 +2,8 @@
 {
     public class HoghooghiUserDto
     {
-        public int UserId { get; set; }
+        //public int UserId { get; set; }
+        public int RequestId { get; set; }
         public string Name { get; set; }
         public string RegistrationNumber { get; set; }
         public DateTime RegistrationDate { get; set; }

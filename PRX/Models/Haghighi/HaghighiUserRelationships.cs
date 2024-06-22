@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using PRX.Models.User;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRX.Models.Haghighi
 {
@@ -6,8 +8,12 @@ namespace PRX.Models.Haghighi
     {
         public int Id { get; set; }
 
+        //[Required]
+        //public int UserId { get; set; }
+
         [Required]
-        public int UserId { get; set; }
+        [ForeignKey("Request")]
+        public int RequestId { get; set; }
 
         [Required]
         public string FullName { get; set; }
@@ -46,6 +52,6 @@ namespace PRX.Models.Haghighi
         public bool IsDeleted { get; set; } = false;
 
         // Navigation property for one-to-one relationship with User
-        public PRX.Models.User.User User { get; set; }
+        public Request Request { get; set; }
     }
 }

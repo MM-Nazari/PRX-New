@@ -52,13 +52,21 @@ namespace PRX.Controllers.Haghighi
                 }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
 
-                // Ensure that the user is deleting their own data
-                if (id != tokenUserId)
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound});
@@ -88,7 +96,7 @@ namespace PRX.Controllers.Haghighi
 
                 var relationship = new HaghighiUserRelationships
                 {
-                    UserId = relationshipDto.UserId,
+                    RequestId = relationshipDto.RequestId,
                     FullName = relationshipDto.FullName,
                     RelationshipStatus = relationshipDto.RelationshipStatus,
                     BirthYear = relationshipDto.BirthYear,
@@ -131,18 +139,27 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is deleting their own data
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
                 }
 
-                relationship.UserId = relationshipDto.UserId;
+                relationship.RequestId = relationshipDto.RequestId;
                 relationship.FullName = relationshipDto.FullName;
                 relationship.RelationshipStatus = relationshipDto.RelationshipStatus;
                 relationship.BirthYear = relationshipDto.BirthYear;
@@ -181,12 +198,21 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is deleting their own data
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.UserId == id && !u.IsDeleted );
+
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted );
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -241,7 +267,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(e => e.UserId == id);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(e => e.RequestId == id);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -276,13 +302,21 @@ namespace PRX.Controllers.Haghighi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-
-                var record = _context.HaghighiUserRelationships.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HaghighiUserRelationships.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -308,7 +342,7 @@ namespace PRX.Controllers.Haghighi
                 var relationships = _context.HaghighiUserRelationships.ToList();
                 var relationshipDtos = relationships.Select(relationship => new HaghighiUserRelationshipsDto
                 {
-                    UserId = relationship.UserId,
+                    RequestId = relationship.RequestId,
                     FullName = relationship.FullName,
                     RelationshipStatus = relationship.RelationshipStatus,
                     BirthYear = relationship.BirthYear,
@@ -344,7 +378,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.UserId == id && !r.IsDeleted);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == id && !r.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -352,7 +386,7 @@ namespace PRX.Controllers.Haghighi
 
                 var relationshipDto = new HaghighiUserRelationshipsDto
                 {
-                    UserId = relationship.UserId,
+                    RequestId = relationship.RequestId,
                     FullName = relationship.FullName,
                     RelationshipStatus = relationship.RelationshipStatus,
                     BirthYear = relationship.BirthYear,
@@ -391,7 +425,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.UserId == id && !r.IsDeleted);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == id && !r.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -434,7 +468,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.UserId == id && !r.IsDeleted);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == id && !r.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });

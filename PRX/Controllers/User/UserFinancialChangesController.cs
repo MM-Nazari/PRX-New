@@ -53,11 +53,21 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userFinancialChanges == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
@@ -89,7 +99,7 @@ namespace PRX.Controllers.User
 
                 // Check if the UserId already exists
                 var existingUserFinancialChange = _context.UserFinancialChanges
-                                                          .FirstOrDefault(ufc => ufc.UserId == userFinancialChangesDto.UserId);
+                                                          .FirstOrDefault(ufc => ufc.RequestId == userFinancialChangesDto.RequestId);
                 if (existingUserFinancialChange != null)
                 {
                     return BadRequest(new { message = ResponseMessages.UserFinancialChangeDuplicate });
@@ -97,7 +107,7 @@ namespace PRX.Controllers.User
 
                 var userFinancialChanges = new UserFinancialChanges
                 {
-                    UserId = userFinancialChangesDto.UserId,
+                    RequestId = userFinancialChangesDto.RequestId,
                     Description = userFinancialChangesDto.Description
                 };
 
@@ -131,18 +141,27 @@ namespace PRX.Controllers.User
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userFinancialChanges == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
                 }
 
-                userFinancialChanges.UserId = userFinancialChangesDto.UserId;
+                userFinancialChanges.RequestId = userFinancialChangesDto.RequestId;
                 userFinancialChanges.Description = userFinancialChangesDto.Description;
 
                 _context.SaveChanges();
@@ -176,13 +195,21 @@ namespace PRX.Controllers.User
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+
+                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userFinancialChanges == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
@@ -237,7 +264,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.UserId == id);
+                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.RequestId == id);
                 if (userFinancialChanges == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
@@ -274,13 +301,22 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.UserFinancialChanges.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserFinancialChanges.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
@@ -307,7 +343,7 @@ namespace PRX.Controllers.User
                 var financialChanges = _context.UserFinancialChanges.ToList();
                 var financialChangeDtos = financialChanges.Select(change => new UserFinancialChangesDto
                 {
-                    UserId = change.UserId,
+                    RequestId = change.RequestId,
                     Description = change.Description,
                     IsComplete = change.IsComplete,
                     IsDeleted = change.IsDeleted
@@ -334,7 +370,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.RequestId == id && !change.IsDeleted);
                 if (financialChange == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
@@ -342,7 +378,7 @@ namespace PRX.Controllers.User
 
                 var financialChangeDto = new UserFinancialChangesDto
                 {
-                    UserId = financialChange.UserId,
+                    RequestId = financialChange.RequestId,
                     Description = financialChange.Description,
                     IsComplete = financialChange.IsComplete,
                     IsDeleted = financialChange.IsDeleted
@@ -371,7 +407,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.RequestId == id && !change.IsDeleted);
                 if (financialChange == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
@@ -407,7 +443,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.UserId == id && !change.IsDeleted);
+                var financialChange = _context.UserFinancialChanges.FirstOrDefault(change => change.RequestId == id && !change.IsDeleted);
                 if (financialChange == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });

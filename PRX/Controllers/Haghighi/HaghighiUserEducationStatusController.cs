@@ -56,12 +56,21 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (educationStatus == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound});
@@ -94,7 +103,7 @@ namespace PRX.Controllers.Haghighi
 
                 // Check for unique UserId
                 var existingEducationStatus = _context.HaghighiUserEducationStatuses
-                                                      .FirstOrDefault(es => es.UserId == educationStatusDto.UserId);
+                                                      .FirstOrDefault(es => es.RequestId == educationStatusDto.RequestId);
 
                 if (existingEducationStatus != null)
                 {
@@ -103,7 +112,7 @@ namespace PRX.Controllers.Haghighi
 
                 var educationStatus = new HaghighiUserEducationStatus
                 {
-                    UserId = educationStatusDto.UserId,
+                    RequestId = educationStatusDto.RequestId,
                     LastDegree = educationStatusDto.LastDegree,
                     FieldOfStudy = educationStatusDto.FieldOfStudy,
                     GraduationYear = educationStatusDto.GraduationYear,
@@ -141,18 +150,27 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (educationStatus == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
                 }
 
-                educationStatus.UserId = educationStatusDto.UserId;
+                educationStatus.RequestId = educationStatusDto.RequestId;
                 educationStatus.LastDegree = educationStatusDto.LastDegree;
                 educationStatus.FieldOfStudy = educationStatusDto.FieldOfStudy;
                 educationStatus.GraduationYear = educationStatusDto.GraduationYear;
@@ -190,12 +208,21 @@ namespace PRX.Controllers.Haghighi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+
+                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (educationStatus == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
@@ -251,7 +278,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id);
+                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.RequestId == id);
                 if (educationStatus == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
@@ -287,13 +314,22 @@ namespace PRX.Controllers.Haghighi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
@@ -320,7 +356,7 @@ namespace PRX.Controllers.Haghighi
                 var statuses = _context.HaghighiUserEducationStatuses.ToList();
                 var statusDtos = statuses.Select(status => new HaghighiUserEducationStatusDto
                 {
-                    UserId = status.UserId,
+                    RequestId = status.RequestId,
                     LastDegree = status.LastDegree,
                     FieldOfStudy = status.FieldOfStudy,
                     GraduationYear = status.GraduationYear,
@@ -352,7 +388,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.RequestId == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
@@ -360,7 +396,7 @@ namespace PRX.Controllers.Haghighi
 
                 var statusDto = new HaghighiUserEducationStatusDto
                 {
-                    UserId = status.UserId,
+                    RequestId = status.RequestId,
                     LastDegree = status.LastDegree,
                     FieldOfStudy = status.FieldOfStudy,
                     GraduationYear = status.GraduationYear,
@@ -394,7 +430,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.RequestId == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
@@ -433,7 +469,7 @@ namespace PRX.Controllers.Haghighi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.UserId == id && !s.IsDeleted);
+                var status = _context.HaghighiUserEducationStatuses.FirstOrDefault(s => s.RequestId == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using PRX.Models.User;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PRX.Models.Haghighi
 {
@@ -7,7 +9,10 @@ namespace PRX.Models.Haghighi
         [Key]
         public int Id { get; set; }
 
-        public int UserId { get; set; }
+        [Required]
+        [ForeignKey("Request")]
+        public int RequestId { get; set; }
+        //public int UserId { get; set; }
 
         [Required]
         public string TradeCode { get; set; } // کد معاملاتی
@@ -39,7 +44,7 @@ namespace PRX.Models.Haghighi
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
 
-        public PRX.Models.User.User User { get; set; }
+        public Request Request { get; set; }
 
     }
 }

@@ -86,12 +86,21 @@ namespace PRX.Controllers.User
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAssets = _context.UserAssets.Where(u => u.UserId == id && !u.IsDeleted).ToList();
+                var userAssets = _context.UserAssets.Where(u => u.RequestId == id && !u.IsDeleted).ToList();
                 if (!userAssets.Any())
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -99,7 +108,7 @@ namespace PRX.Controllers.User
 
                 var userAssetDtos = userAssets.Select(userAsset => new UserAssetDto
                 {
-                    UserId = userAsset.UserId,
+                    RequestId = userAsset.RequestId,
                     AssetTypeId = userAsset.AssetTypeId,
                     AssetValue = userAsset.AssetValue,
                     AssetPercentage = userAsset.AssetPercentage,
@@ -165,7 +174,7 @@ namespace PRX.Controllers.User
             {
                 var userAsset = new UserAsset
                 {
-                    UserId = userAssetDto.UserId,
+                    RequestId = userAssetDto.RequestId,
                     AssetTypeId = userAssetDto.AssetTypeId,
                     AssetValue = userAssetDto.AssetValue
                 };
@@ -174,7 +183,7 @@ namespace PRX.Controllers.User
                 _context.SaveChanges();
 
                 // Recalculate the percentages
-                CalculateAndSetAssetPercentages(userAssetDto.UserId);
+                CalculateAndSetAssetPercentages(userAssetDto.RequestId);
 
                 return CreatedAtAction(nameof(GetUserAssetById), new { id = userAsset.Id }, userAsset);
             }
@@ -247,25 +256,34 @@ namespace PRX.Controllers.User
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAsset = _context.UserAssets.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userAsset == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
                 }
 
-                userAsset.UserId = userAssetDto.UserId;
+                userAsset.RequestId = userAssetDto.RequestId;
                 userAsset.AssetTypeId = userAssetDto.AssetTypeId;
                 userAsset.AssetValue = userAssetDto.AssetValue;
 
                 _context.SaveChanges();
 
                 // Recalculate the percentages
-                CalculateAndSetAssetPercentages(userAssetDto.UserId);
+                CalculateAndSetAssetPercentages(userAssetDto.RequestId);
 
                 return NoContent();
             }
@@ -295,12 +313,21 @@ namespace PRX.Controllers.User
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAsset = _context.UserAssets.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
                 if (userAsset == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -328,7 +355,7 @@ namespace PRX.Controllers.User
         {
             try
             {
-                var record = _context.UserAssets.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -362,13 +389,22 @@ namespace PRX.Controllers.User
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.UserAssets.FirstOrDefault(e => e.UserId == id);
+                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -395,7 +431,7 @@ namespace PRX.Controllers.User
                 var userAssets = _context.UserAssets.ToList();
                 var userAssetDtos = userAssets.Select(asset => new UserAssetDto
                 {
-                    UserId = asset.UserId,
+                    RequestId = asset.RequestId,
                     AssetTypeId = asset.AssetTypeId,
                     AssetValue = asset.AssetValue,
                     AssetPercentage = asset.AssetPercentage,
@@ -434,7 +470,7 @@ namespace PRX.Controllers.User
 
                 var userAssetDto = new UserAssetDto
                 {
-                    UserId = userAsset.UserId,
+                    RequestId = userAsset.RequestId,
                     AssetTypeId = userAsset.AssetTypeId,
                     AssetValue = userAsset.AssetValue,
                     AssetPercentage = userAsset.AssetPercentage,
@@ -471,7 +507,7 @@ namespace PRX.Controllers.User
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
                 }
 
-                userAsset.UserId = userAssetDto.UserId;
+                userAsset.RequestId = userAssetDto.RequestId;
                 userAsset.AssetTypeId = userAssetDto.AssetTypeId;
                 userAsset.AssetValue = userAssetDto.AssetValue;
                 userAsset.AssetPercentage = userAssetDto.AssetPercentage;
@@ -490,7 +526,7 @@ namespace PRX.Controllers.User
 
         private void CalculateAndSetAssetPercentages(int userId)
         {
-            var userAssets = _context.UserAssets.Where(u => u.UserId == userId && !u.IsDeleted).ToList();
+            var userAssets = _context.UserAssets.Where(u => u.RequestId == userId && !u.IsDeleted).ToList();
             var totalAssetValue = userAssets.Sum(a => a.AssetValue);
 
             foreach (var asset in userAssets)

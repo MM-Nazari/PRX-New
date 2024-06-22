@@ -133,6 +133,7 @@
         // Quiz Answer
         public const string QuizAnswerNotFound = "جواب متناسب با کاربر یافت نشد";
         public const string QuizAnswerIsNull = "جواب کاربر نمیتواند خالی باشد";
+        public const string DuplicateAnswerOption = "این گزینه قبلا برای کاربر ثبت شده است";
 
         // Quiz Answer Option
         public const string QuizAnswerOptionNotFound = "گظینه انتخاب شده متناسب با کاربر یافت نشد";
@@ -171,6 +172,11 @@
         public const string LogoutSuccessfully = "عملیات خروج کاربر از سامانه با موفقیت انجام شد";
         public const string LogoutNotLoggedin = "کاربر قبلا به سامانه وارد نشده است";
         public const string LogoutInvalidToken = "توکن نامعتبر است";
+
+
+        // Request
+
+        public const string RequestNotFound = "درخواست متناسب با اطلاعات داده شده پیدا نشد";
 
         // 500
         public const string InternalServerError = "ارور داخلی سرور";

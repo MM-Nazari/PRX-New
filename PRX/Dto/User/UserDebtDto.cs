@@ -4,9 +4,10 @@ namespace PRX.Dto.User
 {
     public class UserDebtDto
     {
-   
-        public int UserId { get; set; }
-        
+
+        //public int UserId { get; set; }
+        public int RequestId { get; set; }
+
         public string DebtTitle { get; set; }
         
         public decimal DebtAmount { get; set; }

@@ -2,7 +2,8 @@
 {
     public class HaghighiUserFinancialProfileDto
     {
-        public int UserId { get; set; }
+        //public int UserId { get; set; }
+        public int RequestId { get; set; }
         public decimal MainContinuousIncome { get; set; }
         public decimal OtherIncomes { get; set; }
         public decimal SupportFromOthers { get; set; }

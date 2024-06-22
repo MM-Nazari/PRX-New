@@ -4,7 +4,8 @@ namespace PRX.Dto.Haghighi
 {
     public class HaghighiUserBankInfoDto
     {
-        public int UserId { get; set; }
+        //public int UserId { get; set; }
+        public int RequestId { get; set; }
 
 
         public string TradeCode { get; set; } // کد معاملاتی

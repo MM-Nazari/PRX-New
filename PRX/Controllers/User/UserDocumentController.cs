@@ -36,14 +36,17 @@ namespace PRX.Controllers.User
 
             try
             {
-                var user = await _context.Users.FindAsync(documentDto.UserId);
+                var user = await _context.Users.FindAsync(documentDto.RequestId);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserNotFound });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (documentDto.UserId != tokenUserId)
+
+
+
+                if (documentDto.RequestId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
@@ -63,17 +66,17 @@ namespace PRX.Controllers.User
                 switch (fileExtension)
                 {
                     case ".pdf":
-                        fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.pdf";
+                        fileName = $"{documentDto.RequestId}-{documentDto.DocumentType}.pdf";
                         break;
                     case ".png":
-                        fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.png";
+                        fileName = $"{documentDto.RequestId}-{documentDto.DocumentType}.png";
                         break;
                     case ".jpeg":
                     case ".jpg":
-                        fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.jpeg";
+                        fileName = $"{documentDto.RequestId}-{documentDto.DocumentType}.jpeg";
                         break;
                     case ".zip": // Handle .zip files
-                        fileName = $"{documentDto.UserId}-{documentDto.DocumentType}.zip";
+                        fileName = $"{documentDto.RequestId}-{documentDto.DocumentType}.zip";
                         break;
                     default:
                         return BadRequest(new { message = ResponseMessages.UserFileFormatConfliction });
@@ -95,7 +98,7 @@ namespace PRX.Controllers.User
                 // Save the file path to the database
                 var userDocument = new UserDocument
                 {
-                    UserId = documentDto.UserId, // Correct casing for UserID
+                    RequestId = documentDto.RequestId, // Correct casing for UserID
                     DocumentType = documentDto.DocumentType,
                     FilePath = filePath,
                     IsDeleted = false
@@ -144,7 +147,7 @@ namespace PRX.Controllers.User
                 }
 
                 // Find the existing document by userId and documentType
-                var existingDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+                var existingDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == userId && d.DocumentType == documentType);
                 if (existingDocument == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDocNotFound });
@@ -279,6 +282,29 @@ namespace PRX.Controllers.User
         //}
 
 
+        [HttpGet("UserDocuments/{userId}")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> GetUserDocuments(int userId)
+        {
+            try
+            {
+                if (userId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userDocuments = await _context.UserDocuments.Where(d => d.RequestId == userId).ToListAsync();
+                return Ok(userDocuments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+
+
+
         [HttpGet("UserDocuments/{userId}/{documentType}")]
         [Authorize(Roles = "User")]
         public async Task<IActionResult> GetDocument(int userId, string documentType)
@@ -303,7 +329,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == userId && d.DocumentType == documentType);
                 if (userDocument == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDocNotFound });
@@ -346,7 +372,7 @@ namespace PRX.Controllers.User
                     return NotFound(new { message = ResponseMessages.UserNotFound });
                 }
 
-                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == userId && d.DocumentType == documentType);
                 if (userDocument == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDocNotFound });
@@ -371,7 +397,7 @@ namespace PRX.Controllers.User
         // Admin endpoints
         [HttpGet("UserDocuments/Admin/{userId}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUserDocuments(int userId)
+        public async Task<IActionResult> GetUserDocumentsAdmin(int userId)
         {
             try
             {
@@ -380,7 +406,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userDocuments = await _context.UserDocuments.Where(d => d.UserId == userId).ToListAsync();
+                var userDocuments = await _context.UserDocuments.Where(d => d.RequestId == userId).ToListAsync();
                 return Ok(userDocuments);
             }
             catch (Exception ex)
@@ -415,7 +441,7 @@ namespace PRX.Controllers.User
                     return NotFound(new { message = ResponseMessages.UserNotFound });
                 }
 
-                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.UserId == userId && d.DocumentType == documentType);
+                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == userId && d.DocumentType == documentType);
                 if (userDocument == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDocNotFound });
@@ -489,7 +515,7 @@ namespace PRX.Controllers.User
                 // Map UserDocument entities to DTOs
                 var documentDtos = userDocuments.Select(document => new UserDocumentDto
                 {
-                    UserId = document.UserId,
+                    RequestId = document.RequestId,
                     DocumentType = document.DocumentType,
                     //FilePath = document.FilePath,
                     IsDeleted = document.IsDeleted

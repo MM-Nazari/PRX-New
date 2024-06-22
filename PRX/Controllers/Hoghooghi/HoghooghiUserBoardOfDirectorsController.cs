@@ -51,13 +51,20 @@ namespace PRX.Controllers.Hoghooghi
                 }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -90,7 +97,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var record = new HoghooghiUserBoardOfDirectors
                 {
-                    UserId = dto.UserId,
+                    RequestId = dto.RequestId,
                     FullName = dto.FullName,
                     Position = dto.Position,
                     EducationalLevel = dto.EducationalLevel,
@@ -129,18 +136,26 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
                 }
 
-                record.UserId = dto.UserId;
+                record.RequestId = dto.RequestId;
                 record.FullName = dto.FullName;
                 record.Position = dto.Position;
                 record.EducationalLevel = dto.EducationalLevel;
@@ -182,12 +197,20 @@ namespace PRX.Controllers.Hoghooghi
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                // Ensure that the user is updating their own profile
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id && !e.IsDeleted);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -243,7 +266,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -278,13 +301,22 @@ namespace PRX.Controllers.Hoghooghi
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                if (id != tokenUserId)
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
 
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.UserId == id);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == id);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -310,7 +342,7 @@ namespace PRX.Controllers.Hoghooghi
                 var directors = _context.HoghooghiUserBoardOfDirectors.ToList();
                 var directorDtos = directors.Select(director => new HoghooghiUserBoardOfDirectorsDto
                 {
-                    UserId = director.UserId,
+                    RequestId = director.RequestId,
                     FullName = director.FullName,
                     Position = director.Position,
                     EducationalLevel = director.EducationalLevel,
@@ -343,7 +375,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == id && !d.IsDeleted);
                 if (director == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -351,7 +383,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var directorDto = new HoghooghiUserBoardOfDirectorsDto
                 {
-                    UserId = director.UserId,
+                    RequestId = director.RequestId,
                     FullName = director.FullName,
                     Position = director.Position,
                     EducationalLevel = director.EducationalLevel,
@@ -386,7 +418,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == id && !d.IsDeleted);
                 if (director == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -425,7 +457,7 @@ namespace PRX.Controllers.Hoghooghi
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.UserId == id && !d.IsDeleted);
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == id && !d.IsDeleted);
                 if (director == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound});
