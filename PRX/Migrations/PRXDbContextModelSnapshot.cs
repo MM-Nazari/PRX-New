@@ -877,6 +877,59 @@ namespace PRX.Migrations
                     b.ToTable("Tickets");
                 });
 
+            modelBuilder.Entity("PRX.Models.User.DataChangeLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BirthCertificateNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DataChangeLogs");
+                });
+
             modelBuilder.Entity("PRX.Models.User.Request", b =>
                 {
                     b.Property<int>("Id")
@@ -1600,6 +1653,17 @@ namespace PRX.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("PRX.Models.User.DataChangeLog", b =>
+                {
+                    b.HasOne("PRX.Models.User.User", "User")
+                        .WithMany("DataChangeLogs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PRX.Models.User.Request", b =>
                 {
                     b.HasOne("PRX.Models.User.User", "User")
@@ -1855,6 +1919,8 @@ namespace PRX.Migrations
 
             modelBuilder.Entity("PRX.Models.User.User", b =>
                 {
+                    b.Navigation("DataChangeLogs");
+
                     b.Navigation("Messages");
 
                     b.Navigation("Tickets");

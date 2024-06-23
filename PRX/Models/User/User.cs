@@ -88,6 +88,7 @@ namespace PRX.Models.User
 
         public List<PRX.Models.Ticket.Ticket> Tickets { get; set; }
         public List<PRX.Models.Ticket.Message> Messages { get; set; }
+        public List<DataChangeLog> DataChangeLogs { get; set; }
 
 
 

@@ -193,6 +193,24 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.UserRefernceCodeIsInvalid });
                 }
 
+                // Log the data change
+                var dataChangeLog = new DataChangeLog
+                {
+                    UserId = user.Id,
+                    Role = "User",
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    BirthCertificateNumber = user.BirthCertificateNumber,
+                    Username = user.Username,
+                    PhoneNumber = user.PhoneNumber,
+                    Type = "all",
+                    Action = "INSERT",
+                    Timestamp = DateTime.UtcNow
+                };
+
+                _context.DataChangeLogs.Add(dataChangeLog);
+                _context.SaveChanges();
+
                 // Return the created user
                 return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
             }
@@ -235,6 +253,25 @@ namespace PRX.Controllers.User
             };
 
             _context.Users.Add(admin);
+            _context.SaveChanges();
+
+
+            // Log the data change
+            var dataChangeLog = new DataChangeLog
+            {
+                UserId = admin.Id,
+                Role = "Admin",
+                FirstName = admin.FirstName,
+                LastName = admin.LastName,
+                BirthCertificateNumber = admin.BirthCertificateNumber,
+                Username = admin.Username,
+                PhoneNumber = admin.PhoneNumber,
+                Type = "all",
+                Action = "INSERT",
+                Timestamp = DateTime.UtcNow
+            };
+
+            _context.DataChangeLogs.Add(dataChangeLog);
             _context.SaveChanges();
 
             return CreatedAtAction(nameof(GetUserById), new { id = admin.Id }, admin);
@@ -729,7 +766,7 @@ namespace PRX.Controllers.User
         // by ID Endpoints
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "User, Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -765,6 +802,7 @@ namespace PRX.Controllers.User
                 {
                     Id = user.Id,
                     PhoneNumber = user.PhoneNumber,
+                    Username = user.Username,
                     ReferenceCode = user.ReferenceCode,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
@@ -785,8 +823,24 @@ namespace PRX.Controllers.User
             throw new NotImplementedException();
         }
 
+
+        private List<string> GetChangedFields(PRX.Models.User.User oldUser, UserDto newUserDto)
+        {
+            var changedFields = new List<string>();
+
+            if (oldUser.PhoneNumber != newUserDto.PhoneNumber) changedFields.Add(nameof(newUserDto.PhoneNumber));
+            if (oldUser.Username != newUserDto.Username) changedFields.Add(nameof(newUserDto.Username));
+            //if (oldUser.ReferenceCode != newUserDto.ReferenceCode) changedFields.Add(nameof(newUserDto.ReferenceCode));
+            if (oldUser.FirstName != newUserDto.FirstName) changedFields.Add(nameof(newUserDto.FirstName));
+            if (oldUser.LastName != newUserDto.LastName) changedFields.Add(nameof(newUserDto.LastName));
+            if (oldUser.BirthCertificateNumber != newUserDto.BirthCertificateNumber) changedFields.Add(nameof(newUserDto.BirthCertificateNumber));
+            //if (!string.IsNullOrEmpty(newUserDto.Password)) changedFields.Add(nameof(newUserDto.Password)); // Only check if password is provided
+
+            return changedFields;
+        }
+
         [HttpPut("{id}")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "User, Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -797,13 +851,10 @@ namespace PRX.Controllers.User
         {
             try
             {
-
-
                 if (id <= 0)
                 {
-                    return BadRequest(new { message = ResponseMessages.InvalidId});
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
-
 
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
@@ -811,7 +862,7 @@ namespace PRX.Controllers.User
                 // Ensure that the user is updating their own data
                 if (id != tokenUserId)
                 {
-                    return Unauthorized(new { message = ResponseMessages.Unauthorized });  // Or return 403 Forbidden
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
                 // Find the user to update
@@ -821,8 +872,12 @@ namespace PRX.Controllers.User
                     return NotFound(new { message = ResponseMessages.UserNotFound });
                 }
 
+                // Get changed fields
+                var changedFields = GetChangedFields(user, userDto);
+
                 // Update the user properties
                 user.PhoneNumber = userDto.PhoneNumber;
+                user.Username = userDto.Username;
                 user.ReferenceCode = userDto.ReferenceCode;
                 user.FirstName = userDto.FirstName;
                 user.LastName = userDto.LastName;
@@ -838,18 +893,119 @@ namespace PRX.Controllers.User
                 // Save changes to database
                 _context.SaveChanges();
 
+                // Determine the type based on the number of changed fields
+                string type;
+                if (changedFields.Count == 0)
+                {
+                    return NoContent();
+                }
+                else if (changedFields.Count == 1)
+                {
+                    type = changedFields.First();
+                }
+                else if (changedFields.Count == 6) // If all fields except password have changed
+                {
+                    type = "all";
+                }
+                else
+                {
+                    type = "many";
+                }
+
+                // Log the data change
+                var dataChangeLog = new DataChangeLog
+                {
+                    UserId = user.Id,
+                    Role = user.Role,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    BirthCertificateNumber = user.BirthCertificateNumber,
+                    Username = user.Username,
+                    PhoneNumber = user.PhoneNumber,
+                    Type = type,
+                    Action = "UPDATE",
+                    Timestamp = DateTime.UtcNow
+                };
+
+                _context.DataChangeLogs.Add(dataChangeLog);
+                _context.SaveChanges();
+
                 // Return 204 No Content
                 return NoContent();
             }
             catch (Exception ex)
             {
-
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
 
+
+        //[HttpPut("{id}")]
+        //[Authorize(Roles = "User, Admin")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status204NoContent)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status403Forbidden)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        //public IActionResult UpdateUser(int id, [FromBody] UserDto userDto)
+        //{
+        //    try
+        //    {
+
+
+        //        if (id <= 0)
+        //        {
+        //            return BadRequest(new { message = ResponseMessages.InvalidId});
+        //        }
+
+
+        //        // Retrieve the user ID from the token
+        //        var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+        //        // Ensure that the user is updating their own data
+        //        if (id != tokenUserId)
+        //        {
+        //            return Unauthorized(new { message = ResponseMessages.Unauthorized });  // Or return 403 Forbidden
+        //        }
+
+        //        // Find the user to update
+        //        var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+        //        if (user == null)
+        //        {
+        //            return NotFound(new { message = ResponseMessages.UserNotFound });
+        //        }
+
+        //        // Update the user properties
+        //        user.PhoneNumber = userDto.PhoneNumber;
+        //        user.Username = userDto.Username;
+        //        user.ReferenceCode = userDto.ReferenceCode;
+        //        user.FirstName = userDto.FirstName;
+        //        user.LastName = userDto.LastName;
+        //        user.BirthCertificateNumber = userDto.BirthCertificateNumber;
+
+        //        // If password is provided in the DTO, hash and update the password
+        //        if (!string.IsNullOrEmpty(userDto.Password))
+        //        {
+        //            var hashedPassword = _utils.HashPassword(userDto.Password);
+        //            user.Password = hashedPassword;
+        //        }
+
+        //        // Save changes to database
+        //        _context.SaveChanges();
+
+        //        // Return 204 No Content
+        //        return NoContent();
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+        //    }
+        //}
+
         [HttpDelete("{id}")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "User, Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

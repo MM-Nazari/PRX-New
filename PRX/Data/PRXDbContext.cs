@@ -46,6 +46,7 @@ namespace PRX.Data
         public DbSet<UserDocument> UserDocuments { get; set; }
         public DbSet<UserReference> UserReferences { get; set; }
         public DbSet<Request> Requests { get; set; }
+        public DbSet<DataChangeLog> DataChangeLogs { get; set; }
 
 
 
@@ -190,6 +191,11 @@ namespace PRX.Data
            .IsRequired();
 
             modelBuilder.Entity<Request>()
+           .Property(e => e.Id)
+           .ValueGeneratedOnAdd()
+           .IsRequired();
+
+            modelBuilder.Entity<DataChangeLog>()
            .Property(e => e.Id)
            .ValueGeneratedOnAdd()
            .IsRequired();
@@ -641,6 +647,11 @@ namespace PRX.Data
                .HasOne(u => u.UserReference)
                .WithOne(p => p.User)
                .HasForeignKey<UserReference>(p => p.UserId);
+
+            modelBuilder.Entity<User>()
+             .HasMany(u => u.DataChangeLogs)
+             .WithOne(r => r.User)
+             .HasForeignKey(r => r.UserId);
 
 
 

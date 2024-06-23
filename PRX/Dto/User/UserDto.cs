@@ -8,7 +8,7 @@ namespace PRX.Dto.User
         
         public string PhoneNumber { get; set; }
 
-        //public string Username { get; set; }
+        public string Username { get; set; }
 
         public string Password { get; set; } // Add Password field
         
