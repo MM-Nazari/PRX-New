@@ -17,6 +17,7 @@
         public const string PhoneExistanseFalse = "no";
 
         public const string UsersPhoneExists = " این شماره تلفن قبلا ثبت شده است ";
+        public const string UsersBirthCertificateExists = "این شماره ملی قبلا ثبت شده است";
 
         public const string UserNotExists = "حساب کاربری با این شماره تلفن وجود ندارد ";
         public const string PasswordIncorrect = "رمز عبور اشتباه است";
@@ -25,7 +26,11 @@
         public const string Unauthorized = "شناسه کاربری با شناسه توکن مطابقت ندارد ";
         public const string Forbidden = "امکان دسترسی بدلیل عدم تطابق نقش وجود ندارد ";
 
-        
+        public const string UsersUsernameExists = "نام کاربری تکراری است";
+
+        public const string AdminNotExists = "ادمین با مشخصات داده شده یافت نشد";
+
+
 
 
         // User Asset

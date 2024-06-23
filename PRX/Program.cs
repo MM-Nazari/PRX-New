@@ -15,6 +15,7 @@ using Microsoft.Extensions.Caching.Memory;
 using DotNet.RateLimiter;
 using PRX;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Data.SqlClient;
 
 
 
@@ -45,6 +46,21 @@ builder.Services.AddCors(options =>
                    .AllowAnyMethod();
         });
 });
+
+//string connectionString = "Server=Pirhayati\\MSSQLSERVER01;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;";
+
+//using (SqlConnection connection = new SqlConnection(connectionString))
+//{
+//    try
+//    {
+//        connection.Open();
+//        Console.WriteLine("Connection successful!");
+//    }
+//    catch (Exception ex)
+//    {
+//        Console.WriteLine("Connection failed: " + ex.Message);
+//    }
+//}
 
 builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
             options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
@@ -311,7 +327,7 @@ builder.Services.AddSwaggerGen(c =>
 
         // Users Groups
         // Include controllers with specific group names
-        var allowedGroups = new[] { "Requests", "Messages", "Tickets", "Users", "Admins", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserBankInfo" ,"HaghighiUserFinancialProfiles", "UserDocuments", "UserAssets", "UserAssetTypes", "UserDebts", "UserFinancialChanges", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"}; 
+        var allowedGroups = new[] { "Requests", "Messages", "Tickets", "Users", "Admins", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserBankInfo" /*,"HaghighiUserFinancialProfiles", "UserDocuments", "UserAssets", "UserAssetTypes", "UserDebts", "UserFinancialChanges", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"*/}; 
         return allowedGroups.Contains(apiDesc.GroupName);
 
 

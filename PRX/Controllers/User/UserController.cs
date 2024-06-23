@@ -17,6 +17,7 @@ using Kavenegar;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using DotNet.RateLimiter.ActionFilters;
+using PRX.Dto.Admin;
 
 namespace PRX.Controllers.User
 {
@@ -78,7 +79,8 @@ namespace PRX.Controllers.User
         }
 
 
-        [HttpPost]
+
+        [HttpPost("Register")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -93,13 +95,35 @@ namespace PRX.Controllers.User
 
             try
             {
-                // Optional: Check if user already exists
-                var existingUser = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
-                if (existingUser != null)
+                // Check for existing user by PhoneNumber, excluding empty strings
+                if (!string.IsNullOrWhiteSpace(userDto.PhoneNumber))
                 {
-                    return BadRequest(new { message = ResponseMessages.UsersPhoneExists });
+                    var existingUserByPhone = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
+                    if (existingUserByPhone != null)
+                    {
+                        return BadRequest(new { message = ResponseMessages.UsersPhoneExists });
+                    }
                 }
 
+                // Check for existing user by BirthCertificateNumber, excluding empty strings
+                if (!string.IsNullOrWhiteSpace(userDto.BirthCertificateNumber))
+                {
+                    var existingUserByBirthCertificate = _context.Users.FirstOrDefault(u => u.BirthCertificateNumber == userDto.BirthCertificateNumber);
+                    if (existingUserByBirthCertificate != null)
+                    {
+                        return BadRequest(new { message = ResponseMessages.UsersBirthCertificateExists });
+                    }
+                }
+
+                // Check for existing user by Username, excluding empty strings
+                //if (!string.IsNullOrWhiteSpace(userDto.Username))
+                //{
+                //    var existingUserByUsername = _context.Users.FirstOrDefault(u => u.Username == userDto.Username);
+                //    if (existingUserByUsername != null)
+                //    {
+                //        return BadRequest(new { message = ResponseMessages.UsersUsernameExists });
+                //    }
+                //}
 
                 int referencedUserId;
 
@@ -110,12 +134,6 @@ namespace PRX.Controllers.User
                 }
                 else
                 {
-                    // Check if the reference code is in the format "PRX-{UserId}"
-                    //if (!Regex.IsMatch(userDto.ReferenceCode, @"^PRX-\d+$"))
-                    //{
-                    //    return BadRequest(new { message = ResponseMessages.UserRefernceCodeIsInvalid });
-                    //}
-
                     // Check if the reference code is in the correct format
                     if (!Regex.IsMatch(userDto.ReferenceCode, @"^PRX-\d{1,}-\d{6}$"))
                     {
@@ -141,22 +159,14 @@ namespace PRX.Controllers.User
                     Password = hashedPassword,
                     PhoneNumber = userDto.PhoneNumber,
                     FirstName = userDto.FirstName,
-                    LastName = userDto.LastName,    
-                    BirthCertificateNumber = userDto.BirthCertificateNumber
+                    LastName = userDto.LastName,
+                    BirthCertificateNumber = userDto.BirthCertificateNumber,
+                    Username = ""
                 };
 
                 // Add user to database
                 _context.Users.Add(user);
                 _context.SaveChanges();
-
-
-                //// Call the SMS verification API to verify the OTP
-                //var isOtpVerified = await VerifyOtp(userDto.PhoneNumber, userDto.otp);
-                //if (!isOtpVerified)
-                //{
-                //    return BadRequest(new { message = "OTP verification failed." });
-                //}
-
 
                 // Generate reference code using the user's ID
                 var referenceCode = GenerateReferenceCode(user.Id);
@@ -183,16 +193,6 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.UserRefernceCodeIsInvalid });
                 }
 
-                var userReference = new UserReference
-                {
-                    UserId = user.Id,
-                    ReferencedUser = referencedUserId
-                };
-
-                // Add user reference to database
-                _context.UserReferences.Add(userReference);
-                _context.SaveChanges();
-
                 // Return the created user
                 return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
             }
@@ -201,6 +201,198 @@ namespace PRX.Controllers.User
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
+
+        [HttpPost("Admin/Register")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult RegisterAdmin([FromBody] AdminDto adminDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Check for existing user by Username, excluding empty strings
+            if (!string.IsNullOrWhiteSpace(adminDto.Username))
+            {
+                var existingUserByUsername = _context.Users.FirstOrDefault(u => u.Username == adminDto.Username);
+                if (existingUserByUsername != null)
+                {
+                    return BadRequest(new { message = ResponseMessages.UsersUsernameExists });
+                }
+            }
+
+            var admin = new PRX.Models.User.User
+            {
+                Username = adminDto.Username,
+                Password = _utils.HashPassword(adminDto.Password),
+                Role = "Admin",
+                PhoneNumber = "",
+                FirstName = "",
+                LastName = "",
+                BirthCertificateNumber = ""
+            };
+
+            _context.Users.Add(admin);
+            _context.SaveChanges();
+
+            return CreatedAtAction(nameof(GetUserById), new { id = admin.Id }, admin);
+        }
+
+
+        //[HttpPost("Register")]
+        //[AllowAnonymous]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        //public async Task<IActionResult> CreateUserAsync([FromBody] UserDto userDto)
+        //{
+        //    // Validate the DTO if necessary
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    try
+        //    {
+        //        // Optional: Check if user already exists
+        //        var existingUser = _context.Users.FirstOrDefault(u => u.PhoneNumber == userDto.PhoneNumber);
+        //        if (existingUser != null)
+        //        {
+        //            return BadRequest(new { message = ResponseMessages.UsersPhoneExists });
+        //        }
+
+
+        //        int referencedUserId;
+
+        //        // Check if reference code is provided and valid
+        //        if (string.IsNullOrWhiteSpace(userDto.ReferenceCode))
+        //        {
+        //            referencedUserId = 0;
+        //        }
+        //        else
+        //        {
+        //            // Check if the reference code is in the format "PRX-{UserId}"
+        //            //if (!Regex.IsMatch(userDto.ReferenceCode, @"^PRX-\d+$"))
+        //            //{
+        //            //    return BadRequest(new { message = ResponseMessages.UserRefernceCodeIsInvalid });
+        //            //}
+
+        //            // Check if the reference code is in the correct format
+        //            if (!Regex.IsMatch(userDto.ReferenceCode, @"^PRX-\d{1,}-\d{6}$"))
+        //            {
+        //                return BadRequest(new { message = ResponseMessages.UserRefernceCodeFormatIsInvalid });
+        //            }
+
+        //            // Extract the user ID from the reference code
+        //            referencedUserId = ExtractUserIdFromReferenceCode(userDto.ReferenceCode);
+
+        //            // Check if the extracted user ID is valid
+        //            if (referencedUserId <= 0)
+        //            {
+        //                return BadRequest(new { message = ResponseMessages.UserRefernceCodeFormatIsInvalid });
+        //            }
+        //        }
+
+        //        // Hash the password before saving it to the database
+        //        var hashedPassword = _utils.HashPassword(userDto.Password);
+
+        //        // Map DTO to domain model
+        //        var user = new PRX.Models.User.User
+        //        {
+        //            Password = hashedPassword,
+        //            PhoneNumber = userDto.PhoneNumber,
+        //            FirstName = userDto.FirstName,
+        //            LastName = userDto.LastName,    
+        //            BirthCertificateNumber = userDto.BirthCertificateNumber,
+        //            Username = ""
+        //        };
+
+        //        // Add user to database
+        //        _context.Users.Add(user);
+        //        _context.SaveChanges();
+
+
+        //        //// Call the SMS verification API to verify the OTP
+        //        //var isOtpVerified = await VerifyOtp(userDto.PhoneNumber, userDto.otp);
+        //        //if (!isOtpVerified)
+        //        //{
+        //        //    return BadRequest(new { message = "OTP verification failed." });
+        //        //}
+
+
+        //        // Generate reference code using the user's ID
+        //        var referenceCode = GenerateReferenceCode(user.Id);
+
+        //        // Update user with reference code
+        //        user.ReferenceCode = referenceCode;
+        //        _context.SaveChanges();
+
+        //        // Add user reference to database if the random part of the reference code is correct
+        //        if (IsValidRandomPart(referenceCode))
+        //        {
+        //            var UserReference = new UserReference
+        //            {
+        //                UserId = user.Id,
+        //                ReferencedUser = referencedUserId
+        //            };
+
+        //            _context.UserReferences.Add(UserReference);
+        //            _context.SaveChanges();
+        //        }
+        //        else
+        //        {
+        //            // Handle the case where the random part is not valid
+        //            return BadRequest(new { message = ResponseMessages.UserRefernceCodeIsInvalid });
+        //        }
+
+        //        var userReference = new UserReference
+        //        {
+        //            UserId = user.Id,
+        //            ReferencedUser = referencedUserId
+        //        };
+
+        //        // Add user reference to database
+        //        _context.UserReferences.Add(userReference);
+        //        _context.SaveChanges();
+
+        //        // Return the created user
+        //        return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+        //    }
+        //}
+
+        //[HttpPost("Admin/Register")]
+        //[AllowAnonymous]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //public IActionResult RegisterAdmin([FromBody] AdminDto adminDto)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    var admin = new PRX.Models.User.User
+        //    {
+        //        Username = adminDto.Username,
+        //        Password = _utils.HashPassword(adminDto.Password),
+        //        Role = "Admin",
+        //        PhoneNumber = "",
+        //        FirstName = "",
+        //        LastName = "",
+        //        BirthCertificateNumber = ""
+        //    };
+
+        //    _context.Users.Add(admin);
+        //    _context.SaveChanges();
+
+        //    return CreatedAtAction(nameof(GetUserById), new { id = admin.Id }, admin);
+        //}
 
         [HttpPost("verify-otp")]
         [AllowAnonymous]
@@ -395,7 +587,7 @@ namespace PRX.Controllers.User
             try 
             {
                 // Log user login
-                LogUserLogin(user.Id);
+                LogUserLogin(user.Id, user.Role);
 
                 // Generate JWT token
                 var token = GenerateJwtToken(user);
@@ -448,19 +640,91 @@ namespace PRX.Controllers.User
             }
         }
 
-        private void LogUserLogin(int userId)
+        private void LogUserLogin(int userId, string role)
         {
 
             var userLoginLog = new UserLoginLog
             {
                 UserId = userId,
-                LoginTime = DateTime.Now
+                LoginTime = DateTime.Now,
+                Role = role
             };
 
             _context.UserLoginLog.Add(userLoginLog);
             _context.SaveChanges();
         }
 
+
+        [HttpPost("Admin/Login")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult AdminLogin([FromBody] AdminLoginDto adminLoginDto)
+        {
+            var admin = _context.Users.FirstOrDefault(u => u.Username == adminLoginDto.Username && u.Role == "Admin");
+            if (admin == null)
+            {
+                return Unauthorized(new { message = ResponseMessages.AdminNotExists });
+            }
+
+            if (!_utils.VerifyPassword(adminLoginDto.Password, admin.Password))
+            {
+                return BadRequest(new { message = ResponseMessages.PasswordIncorrect });
+            }
+
+            try
+            {
+                // Log admin login
+                LogUserLogin(admin.Id, admin.Role);
+
+                // Generate JWT token
+                var token = GenerateJwtToken(admin);
+
+                return Ok(new { Authorization = token });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+        [HttpPost("Admin/logout")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult AdminLogout()
+        {
+            try
+            {
+                var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (token == null)
+                {
+                    return BadRequest(new { message = ResponseMessages.LogoutNotLoggedin });
+                }
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+
+                if (jwtToken == null)
+                {
+                    return BadRequest(new { message = ResponseMessages.LogoutInvalidToken });
+                }
+
+                // Calculate token expiry
+                var expiry = jwtToken.ValidTo;
+
+                // Blacklist the token
+                _cache.Set(token, "blacklisted", new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = expiry
+                });
+
+                return Ok(new { message = ResponseMessages.LogoutSuccessfully });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
 
         // by ID Endpoints
 
@@ -833,14 +1097,27 @@ namespace PRX.Controllers.User
             const string IdClaimType = "id";
             const string PhoneClaimType = "phone_number";
             const string RoleClaimType = "role";
+            const string UsernameClaimType = "username";
 
             // Create claims for user ID and phone number using custom claim types
             var claims = new List<System.Security.Claims.Claim>
             {
                 new System.Security.Claims.Claim(IdClaimType, user.Id.ToString()),
-                new System.Security.Claims.Claim(PhoneClaimType, user.PhoneNumber),
+                //new System.Security.Claims.Claim(PhoneClaimType, user.PhoneNumber),
                 new System.Security.Claims.Claim(RoleClaimType, user.Role),
             };
+
+            // Add phone number claim only for users
+            if (user.Role == "User")
+            {
+                claims.Add(new System.Security.Claims.Claim(PhoneClaimType, user.PhoneNumber));
+            }
+
+            // Add username claim only for admins
+            if (user.Role == "Admin")
+            {
+                claims.Add(new System.Security.Claims.Claim(UsernameClaimType, user.Username));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],

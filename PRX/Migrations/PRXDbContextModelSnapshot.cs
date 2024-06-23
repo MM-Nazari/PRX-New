@@ -40,12 +40,9 @@ namespace PRX.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Username")
-                        .IsUnique();
 
                     b.ToTable("Admins");
                 });
@@ -277,7 +274,7 @@ namespace PRX.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FathersName")
                         .IsRequired()
@@ -332,9 +329,6 @@ namespace PRX.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("RequestId")
-                        .IsUnique();
-
-                    b.HasIndex("NationalNumber", "Email", "BirthCertificateNumber")
                         .IsUnique();
 
                     b.ToTable("HaghighiUserProfiles");
@@ -940,7 +934,7 @@ namespace PRX.Migrations
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReferenceCode")
                         .IsRequired()
@@ -950,10 +944,11 @@ namespace PRX.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
+                    b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
@@ -1251,6 +1246,10 @@ namespace PRX.Migrations
 
                     b.Property<DateTime>("LoginTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

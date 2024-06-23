@@ -13,6 +13,8 @@ namespace PRX.Models.User
         public DateTime LoginTime { get; set; }
         // You can include other information related to the login, such as IP address, device info, etc.
 
+        public string Role { get; set; }
+
         public User User { get; set; }
         //public Request Request { get; set; }
     }

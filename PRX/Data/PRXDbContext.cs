@@ -321,23 +321,23 @@ namespace PRX.Data
 
             // Admin
 
-            modelBuilder.Entity<Admin>()
-                .HasIndex(p => new { p.Username })
-                .IsUnique();
+            //modelBuilder.Entity<Admin>()
+            //    .HasIndex(p => new { p.Username })
+            //    .IsUnique();
 
 
-            // User
+            //// User
 
-            modelBuilder.Entity<User>()
-            .HasIndex(p => new { p.PhoneNumber })
-            .IsUnique();
+            //modelBuilder.Entity<User>()
+            //.HasIndex(p => new { p.PhoneNumber })
+            //.IsUnique();
 
 
-            // Haghighi
+            //// Haghighi
 
-            modelBuilder.Entity<HaghighiUserProfile>()
-            .HasIndex(p => new { p.NationalNumber, p.Email, p.BirthCertificateNumber })
-            .IsUnique();
+            //modelBuilder.Entity<HaghighiUserProfile>()
+            //.HasIndex(p => new { p.NationalNumber, p.Email, p.BirthCertificateNumber })
+            //.IsUnique();
 
 
             // Hoghooghi
