@@ -149,4 +149,15 @@ C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Pipelines.Sockets.Unoffi
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\RedLockNet.Abstractions.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\RedLockNet.SERedis.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\StackExchange.Redis.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\ClosedXML.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\DocumentFormat.OpenXml.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\DocumentFormat.OpenXml.Framework.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\ExcelNumberFormat.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Irony.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\SixLabors.Fonts.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\System.IO.Packaging.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\XLParser.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Xceed.Document.NET.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Xceed.PDF.NET.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Xceed.Words.NET.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\obj\Debug\net8.0\PRX.csproj.CopyComplete

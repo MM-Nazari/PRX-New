@@ -17,7 +17,7 @@
         public int? AdminId { get; set; }
 
         public PRX.Models.User.User UserSender { get; set; }
-        public PRX.Models.Admin.Admin AdminSender { get; set; }
+        
         public Ticket Ticket { get; set; }
     }
 

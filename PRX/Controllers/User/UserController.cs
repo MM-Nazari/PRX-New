@@ -17,7 +17,6 @@ using Kavenegar;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using DotNet.RateLimiter.ActionFilters;
-using PRX.Dto.Admin;
 
 namespace PRX.Controllers.User
 {

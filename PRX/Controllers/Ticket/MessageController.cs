@@ -276,7 +276,7 @@ namespace PRX.Controllers.Ticket
                     SentAt = DateTime.UtcNow,
                     IsDeleted = false,
                     UserId = senderId,
-                    AdminId = null
+                    AdminId = messageDto?.AdminId
                 };
 
                 _context.Messages.Add(message);
@@ -321,7 +321,7 @@ namespace PRX.Controllers.Ticket
                     Content = messageDto.Content,
                     SentAt = DateTime.UtcNow,
                     IsDeleted = false,
-                    UserId = null,
+                    UserId = messageDto.UserId,
                     AdminId = senderId
                 };
 

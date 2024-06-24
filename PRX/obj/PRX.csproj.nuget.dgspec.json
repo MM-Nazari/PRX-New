@@ -44,6 +44,14 @@
               "target": "Package",
               "version": "[4.0.3, )"
             },
+            "ClosedXML": {
+              "target": "Package",
+              "version": "[0.102.2, )"
+            },
+            "DocumentFormat.OpenXml": {
+              "target": "Package",
+              "version": "[3.0.2, )"
+            },
             "DotNetRateLimiter": {
               "target": "Package",
               "version": "[2.0.0, )"
@@ -111,6 +119,14 @@
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[7.5.1, )"
+            },
+            "Xceed.Pdf": {
+              "target": "Package",
+              "version": "[3.0.24152.1219, )"
+            },
+            "Xceed.Words.NET": {
+              "target": "Package",
+              "version": "[3.0.24152.1219, )"
             }
           },
           "imports": [

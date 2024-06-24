@@ -4,7 +4,6 @@ using PRX.Models.Hoghooghi;
 using PRX.Models.Hoghooghis.Hoghooghi;
 using PRX.Models.Quiz;
 using PRX.Models.User;
-using PRX.Models.Admin;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using PRX.Models.Ticket;
@@ -24,7 +23,7 @@ namespace PRX.Data
 
         // Admin 
 
-        public DbSet<Admin> Admins { get; set; }
+        //public DbSet<Admin> Admins { get; set; }
 
 
         // User set
@@ -103,14 +102,6 @@ namespace PRX.Data
             //
             // Primary Key & Auto Increament
             //
-
-            // Admin
-
-            modelBuilder.Entity<Admin>()
-            .Property(e => e.Id)
-            .ValueGeneratedOnAdd()
-            .IsRequired();
-
 
             // User
 
@@ -313,11 +304,11 @@ namespace PRX.Data
                 .HasForeignKey(m => m.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Message>()
-                .HasOne(m => m.AdminSender)
-                .WithMany()
-                .HasForeignKey(m => m.AdminId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //modelBuilder.Entity<Message>()
+            //    .HasOne(m => m.AdminSender)
+            //    .WithMany()
+            //    .HasForeignKey(m => m.AdminId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
 
 
@@ -772,10 +763,10 @@ namespace PRX.Data
                 .WithOne(r => r.UserSender)
                 .HasForeignKey(r => r.SenderId);
 
-            modelBuilder.Entity<Admin>()
-                .HasMany(u => u.Messages)
-                .WithOne(r => r.AdminSender)
-                .HasForeignKey(r => r.SenderId);
+            //modelBuilder.Entity<Admin>()
+            //    .HasMany(u => u.Messages)
+            //    .WithOne(r => r.AdminSender)
+            //    .HasForeignKey(r => r.SenderId);
 
         }
     }

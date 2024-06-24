@@ -22,31 +22,6 @@ namespace PRX.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("PRX.Models.Admin.Admin", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Admins");
-                });
-
             modelBuilder.Entity("PRX.Models.Haghighi.HaghighiUserBankInfo", b =>
                 {
                     b.Property<int>("Id")
@@ -1617,12 +1592,6 @@ namespace PRX.Migrations
 
             modelBuilder.Entity("PRX.Models.Ticket.Message", b =>
                 {
-                    b.HasOne("PRX.Models.Admin.Admin", "AdminSender")
-                        .WithMany("Messages")
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("PRX.Models.User.User", "UserSender")
                         .WithMany("Messages")
                         .HasForeignKey("SenderId")
@@ -1634,8 +1603,6 @@ namespace PRX.Migrations
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("AdminSender");
 
                     b.Navigation("Ticket");
 
@@ -1835,11 +1802,6 @@ namespace PRX.Migrations
                         .IsRequired();
 
                     b.Navigation("Request");
-                });
-
-            modelBuilder.Entity("PRX.Models.Admin.Admin", b =>
-                {
-                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("PRX.Models.Quiz.UserAnswerOption", b =>
