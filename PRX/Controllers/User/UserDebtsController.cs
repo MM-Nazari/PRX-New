@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
@@ -22,26 +23,26 @@ namespace PRX.Controllers.User
             _context = context;
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetUserDebtById(int id)
+        public IActionResult GetUserDebtById(int requestId)
         {
             try
             {
 
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -54,7 +55,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound});
@@ -103,24 +104,24 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateUserDebt(int id, [FromBody] UserDebtDto userDebtDto)
+        public IActionResult UpdateUserDebt(int requestId, [FromBody] UserDebtDto userDebtDto)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -133,7 +134,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -155,23 +156,23 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult DeleteUserDebt(int id)
+        public IActionResult DeleteUserDebt(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -183,7 +184,7 @@ namespace PRX.Controllers.User
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -200,22 +201,22 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult MarkCompaniesAsComplete(int id)
+        public IActionResult MarkCompaniesAsComplete(int requestId)
         {
             try
             {
 
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserDebts.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.UserDebts.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -232,25 +233,25 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -263,7 +264,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.UserDebts.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.UserDebts.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -306,21 +307,21 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpGet("Admin/{id}")]
+        [HttpGet("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetUserDebtByIdAdmin(int id)
+        public IActionResult GetUserDebtByIdAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == id && !debt.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == requestId && !debt.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -345,23 +346,23 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpPut("Admin/{id}")]
+        [HttpPut("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateUserDebtAdmin(int id, [FromBody] UserDebtDto userDebtDto)
+        public IActionResult UpdateUserDebtAdmin(int requestId, [FromBody] UserDebtDto userDebtDto)
         {
             try
             {
 
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == id && !debt.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == requestId && !debt.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });
@@ -382,21 +383,21 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpDelete("Admin/{id}")]
+        [HttpDelete("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult DeleteUserDebtAdmin(int id)
+        public IActionResult DeleteUserDebtAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == id && !debt.IsDeleted);
+                var userDebt = _context.UserDebts.FirstOrDefault(debt => debt.RequestId == requestId && !debt.IsDeleted);
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound });

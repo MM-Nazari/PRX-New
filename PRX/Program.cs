@@ -327,7 +327,7 @@ builder.Services.AddSwaggerGen(c =>
 
         // Users Groups
         // Include controllers with specific group names
-        var allowedGroups = new[] { "Reports", "Requests", "Messages", "Tickets", "Users", "Admins", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles"/*, "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserBankInfo" /*, "UserDocuments", "UserAssets", "UserAssetTypes", "UserDebts", "UserFinancialChanges", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"*/}; 
+        var allowedGroups = new[] { "Reports", "Requests", "Messages", "Tickets", "Users", "Admins", "HaghighiUserProfiles", "HaghighiUserRelationships", "HaghighiUserFinancialProfiles", "UserAnswers", "UserAnswerOptions", "UserQuestions", "UserTestScores", "HaghighiUserBankInfo" , "UserDocuments", "UserAssets", "UserAssetTypes", "UserDebts", "UserFinancialChanges", "HaghighiUserEmploymentHistories", "HaghighiUserEducationStatuses", "HoghooghiUsersAssets", "HoghooghiUserBoardOfDirectors", "HoghooghiUserCompaniesWithMajorInvestors", "HoghooghiUsers", "HoghooghiUserInvestmentDepartmentStaff", "UserDeposits", "UserFuturePlans", "UserInvestments", "UserInvestmentExperiences", "UserMoreInformations", "UserStates", "UserTypes", "UserWithdrawals"}; 
         return allowedGroups.Contains(apiDesc.GroupName);
 
 

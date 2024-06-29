@@ -23,6 +23,21 @@ namespace PRX.Models.User
         public User User { get; set; }
 
 
+        // New fields
+        [Required]
+        public string TrackingCode { get; set; }
+
+        [Required]
+        public DateTime RequestSentTime { get; set; }
+
+        [Required]
+        public string BeneficiaryName { get; set; } // نام ذی نفع
+
+        [Required]
+        public string RequestState { get; set; }
+
+
+
         //
         // Relations
         //

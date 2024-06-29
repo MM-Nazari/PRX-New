@@ -38,16 +38,16 @@ namespace PRX.Controllers.Haghighi
         }
 
         // GET: api/HaghighiUserEmploymentHistory/5
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHaghighiUserEmploymentHistoryById(int id)
+        public IActionResult GetHaghighiUserEmploymentHistoryById(int requestId)
         {
             try
             {
 
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -55,7 +55,7 @@ namespace PRX.Controllers.Haghighi
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -68,7 +68,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -123,18 +123,18 @@ namespace PRX.Controllers.Haghighi
         }
 
         // PUT: api/HaghighiUserEmploymentHistory/5
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHaghighiUserEmploymentHistory(int id, [FromBody] HaghighiUserEmploymentHistoryDto employmentHistoryDto)
+        public IActionResult UpdateHaghighiUserEmploymentHistory(int requestId, [FromBody] HaghighiUserEmploymentHistoryDto employmentHistoryDto)
         {
 
             try
             {
 
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -142,7 +142,7 @@ namespace PRX.Controllers.Haghighi
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -155,7 +155,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -185,16 +185,16 @@ namespace PRX.Controllers.Haghighi
         }
 
         // DELETE: api/HaghighiUserEmploymentHistory/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHaghighiUserEmploymentHistory(int id)
+        public IActionResult DeleteHaghighiUserEmploymentHistory(int requestId)
         {
             try
             {
 
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -202,7 +202,7 @@ namespace PRX.Controllers.Haghighi
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -215,7 +215,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -258,22 +258,22 @@ namespace PRX.Controllers.Haghighi
 
 
         // PUT: api/HaghighiUserProfile/complete/{id}
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkEmploymentAsComplete(int id)
+        public IActionResult MarkEmploymentAsComplete(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id);
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == requestId);
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -292,25 +292,25 @@ namespace PRX.Controllers.Haghighi
 
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -323,7 +323,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -370,21 +370,21 @@ namespace PRX.Controllers.Haghighi
 
         }
 
-        [HttpGet("Admin/{id}")]
+        [HttpGet("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHaghighiUserEmploymentHistoryByIdAdmin(int id)
+        public IActionResult GetHaghighiUserEmploymentHistoryByIdAdmin(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == id && !h.IsDeleted);
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == requestId && !h.IsDeleted);
                 if (history == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -414,22 +414,22 @@ namespace PRX.Controllers.Haghighi
 
         }
 
-        [HttpPut("Admin/{id}")]
+        [HttpPut("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHaghighiUserEmploymentHistoryAdmin(int id, [FromBody] HaghighiUserEmploymentHistoryDto historyDto)
+        public IActionResult UpdateHaghighiUserEmploymentHistoryAdmin(int requestId, [FromBody] HaghighiUserEmploymentHistoryDto historyDto)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == id && !h.IsDeleted);
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == requestId && !h.IsDeleted);
                 if (history == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -457,20 +457,20 @@ namespace PRX.Controllers.Haghighi
 
         }
 
-        [HttpDelete("Admin/{id}")]
+        [HttpDelete("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHaghighiUserEmploymentHistoryAdmin(int id)
+        public IActionResult DeleteHaghighiUserEmploymentHistoryAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == id && !h.IsDeleted);
+                var history = _context.HaghighiUserEmploymentHistories.FirstOrDefault(h => h.RequestId == requestId && !h.IsDeleted);
                 if (history == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });

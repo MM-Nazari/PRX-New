@@ -17,6 +17,7 @@ using Kavenegar;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using DotNet.RateLimiter.ActionFilters;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace PRX.Controllers.User
 {
@@ -210,8 +211,15 @@ namespace PRX.Controllers.User
                 _context.DataChangeLogs.Add(dataChangeLog);
                 _context.SaveChanges();
 
+                LogUserLogin(user.Id, user.Role);
+
+                // Automatically log the user in and generate a JWT token
+                var token = GenerateJwtToken(user);
+
+                return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, new { user, Authorization = token });
+
                 // Return the created user
-                return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+                //return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
             }
             catch (Exception ex)
             {
@@ -273,7 +281,14 @@ namespace PRX.Controllers.User
             _context.DataChangeLogs.Add(dataChangeLog);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetUserById), new { id = admin.Id }, admin);
+            LogUserLogin(admin.Id, admin.Role);
+
+            // Automatically log the user in and generate a JWT token
+            var token = GenerateJwtToken(admin);
+            return CreatedAtAction(nameof(GetUserById), new { id = admin.Id }, new { admin, Authorization = token });
+
+            //
+            //return CreatedAtAction(nameof(GetUserById), new { id = admin.Id }, admin);
         }
 
 

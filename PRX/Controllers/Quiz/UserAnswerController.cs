@@ -39,22 +39,22 @@ namespace PRX.Controllers.Quiz
         }
 
         // GET: api/UserAnswer/5
-        [HttpGet("GetOneByUserId/{id}")]
+        [HttpGet("GetOneByUserId/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetByUserId(int id)
+        public IActionResult GetByUserId(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -67,7 +67,7 @@ namespace PRX.Controllers.Quiz
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound});
@@ -220,23 +220,23 @@ namespace PRX.Controllers.Quiz
 
 
         // PUT: api/UserAnswer/5
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Update(int id, [FromBody] UserAnswerDto dto)
+        public IActionResult Update(int requestId, [FromBody] UserAnswerDto dto)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -249,7 +249,7 @@ namespace PRX.Controllers.Quiz
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound});
@@ -271,19 +271,19 @@ namespace PRX.Controllers.Quiz
         }
 
         // DELETE: api/UserAnswer/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });

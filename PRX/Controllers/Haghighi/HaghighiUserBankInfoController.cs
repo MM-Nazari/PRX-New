@@ -39,15 +39,15 @@ namespace PRX.Controllers.Haghighi
         }
 
         // GET: api/HaghighiUserBankInfo/5
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHaghighiUserBankInfoById(int id)
+        public IActionResult GetHaghighiUserBankInfoById(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -56,7 +56,7 @@ namespace PRX.Controllers.Haghighi
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -69,7 +69,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -132,16 +132,16 @@ namespace PRX.Controllers.Haghighi
         }
 
         // PUT: api/HaghighiUserBankInfo/5
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHaghighiUserBankInfo(int id, [FromBody] HaghighiUserBankInfoDto bankInfoDto)
+        public IActionResult UpdateHaghighiUserBankInfo(int requestId, [FromBody] HaghighiUserBankInfoDto bankInfoDto)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -149,7 +149,7 @@ namespace PRX.Controllers.Haghighi
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -162,7 +162,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -191,15 +191,15 @@ namespace PRX.Controllers.Haghighi
         }
 
         // DELETE: api/HaghighiUserBankInfo/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHaghighiUserBankInfo(int id)
+        public IActionResult DeleteHaghighiUserBankInfo(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -208,7 +208,7 @@ namespace PRX.Controllers.Haghighi
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -221,7 +221,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -239,19 +239,19 @@ namespace PRX.Controllers.Haghighi
         }
 
         // PUT: api/HaghighiUserBankInfo/complete/{id}
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkBankInfoAsComplete(int id)
+        public IActionResult MarkBankInfoAsComplete(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == requestId);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -268,25 +268,25 @@ namespace PRX.Controllers.Haghighi
             }
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -300,7 +300,7 @@ namespace PRX.Controllers.Haghighi
                 }
 
 
-                var record = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.HaghighiUserBankInfos.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -369,21 +369,21 @@ namespace PRX.Controllers.Haghighi
         }
 
         // GET: api/HaghighiUserBankInfo/Admin/{id}
-        [HttpGet("Admin/{id}")]
+        [HttpGet("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHaghighiUserBankInfoByIdAdmin(int id)
+        public IActionResult GetHaghighiUserBankInfoByIdAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == id);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == requestId);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -416,21 +416,21 @@ namespace PRX.Controllers.Haghighi
         }
 
         // PUT: api/HaghighiUserBankInfo/Admin/{id}
-        [HttpPut("Admin/{id}")]
+        [HttpPut("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHaghighiUserBankInfoAdmin(int id, [FromBody] HaghighiUserBankInfoDto bankInfoDto)
+        public IActionResult UpdateHaghighiUserBankInfoAdmin(int requestId, [FromBody] HaghighiUserBankInfoDto bankInfoDto)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == id && !b.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == requestId && !b.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });
@@ -459,20 +459,20 @@ namespace PRX.Controllers.Haghighi
         }
 
         // DELETE: api/HaghighiUserBankInfo/Admin/{id}
-        [HttpDelete("Admin/{id}")]
+        [HttpDelete("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHaghighiUserBankInfoAdmin(int id)
+        public IActionResult DeleteHaghighiUserBankInfoAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == id && !b.IsDeleted);
+                var bankInfo = _context.HaghighiUserBankInfos.FirstOrDefault(b => b.RequestId == requestId && !b.IsDeleted);
                 if (bankInfo == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserBankInfoNotFound });

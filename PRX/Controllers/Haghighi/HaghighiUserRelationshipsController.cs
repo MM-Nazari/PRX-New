@@ -38,22 +38,22 @@ namespace PRX.Controllers.Haghighi
         }
 
         // GET: api/HaghighiUserRelationships/5
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHaghighiUserRelationshipsById(int id)
+        public IActionResult GetHaghighiUserRelationshipsById(int requestId)
         {
             try 
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
                 // Retrieve the user ID from the token
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -66,7 +66,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound});
@@ -122,17 +122,17 @@ namespace PRX.Controllers.Haghighi
         }
 
         // PUT: api/HaghighiUserRelationships/5
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHaghighiUserRelationships(int id, [FromBody] HaghighiUserRelationshipsDto relationshipDto)
+        public IActionResult UpdateHaghighiUserRelationships(int requestId, [FromBody] HaghighiUserRelationshipsDto relationshipDto)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -140,7 +140,7 @@ namespace PRX.Controllers.Haghighi
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -153,7 +153,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -183,15 +183,15 @@ namespace PRX.Controllers.Haghighi
         }
 
         // DELETE: api/HaghighiUserRelationships/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHaghighiUserRelationships(int id)
+        public IActionResult DeleteHaghighiUserRelationships(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -199,7 +199,7 @@ namespace PRX.Controllers.Haghighi
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -212,7 +212,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted );
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted );
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -252,22 +252,22 @@ namespace PRX.Controllers.Haghighi
 
 
         
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkRelationshipAsComplete(int id)
+        public IActionResult MarkRelationshipAsComplete(int requestId)
         {
             try
             {
 
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(e => e.RequestId == id);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(e => e.RequestId == requestId);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -285,25 +285,25 @@ namespace PRX.Controllers.Haghighi
 
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -316,7 +316,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HaghighiUserRelationships.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.HaghighiUserRelationships.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -365,20 +365,20 @@ namespace PRX.Controllers.Haghighi
 
         }
 
-        [HttpGet("Admin/{id}")]
+        [HttpGet("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHaghighiUserRelationshipByIdAdmin(int id)
+        public IActionResult GetHaghighiUserRelationshipByIdAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == id && !r.IsDeleted);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == requestId && !r.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -410,22 +410,22 @@ namespace PRX.Controllers.Haghighi
 
         }
 
-        [HttpPut("Admin/{id}")]
+        [HttpPut("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHaghighiUserRelationshipAdmin(int id, [FromBody] HaghighiUserRelationshipsDto relationshipDto)
+        public IActionResult UpdateHaghighiUserRelationshipAdmin(int requestId, [FromBody] HaghighiUserRelationshipsDto relationshipDto)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == id && !r.IsDeleted);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == requestId && !r.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });
@@ -455,20 +455,20 @@ namespace PRX.Controllers.Haghighi
 
         }
 
-        [HttpDelete("Admin/{id}")]
+        [HttpDelete("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHaghighiUserRelationshipAdmin(int id)
+        public IActionResult DeleteHaghighiUserRelationshipAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == id && !r.IsDeleted);
+                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(r => r.RequestId == requestId && !r.IsDeleted);
                 if (relationship == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound });

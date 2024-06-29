@@ -31,8 +31,6 @@
         public const string AdminNotExists = "ادمین با مشخصات داده شده یافت نشد";
 
 
-
-
         // User Asset
 
         public const string UserAssetNotFound = "دارایی متناسب با کاربر یافت نشد";
@@ -182,6 +180,8 @@
         // Request
 
         public const string RequestNotFound = "درخواست متناسب با اطلاعات داده شده پیدا نشد";
+        public const string UserRequestNotFound = "درخواست متناسب با کاربر پیدا نشد";
+        public const string InvalidTrackingCode = "کد رهگیری نامعتبر است";
 
         // 500
         public const string InternalServerError = "ارور داخلی سرور";

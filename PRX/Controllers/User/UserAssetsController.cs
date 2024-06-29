@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.User;
@@ -67,7 +68,7 @@ namespace PRX.Controllers.User
         //    }
         //}
 
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -75,11 +76,11 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetUserAssetById(int id)
+        public IActionResult GetUserAssetById(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -87,7 +88,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -100,7 +101,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAssets = _context.UserAssets.Where(u => u.RequestId == id && !u.IsDeleted).ToList();
+                var userAssets = _context.UserAssets.Where(u => u.RequestId == requestId && !u.IsDeleted).ToList();
                 if (!userAssets.Any())
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -238,18 +239,18 @@ namespace PRX.Controllers.User
         //    }
         //}
 
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateUserAsset(int id, [FromBody] UserAssetDto userAssetDto)
+        public IActionResult UpdateUserAsset(int requestId, [FromBody] UserAssetDto userAssetDto)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -257,7 +258,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -270,7 +271,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userAsset == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -295,18 +296,18 @@ namespace PRX.Controllers.User
 
 
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult DeleteUserAsset(int id)
+        public IActionResult DeleteUserAsset(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -314,7 +315,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -327,7 +328,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userAsset == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -344,18 +345,18 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{requestId}")]
         //[Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult MarkCompaniesAsComplete(int id)
+        public IActionResult MarkCompaniesAsComplete(int requestId)
         {
             try
             {
-                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -372,25 +373,25 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -404,7 +405,7 @@ namespace PRX.Controllers.User
                 }
 
 
-                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });

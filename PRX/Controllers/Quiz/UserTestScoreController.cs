@@ -38,20 +38,20 @@ namespace PRX.Controllers.Quiz
         }
 
         // GET: api/UserTestScore/5
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetById(int id)
+        public IActionResult GetById(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizScoreNotFound});
@@ -98,21 +98,21 @@ namespace PRX.Controllers.Quiz
         }
 
         // PUT: api/UserTestScore/5
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Update(int id, [FromBody] UserTestScoreDto dto)
+        public IActionResult Update(int requestId, [FromBody] UserTestScoreDto dto)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizScoreNotFound });
@@ -132,16 +132,16 @@ namespace PRX.Controllers.Quiz
 
         }
 
-        [HttpPost("CalculateQuizScore/{userId}")]
+        [HttpPost("CalculateQuizScore/{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CalculateQuizScore(int userId)
+        public IActionResult CalculateQuizScore(int requestId)
         {
             try
             {
-                if (userId <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -149,7 +149,7 @@ namespace PRX.Controllers.Quiz
                 // Retrieve all user's answer options with their scores
                 var answerOptions = _context.UserAnswers
                     .Include(ua => ua.answerOption)
-                    .Where(ua => ua.RequestId == userId && !ua.IsDeleted && !ua.answerOption.IsDeleted)
+                    .Where(ua => ua.RequestId == requestId && !ua.IsDeleted && !ua.answerOption.IsDeleted)
                     .ToList();
 
                 // Calculate total score
@@ -161,13 +161,13 @@ namespace PRX.Controllers.Quiz
 
                 // Retrieve or create UserTestScore record
                 var userTestScore = _context.UserTestScores
-                    .FirstOrDefault(uts => uts.RequestId == userId && !uts.IsDeleted);
+                    .FirstOrDefault(uts => uts.RequestId == requestId && !uts.IsDeleted);
 
                 if (userTestScore == null)
                 {
                     userTestScore = new UserTestScore
                     {
-                        RequestId = userId,
+                        RequestId = requestId,
                         QuizScore = totalScore
                     };
                     _context.UserTestScores.Add(userTestScore);
@@ -191,21 +191,21 @@ namespace PRX.Controllers.Quiz
         }
 
         // DELETE: api/UserTestScore/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == id && !e.IsDeleted);
+                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizScoreNotFound });
