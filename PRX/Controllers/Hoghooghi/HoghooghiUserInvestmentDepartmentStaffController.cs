@@ -69,6 +69,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var record = _context.HoghooghiUserInvestmentDepartmentStaff.Where(e => e.RequestId == requestId && !e.IsDeleted).Select(r => new HoghooghiUserInvestmentDepartmentStaffDto 
                 {
+                    Id = r.Id,
                     RequestId = r.RequestId,
                     FullName = r.FullName,
                     Position = r.Position,
@@ -135,17 +136,17 @@ namespace PRX.Controllers.Hoghooghi
         }
 
         // PUT: api/HoghooghiUserInvestmentDepartmentStaff/5
-        [HttpPut("{requestId}")]
+        [HttpPut("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Update(int requestId, [FromBody] HoghooghiUserInvestmentDepartmentStaffDto dto)
+        public IActionResult Update(int id, int requestId, [FromBody] HoghooghiUserInvestmentDepartmentStaffDto dto)
         {
 
             try
             {
-                if (requestId <= 0)
+                if (id <=0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -166,7 +167,7 @@ namespace PRX.Controllers.Hoghooghi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
@@ -195,16 +196,16 @@ namespace PRX.Controllers.Hoghooghi
         }
 
         // DELETE: api/HoghooghiUserInvestmentDepartmentStaff/5
-        [HttpDelete("{requestId}")]
+        [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Delete(int requestId)
+        public IActionResult Delete(int id, int requestId)
         {
 
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -225,7 +226,7 @@ namespace PRX.Controllers.Hoghooghi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
@@ -264,21 +265,21 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpPut("complete/{requestId}")]
+        [HttpPut("complete/{id}/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkCompaniesAsComplete(int requestId)
+        public IActionResult MarkCompaniesAsComplete(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId);
+                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
@@ -296,18 +297,18 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpGet("isComplete/{requestId}")]
+        [HttpGet("isComplete/{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int requestId)
+        public IActionResult CheckCompletionStatus(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -327,7 +328,7 @@ namespace PRX.Controllers.Hoghooghi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId);
+                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
@@ -352,6 +353,7 @@ namespace PRX.Controllers.Hoghooghi
                 var users = _context.HoghooghiUserInvestmentDepartmentStaff.ToList();
                 var userDtos = users.Select(user => new HoghooghiUserInvestmentDepartmentStaffDto
                 {
+                    Id = user.Id,
                     RequestId = user.RequestId,
                     FullName = user.FullName,
                     Position = user.Position,
@@ -363,6 +365,7 @@ namespace PRX.Controllers.Hoghooghi
                     IsComplete = user.IsComplete,
                     IsDeleted = user.IsDeleted
                 }).ToList();
+
                 return Ok(userDtos);
             }
             catch (Exception ex)
@@ -372,20 +375,20 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpGet("Admin/{requestId}")]
+        [HttpGet("Admin/{ID}/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHoghooghiUserInvestmentDepartmentStaffByIdAdmin(int requestId)
+        public IActionResult GetHoghooghiUserInvestmentDepartmentStaffByIdAdmin(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
@@ -393,6 +396,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var userDto = new HoghooghiUserInvestmentDepartmentStaffDto
                 {
+                    Id = id,
                     RequestId = user.RequestId,
                     FullName = user.FullName,
                     Position = user.Position,
@@ -414,21 +418,21 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpPut("Admin/{requestId}")]
+        [HttpPut("Admin/{id}/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHoghooghiUserInvestmentDepartmentStaffAdmin(int requestId, [FromBody] HoghooghiUserInvestmentDepartmentStaffDto userDto)
+        public IActionResult UpdateHoghooghiUserInvestmentDepartmentStaffAdmin(int id, int requestId, [FromBody] HoghooghiUserInvestmentDepartmentStaffDto userDto)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
@@ -454,20 +458,20 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpDelete("Admin/{requestId}")]
+        [HttpDelete("Admin/{id}/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHoghooghiUserInvestmentDepartmentStaffAdmin(int requestId)
+        public IActionResult DeleteHoghooghiUserInvestmentDepartmentStaffAdmin(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                var user = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (user == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });

@@ -109,6 +109,7 @@ namespace PRX.Controllers.User
 
                 var userAssetDtos = userAssets.Select(userAsset => new UserAssetDto
                 {
+                    Id = userAsset.Id,
                     RequestId = userAsset.RequestId,
                     AssetTypeId = userAsset.AssetTypeId,
                     AssetValue = userAsset.AssetValue,
@@ -239,18 +240,18 @@ namespace PRX.Controllers.User
         //    }
         //}
 
-        [HttpPut("{requestId}")]
+        [HttpPut("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateUserAsset(int requestId, [FromBody] UserAssetDto userAssetDto)
+        public IActionResult UpdateUserAsset(int id, int requestId, [FromBody] UserAssetDto userAssetDto)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -271,13 +272,13 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (userAsset == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
                 }
 
-                userAsset.RequestId = userAssetDto.RequestId;
+               
                 userAsset.AssetTypeId = userAssetDto.AssetTypeId;
                 userAsset.AssetValue = userAssetDto.AssetValue;
 
@@ -296,18 +297,18 @@ namespace PRX.Controllers.User
 
 
 
-        [HttpDelete("{requestId}")]
+        [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult DeleteUserAsset(int requestId)
+        public IActionResult DeleteUserAsset(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -328,7 +329,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (userAsset == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -345,18 +346,18 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpPut("complete/{requestId}")]
+        [HttpPut("complete/{id}/{requestId}")]
         //[Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult MarkCompaniesAsComplete(int requestId)
+        public IActionResult MarkCompaniesAsComplete(int id, int requestId)
         {
             try
             {
-                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == requestId);
+                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -373,18 +374,18 @@ namespace PRX.Controllers.User
             }
         }
 
-        [HttpGet("isComplete/{requestId}")]
+        [HttpGet("isComplete/{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int requestId)
+        public IActionResult CheckCompletionStatus(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -405,7 +406,7 @@ namespace PRX.Controllers.User
                 }
 
 
-                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == requestId);
+                var record = _context.UserAssets.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserAssetNotFound });
@@ -432,6 +433,7 @@ namespace PRX.Controllers.User
                 var userAssets = _context.UserAssets.ToList();
                 var userAssetDtos = userAssets.Select(asset => new UserAssetDto
                 {
+                    Id = asset.Id,
                     RequestId = asset.RequestId,
                     AssetTypeId = asset.AssetTypeId,
                     AssetValue = asset.AssetValue,

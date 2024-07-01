@@ -32,7 +32,7 @@ namespace PRX.Controllers.User
                 var userWithdrawals = _context.UserWithdrawals.ToList();
                 var userWithdrawalDtos = userWithdrawals.Select(userWithdrawal => new UserWithdrawalDto
                 {
-                    //Id = userWithdrawal.Id,
+                    Id = userWithdrawal.Id,
                     RequestId = userWithdrawal.RequestId,
                     WithdrawalAmount = userWithdrawal.WithdrawalAmount,
                     WithdrawalDate = userWithdrawal.WithdrawalDate,
@@ -80,6 +80,7 @@ namespace PRX.Controllers.User
 
                 var userWithdrawal = _context.UserWithdrawals.Where(u => u.RequestId == requestId && !u.IsDeleted).Select(r => new UserWithdrawalDto 
                 {
+                    Id = r.Id,
                     RequestId = r.RequestId,
                     WithdrawalAmount = r.WithdrawalAmount,
                     WithdrawalDate = r.WithdrawalDate,
@@ -147,17 +148,73 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpPut("{id}")]
+        //[HttpPut("{id}")]
+        //[Authorize(Roles = "User")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //public IActionResult UpdateUserWithdrawal(int id, [FromBody] UserWithdrawalDto userWithdrawalDto)
+        //{
+
+        //    try
+        //    {
+        //        if (id <= 0)
+        //        {
+        //            return BadRequest(new { message = ResponseMessages.InvalidId });
+        //        }
+
+        //        // Retrieve the user ID from the token
+        //        var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+        //        // Fetch the request
+        //        var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+
+        //        if (request == null)
+        //        {
+        //            return NotFound(new { message = ResponseMessages.RequestNotFound });
+        //        }
+
+        //        // Ensure that the user associated with the request matches the token user ID
+        //        if (request.UserId != tokenUserId)
+        //        {
+        //            return Unauthorized(new { message = ResponseMessages.Unauthorized });
+        //        }
+
+        //        var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+        //        if (userWithdrawal == null)
+        //        {
+        //            return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
+        //        }
+
+
+        //        userWithdrawal.WithdrawalAmount = userWithdrawalDto.WithdrawalAmount;
+        //        userWithdrawal.WithdrawalDate = userWithdrawalDto.WithdrawalDate;
+        //        userWithdrawal.WithdrawalReason = userWithdrawalDto.WithdrawalReason;
+
+        //        _context.SaveChanges();
+
+        //        return Ok(new { message = ResponseMessages.OK });
+
+        //    }
+
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+        //    }
+
+
+        //}
+
+        [HttpPut("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateUserWithdrawal(int id, [FromBody] UserWithdrawalDto userWithdrawalDto)
+        public IActionResult UpdateUserWithdrawal(int id, int requestId, [FromBody] UserWithdrawalDto userWithdrawalDto)
         {
-
             try
             {
-                if (id <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -166,7 +223,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -179,13 +236,12 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.Id == id && u.RequestId == requestId && !u.IsDeleted);
                 if (userWithdrawal == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
                 }
 
-                
                 userWithdrawal.WithdrawalAmount = userWithdrawalDto.WithdrawalAmount;
                 userWithdrawal.WithdrawalDate = userWithdrawalDto.WithdrawalDate;
                 userWithdrawal.WithdrawalReason = userWithdrawalDto.WithdrawalReason;
@@ -193,26 +249,22 @@ namespace PRX.Controllers.User
                 _context.SaveChanges();
 
                 return Ok(new { message = ResponseMessages.OK });
-
             }
-
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
-
-
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteUserWithdrawal(int id)
+        public IActionResult DeleteUserWithdrawal(int id, int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -221,7 +273,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -234,7 +286,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (userWithdrawal == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
@@ -275,21 +327,21 @@ namespace PRX.Controllers.User
 
 
         // PUT: api/HaghighiUserProfile/complete/{id}
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{id}/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkFinancwChangeAsComplete(int id)
+        public IActionResult MarkFinancwChangeAsComplete(int id, int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userWithdrawl = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id);
+                var userWithdrawl = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (userWithdrawl == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
@@ -308,25 +360,25 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int id, int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -340,7 +392,7 @@ namespace PRX.Controllers.User
                 }
 
 
-                var record = _context.UserWithdrawals.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
@@ -366,7 +418,7 @@ namespace PRX.Controllers.User
                 var withdrawals = _context.UserWithdrawals.ToList();
                 var withdrawalDtos = withdrawals.Select(withdrawal => new UserWithdrawalDto
                 {
-                    //Id = withdrawal.Id,
+                    Id = withdrawal.Id,
                     RequestId = withdrawal.RequestId,
                     WithdrawalAmount = withdrawal.WithdrawalAmount,
                     WithdrawalDate = withdrawal.WithdrawalDate,
@@ -406,7 +458,7 @@ namespace PRX.Controllers.User
 
                 var withdrawalDto = new UserWithdrawalDto
                 {
-                    //Id = withdrawal.Id,
+                    Id = withdrawal.Id,
                     RequestId = withdrawal.RequestId,
                     WithdrawalAmount = withdrawal.WithdrawalAmount,
                     WithdrawalDate = withdrawal.WithdrawalDate,

@@ -5,6 +5,9 @@ using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
 using PRX.Utils;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using Azure.Core;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace PRX.Controllers.User
 {
@@ -68,7 +71,21 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userInvestmentExperience = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                var userInvestmentExperience = _context.UserInvestmentExperiences.Where(u => u.RequestId == requestId && !u.IsDeleted).Select(r => new UserInvestmentExperienceDto 
+                {
+                    Id = r.Id,
+                    RequestId = r.RequestId,
+                    InvestmentType = r.InvestmentType,
+                    InvestmentAmount = r.InvestmentAmount,
+                    InvestmentDurationMonths = r.InvestmentDurationMonths,
+                    ProfitLossAmount = r.ProfitLossAmount,
+                    ProfitLossDescription = r.ProfitLossDescription,
+                    ConversionReason = r.ConversionReason,
+                    IsComplete = r.IsComplete,
+                    IsDeleted = r.IsDeleted
+
+                }).ToList();
+
                 if (userInvestmentExperience == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
@@ -121,17 +138,17 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateUserInvestmentExperience(int id, [FromBody] UserInvestmentExperienceDto userInvestmentExperienceDto)
+        public IActionResult UpdateUserInvestmentExperience(int id, int requestId, [FromBody] UserInvestmentExperienceDto userInvestmentExperienceDto)
         {
 
             try
             {
-                if (id <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -140,7 +157,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -153,7 +170,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userInvestmentExperience = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userInvestmentExperience = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == requestId && u.Id == id  && !u.IsDeleted);
                 if (userInvestmentExperience == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
@@ -182,16 +199,16 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteUserInvestmentExperience(int id)
+        public IActionResult DeleteUserInvestmentExperience(int id, int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -200,7 +217,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -213,7 +230,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userInvestmentExperience = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userInvestmentExperience = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (userInvestmentExperience == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
@@ -254,21 +271,21 @@ namespace PRX.Controllers.User
         }
 
         // PUT: api/HaghighiUserProfile/complete/{id}
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{id}/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkFinancwChangeAsComplete(int id)
+        public IActionResult MarkFinancwChangeAsComplete(int id, int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userInvestmentExperiences = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == id);
+                var userInvestmentExperiences = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
                 if (userInvestmentExperiences == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
@@ -286,25 +303,25 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int id, int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -318,7 +335,7 @@ namespace PRX.Controllers.User
                 }
 
 
-                var record = _context.UserInvestmentExperiences.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.UserInvestmentExperiences.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
@@ -343,6 +360,7 @@ namespace PRX.Controllers.User
                 var experiences = _context.UserInvestmentExperiences.ToList();
                 var experienceDtos = experiences.Select(experience => new UserInvestmentExperienceDto
                 {
+                    Id = experience.Id,
                     RequestId = experience.RequestId,
                     InvestmentType = experience.InvestmentType,
                     InvestmentAmount = experience.InvestmentAmount,
@@ -377,7 +395,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.RequestId == id && !exp.IsDeleted);
+                var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.Id == id && !exp.IsDeleted);
                 if (experience == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
@@ -419,7 +437,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.RequestId == id && !exp.IsDeleted);
+                var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.Id == id && !exp.IsDeleted);
                 if (experience == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
@@ -457,7 +475,7 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.RequestId == id && !exp.IsDeleted);
+                var experience = _context.UserInvestmentExperiences.FirstOrDefault(exp => exp.Id == id && !exp.IsDeleted);
                 if (experience == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });

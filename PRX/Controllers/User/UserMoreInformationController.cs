@@ -123,17 +123,17 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateUserMoreInformation(int id, [FromBody] UserMoreInformationDto userMoreInformationDto)
+        public IActionResult UpdateUserMoreInformation(int requestId, [FromBody] UserMoreInformationDto userMoreInformationDto)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -142,7 +142,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -155,7 +155,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -178,16 +178,16 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteUserMoreInformation(int id)
+        public IActionResult DeleteUserMoreInformation(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -196,7 +196,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -209,7 +209,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -250,22 +250,22 @@ namespace PRX.Controllers.User
         }
 
         // PUT: api/HaghighiUserProfile/complete/{id}
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkFinancwChangeAsComplete(int id)
+        public IActionResult MarkFinancwChangeAsComplete(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userFinancialChanges = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == id);
+                var userFinancialChanges = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == requestId);
                 if (userFinancialChanges == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -284,25 +284,25 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -316,7 +316,7 @@ namespace PRX.Controllers.User
                 }
 
 
-                var record = _context.UserMoreInformations.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.UserMoreInformations.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -357,20 +357,20 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("Admin/{id}")]
+        [HttpGet("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetUserMoreInformationByIdAdmin(int id)
+        public IActionResult GetUserMoreInformationByIdAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == id && !info.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == requestId && !info.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound();
@@ -394,21 +394,21 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpPut("Admin/{id}")]
+        [HttpPut("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateUserMoreInformationAdmin(int id, [FromBody] UserMoreInformationDto userMoreInformationDto)
+        public IActionResult UpdateUserMoreInformationAdmin(int requestId, [FromBody] UserMoreInformationDto userMoreInformationDto)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == id && !info.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == requestId && !info.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -428,20 +428,20 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpDelete("Admin/{id}")]
+        [HttpDelete("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteUserMoreInformationAdmin(int id)
+        public IActionResult DeleteUserMoreInformationAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == id && !info.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(info => info.RequestId == requestId && !info.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });

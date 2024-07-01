@@ -2,7 +2,7 @@
 {
     public class HoghooghiUserInvestmentDepartmentStaffDto
     {
-        //public int UserId { get; set; }
+        public int Id { get; set; }
         public int RequestId { get; set; }
         public string FullName { get; set; }
         public string Position { get; set; }

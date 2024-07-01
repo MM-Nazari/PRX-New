@@ -5,6 +5,8 @@ using PRX.Data;
 using PRX.Dto.Hoghooghi;
 using PRX.Models.Hoghooghis.Hoghooghi;
 using PRX.Utils;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace PRX.Controllers.Hoghooghi
 {
@@ -68,7 +70,26 @@ namespace PRX.Controllers.Hoghooghi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.HoghooghiUsersAssets.Where(e => e.RequestId == requestId && !e.IsDeleted).Select(r => new HoghooghiUserAssetIncomeStatusTwoYearsAgoDto 
+                {
+                    Id = r.Id,
+                    RequestId = requestId,
+                    FiscalYear = r.FiscalYear,
+                    RegisteredCapital = r.RegisteredCapital,
+                    ApproximateAssetValue = r.ApproximateAssetValue,
+                    TotalLiabilities = r.TotalLiabilities,
+                    TotalInvestments = r.TotalInvestments,
+                    OperationalIncome = r.OperationalIncome,
+                    OperationalExpenses = r.OperationalExpenses,
+                    OtherExpenses = r.OtherExpenses,
+                    OperationalProfitOrLoss = r.OperationalProfitOrLoss,
+                    NetProfitOrLoss = r.NetProfitOrLoss,
+                    AccumulatedProfitOrLoss = r.AccumulatedProfitOrLoss,
+                    IsComplete = r.IsComplete,
+                    IsDeleted = r.IsDeleted
+
+                }).ToList();
+
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound});
@@ -128,16 +149,16 @@ namespace PRX.Controllers.Hoghooghi
         }
 
         // PUT: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
-        [HttpPut("{requestId}")]
+        [HttpPut("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Update(int requestId, [FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoDto dto)
+        public IActionResult Update(int id, int requestId, [FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoDto dto)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -158,7 +179,7 @@ namespace PRX.Controllers.Hoghooghi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -194,15 +215,15 @@ namespace PRX.Controllers.Hoghooghi
         }
 
         // DELETE: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
-        [HttpDelete("{requestId}")]
+        [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Delete(int requestId)
+        public IActionResult Delete(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -223,7 +244,7 @@ namespace PRX.Controllers.Hoghooghi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -263,21 +284,21 @@ namespace PRX.Controllers.Hoghooghi
         }
 
 
-        [HttpPut("complete/{requestId}")]
+        [HttpPut("complete/{id}/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkRelationshipAsComplete(int requestId)
+        public IActionResult MarkRelationshipAsComplete(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId);
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted) ;
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -295,18 +316,18 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpGet("isComplete/{requestId}")]
+        [HttpGet("isComplete/{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int requestId)
+        public IActionResult CheckCompletionStatus(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -326,7 +347,7 @@ namespace PRX.Controllers.Hoghooghi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId);
+                var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -352,6 +373,7 @@ namespace PRX.Controllers.Hoghooghi
                 var statuses = _context.HoghooghiUsersAssets.ToList();
                 var statusDtos = statuses.Select(status => new HoghooghiUserAssetIncomeStatusTwoYearsAgoDto
                 {
+                    Id = status.Id,
                     RequestId = status.RequestId,
                     FiscalYear = status.FiscalYear,
                     RegisteredCapital = status.RegisteredCapital,
@@ -377,20 +399,20 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpGet("Admin/{requestId}")]
+        [HttpGet("Admin/{id}/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHoghooghiUserAssetIncomeStatusTwoYearsAgoByIdAdmin(int requestId)
+        public IActionResult GetHoghooghiUserAssetIncomeStatusTwoYearsAgoByIdAdmin(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.RequestId == requestId && !s.IsDeleted);
+                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.RequestId == requestId && s.Id == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -398,6 +420,7 @@ namespace PRX.Controllers.Hoghooghi
 
                 var statusDto = new HoghooghiUserAssetIncomeStatusTwoYearsAgoDto
                 {
+                    Id = id,
                     RequestId = status.RequestId,
                     FiscalYear = status.FiscalYear,
                     RegisteredCapital = status.RegisteredCapital,
@@ -424,21 +447,21 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpPut("Admin/{requestId}")]
+        [HttpPut("Admin/{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHoghooghiUserAssetIncomeStatusTwoYearsAgoAdmin(int requestId, [FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoDto statusDto)
+        public IActionResult UpdateHoghooghiUserAssetIncomeStatusTwoYearsAgoAdmin(int id, [FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoDto statusDto)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.RequestId == requestId && !s.IsDeleted);
+                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.Id == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
@@ -470,20 +493,20 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpDelete("Admin/{requestId}")]
+        [HttpDelete("Admin/{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHoghooghiUserAssetIncomeStatusTwoYearsAgoAdmin(int requestId)
+        public IActionResult DeleteHoghooghiUserAssetIncomeStatusTwoYearsAgoAdmin(int id)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.RequestId == requestId && !s.IsDeleted);
+                var status = _context.HoghooghiUsersAssets.FirstOrDefault(s => s.Id == id && !s.IsDeleted);
                 if (status == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });

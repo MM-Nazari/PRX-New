@@ -2,7 +2,7 @@
 {
     public class HoghooghiUserAssetIncomeStatusTwoYearsAgoDto
     {
-        //public int UserId { get; set; }
+        public int Id { get; set; }
         public int RequestId { get; set; }
         public int FiscalYear { get; set; }
         public decimal RegisteredCapital { get; set; }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PRX.Data;
@@ -39,7 +40,7 @@ namespace PRX.Controllers.Quiz
         }
 
         // GET: api/UserAnswer/5
-        [HttpGet("GetOneByUserId/{requestId}")]
+        [HttpGet("GetByRequestId/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -67,7 +68,15 @@ namespace PRX.Controllers.Quiz
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.UserAnswers.Where(e => e.RequestId == requestId && !e.IsDeleted).Select(r => new UserAnswerDto 
+                {
+                    Id = r.Id,
+                    RequestId = requestId,
+                    AnswerOptionId = r.AnswerOptionId,
+                    AnswerText = r.AnswerText,
+                    IsDeleted = r.IsDeleted
+                }).ToList();
+
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound});
@@ -117,47 +126,47 @@ namespace PRX.Controllers.Quiz
 
 
         // GET: api/UserAnswer/5
-        [HttpGet("GetAllByUserId/{id}")]
-        [Authorize(Roles = "User")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetByUserIds(int id)
-        {
-            try
-            {
-                if (id <= 0)
-                {
-                    return BadRequest(new { message = ResponseMessages.InvalidId });
-                }
+        //[HttpGet("GetAllByRequestId/{requestId}")]
+        //[Authorize(Roles = "User")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //public IActionResult GetByUserIds(int requestId)
+        //{
+        //    try
+        //    {
+        //        if (requestId <= 0)
+        //        {
+        //            return BadRequest(new { message = ResponseMessages.InvalidId });
+        //        }
 
-                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-                // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+        //        var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+        //        // Fetch the request
+        //        var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
-                if (request == null)
-                {
-                    return NotFound(new { message = ResponseMessages.RequestNotFound });
-                }
+        //        if (request == null)
+        //        {
+        //            return NotFound(new { message = ResponseMessages.RequestNotFound });
+        //        }
 
-                // Ensure that the user associated with the request matches the token user ID
-                if (request.UserId != tokenUserId)
-                {
-                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
-                }
+        //        // Ensure that the user associated with the request matches the token user ID
+        //        if (request.UserId != tokenUserId)
+        //        {
+        //            return Unauthorized(new { message = ResponseMessages.Unauthorized });
+        //        }
 
-                var records = _context.UserAnswers.Where(e => e.RequestId == id && !e.IsDeleted).ToList();
-                if (records == null || records.Count == 0)
-                {
-                    return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });
-                }
-                return Ok(records);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
-            }
+        //        var records = _context.UserAnswers.Where(e => e.RequestId == requestId && !e.IsDeleted).ToList();
+        //        if (records == null || records.Count == 0)
+        //        {
+        //            return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });
+        //        }
+        //        return Ok(records);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+        //    }
 
-        }
+        //}
 
 
 
@@ -165,11 +174,11 @@ namespace PRX.Controllers.Quiz
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Create(int userId, [FromBody] UserAnswerDto dto)
+        public IActionResult Create(int requestId, [FromBody] UserAnswerDto dto)
         {
             try
             {
-                if (userId <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -191,7 +200,7 @@ namespace PRX.Controllers.Quiz
 
                 // Find the corresponding UserAnswerOption
                 var userAnswer = _context.UserAnswers
-                    .FirstOrDefault(o => o.RequestId == userId && o.AnswerOptionId == dto.AnswerOptionId && !o.IsDeleted);
+                    .FirstOrDefault(o => o.RequestId == requestId && o.AnswerOptionId == dto.AnswerOptionId && !o.IsDeleted);
 
                 if (userAnswer != null)
                 {
@@ -201,7 +210,7 @@ namespace PRX.Controllers.Quiz
 
                 var record = new UserAnswer
                 {
-                    RequestId = userId, // Assign userId parameter here
+                    RequestId = requestId, // Assign userId parameter here
                     AnswerOptionId = dto.AnswerOptionId,
                     AnswerText = dto.AnswerText
                 };
@@ -220,16 +229,16 @@ namespace PRX.Controllers.Quiz
 
 
         // PUT: api/UserAnswer/5
-        [HttpPut("{requestId}")]
+        [HttpPut("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Update(int requestId, [FromBody] UserAnswerDto dto)
+        public IActionResult Update(int id, int requestId, [FromBody] UserAnswerDto dto)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -249,7 +258,7 @@ namespace PRX.Controllers.Quiz
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound});
@@ -271,19 +280,19 @@ namespace PRX.Controllers.Quiz
         }
 
         // DELETE: api/UserAnswer/5
-        [HttpDelete("{requestId}")]
+        [HttpDelete("{id}/{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Delete(int requestId)
+        public IActionResult Delete(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.UserAnswers.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.QuizAnswerNotFound });

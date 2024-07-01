@@ -67,6 +67,7 @@ namespace PRX.Controllers.Hoghooghi
                 }
                 var record = _context.HoghooghiUserBoardOfDirectors.Where(e => e.RequestId == requestId && !e.IsDeleted).Select(r => new HoghooghiUserBoardOfDirectorsDto 
                 {
+                    Id = r.Id,
                     RequestId = r.RequestId,
                     FullName = r.FullName,
                     Position = r.Position,
@@ -134,16 +135,16 @@ namespace PRX.Controllers.Hoghooghi
         }
 
         // PUT: api/HoghooghiUserBoardOfDirectors/5
-        [HttpPut("{requestId}")]
+        [HttpPut("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Update(int requestId, [FromBody] HoghooghiUserBoardOfDirectorsDto dto)
+        public IActionResult Update(int id, int requestId, [FromBody] HoghooghiUserBoardOfDirectorsDto dto)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -163,7 +164,7 @@ namespace PRX.Controllers.Hoghooghi
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -194,16 +195,16 @@ namespace PRX.Controllers.Hoghooghi
         }
 
         // DELETE: api/HoghooghiUserBoardOfDirectors/5
-        [HttpDelete("{requestId}")]
+        [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Delete(int requestId)
+        public IActionResult Delete(int id, int requestId)
         {
 
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -224,7 +225,7 @@ namespace PRX.Controllers.Hoghooghi
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId && e.Id == id &&!e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -266,21 +267,21 @@ namespace PRX.Controllers.Hoghooghi
         }
 
 
-        [HttpPut("complete/{requestId}")]
+        [HttpPut("complete/{id}/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkDirectorsAsComplete(int requestId)
+        public IActionResult MarkDirectorsAsComplete(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -298,18 +299,18 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpGet("isComplete/{requestId}")]
+        [HttpGet("isComplete/{id}/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int requestId)
+        public IActionResult CheckCompletionStatus(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -330,7 +331,7 @@ namespace PRX.Controllers.Hoghooghi
                 }
 
 
-                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId);
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -356,6 +357,7 @@ namespace PRX.Controllers.Hoghooghi
                 var directors = _context.HoghooghiUserBoardOfDirectors.ToList();
                 var directorDtos = directors.Select(director => new HoghooghiUserBoardOfDirectorsDto
                 {
+                    Id = director.Id,
                     RequestId = director.RequestId,
                     FullName = director.FullName,
                     Position = director.Position,
@@ -367,6 +369,7 @@ namespace PRX.Controllers.Hoghooghi
                     IsComplete = director.IsComplete,
                     IsDeleted = director.IsDeleted
                 }).ToList();
+
                 return Ok(directorDtos);
             }
             catch (Exception ex)
@@ -376,20 +379,20 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpGet("Admin/{requestId}")]
+        [HttpGet("Admin/{id}/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetHoghooghiUserBoardOfDirectorsByIdAdmin(int requestId)
+        public IActionResult GetHoghooghiUserBoardOfDirectorsByIdAdmin(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == requestId && !d.IsDeleted);
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == requestId && d.Id == id && !d.IsDeleted);
                 if (director == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -418,21 +421,21 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpPut("Admin/{requestId}")]
+        [HttpPut("Admin/{id}/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHoghooghiUserBoardOfDirectorsAdmin(int requestId, [FromBody] HoghooghiUserBoardOfDirectorsDto directorDto)
+        public IActionResult UpdateHoghooghiUserBoardOfDirectorsAdmin(int id, int requestId, [FromBody] HoghooghiUserBoardOfDirectorsDto directorDto)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == requestId && !d.IsDeleted);
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == requestId && d.Id == id && !d.IsDeleted);
                 if (director == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
@@ -458,20 +461,20 @@ namespace PRX.Controllers.Hoghooghi
 
         }
 
-        [HttpDelete("Admin/{requestId}")]
+        [HttpDelete("Admin/{id}/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHoghooghiUserBoardOfDirectorsAdmin(int requestId)
+        public IActionResult DeleteHoghooghiUserBoardOfDirectorsAdmin(int id, int requestId)
         {
             try
             {
-                if (requestId <= 0)
+                if (id <= 0 || requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == requestId && !d.IsDeleted);
+                var director = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(d => d.RequestId == requestId && d.Id == id && !d.IsDeleted);
                 if (director == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound});

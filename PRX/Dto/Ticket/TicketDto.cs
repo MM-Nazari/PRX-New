@@ -4,6 +4,7 @@ namespace PRX.Dto.Ticket
 {
     public class TicketDto
     {
+        public int Id { get; set; }
         public int UserId { get; set; }
         public string TrackingCode { get; set; }
         public string Subject { get; set; }

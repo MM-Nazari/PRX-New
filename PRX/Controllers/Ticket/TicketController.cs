@@ -52,29 +52,29 @@ namespace PRX.Controllers.Ticket
                 }
             }
 
-            [HttpGet("{id}")]
+            [HttpGet("{userId}")]
             [Authorize(Roles = "User")]
             [ProducesResponseType(StatusCodes.Status200OK)]
             [ProducesResponseType(StatusCodes.Status404NotFound)]
             [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-            public IActionResult GetTicketById(int id)
+            public IActionResult GetTicketById(int userId)
             {
                 try
                 {
-                    if (id <= 0)
+                    if (userId <= 0)
                     {
                         return BadRequest(new { message = ResponseMessages.InvalidId });
                     }
 
                     var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                    if (id != tokenUserId)
+                    if (userId != tokenUserId)
                     {
                         return Unauthorized(new { message = ResponseMessages.Unauthorized });
                     }
 
                     var ticket = _context.Tickets
-                                         .Where(t => t.UserId == id && !t.IsDeleted)
+                                         .Where(t => t.UserId == userId && !t.IsDeleted)
                                          .Select(t => new TicketDto
                                          {
                                              UserId = t.UserId,
@@ -85,7 +85,7 @@ namespace PRX.Controllers.Ticket
                                              CreatedAt = t.CreatedAt,
                                              Category = t.Category,
                                              IsDeleted = t.IsDeleted
-                                         }).FirstOrDefault();
+                                         }).ToList();
 
                     if (ticket == null)
                     {
@@ -145,7 +145,7 @@ namespace PRX.Controllers.Ticket
                     _context.Tickets.Add(ticket);
                     _context.SaveChanges();
 
-                    return CreatedAtAction(nameof(GetTicketById), new { id = ticket.Id }, ticket);
+                    return CreatedAtAction(nameof(GetTicketById), new { userId = ticket.Id }, ticket);
                 }
                 catch (Exception ex)
                 {
@@ -191,13 +191,13 @@ namespace PRX.Controllers.Ticket
                 }
             }
 
-            [HttpPut("{id}")]
+            [HttpPut("{id}/{userId}")]
             [Authorize(Roles = "User")]
             [ProducesResponseType(StatusCodes.Status200OK)]
             [ProducesResponseType(StatusCodes.Status400BadRequest)]
             [ProducesResponseType(StatusCodes.Status404NotFound)]
             [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-            public IActionResult UpdateTicket(int id, [FromBody] TicketDto ticketDto)
+            public IActionResult UpdateTicket(int id, int userId, [FromBody] TicketDto ticketDto)
             {
                 if (!ModelState.IsValid)
                 {
@@ -207,19 +207,19 @@ namespace PRX.Controllers.Ticket
                 try
                 {
 
-                    if (id <= 0)
+                    if (id <= 0 || userId <= 0)
                     {
                         return BadRequest(new { message = ResponseMessages.InvalidId });
                     }
 
                     var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
-                    if (id != tokenUserId)
+                    if (userId != tokenUserId)
                     {
                         return Unauthorized(new { message = ResponseMessages.Unauthorized });
                     }
 
-                    var ticket = _context.Tickets.FirstOrDefault(t => t.UserId == id && !t.IsDeleted);
+                    var ticket = _context.Tickets.FirstOrDefault(t => t.UserId == userId && t.Id == id && !t.IsDeleted);
 
                     if (ticket == null)
                     {
@@ -242,20 +242,20 @@ namespace PRX.Controllers.Ticket
                 }
             }
 
-            [HttpDelete("{id}")]
+            [HttpDelete("{id}/{userId}")]
             [ProducesResponseType(StatusCodes.Status200OK)]
             [ProducesResponseType(StatusCodes.Status404NotFound)]
             [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-            public IActionResult SoftDeleteTicket(int id)
+            public IActionResult SoftDeleteTicket(int id, int userId)
             {
                 try
                 {
 
-                    if (id <= 0)
+                    if (id <= 0 || userId <= 0)
                     {
                         return BadRequest(new { message = ResponseMessages.InvalidId });
                     }
-                    var ticket = _context.Tickets.FirstOrDefault(t => t.UserId == id && !t.IsDeleted);
+                    var ticket = _context.Tickets.FirstOrDefault(t => t.UserId == userId && t.Id == id && !t.IsDeleted);
 
                     if (ticket == null)
                     {
@@ -285,6 +285,7 @@ namespace PRX.Controllers.Ticket
                     var tickets = _context.Tickets
                                           .Select(t => new TicketDto
                                           {
+                                              Id = t.Id,
                                               UserId = t.UserId,
                                               TrackingCode = t.TrackingCode,
                                               Subject = t.Subject,
@@ -302,24 +303,25 @@ namespace PRX.Controllers.Ticket
                 }
             }
 
-            [HttpGet("Admin/{id}")]
+            [HttpGet("Admin/{userId}")]
             [Authorize(Roles = "Admin")]
             [ProducesResponseType(StatusCodes.Status200OK)]
             [ProducesResponseType(StatusCodes.Status404NotFound)]
             [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-            public IActionResult GetTicketByIdAdmin(int id)
+            public IActionResult GetTicketByIdAdmin(int userId)
             {
                 try
                 {
-                    if (id <= 0)
+                    if (userId <= 0)
                     {
                         return BadRequest(new { message = ResponseMessages.InvalidId });
                     }
 
                     var ticket = _context.Tickets
-                                         .Where(t => t.UserId == id)
+                                         .Where(t => t.UserId == userId)
                                          .Select(t => new TicketDto
                                          {
+                                             Id = t.Id,
                                              UserId = t.UserId,
                                              TrackingCode = t.TrackingCode,
                                              Subject = t.Subject,
@@ -328,7 +330,7 @@ namespace PRX.Controllers.Ticket
                                              CreatedAt = t.CreatedAt,
                                              Category = t.Category,
                                              IsDeleted = t.IsDeleted
-                                         }).FirstOrDefault();
+                                         }).ToList();
 
                     if (ticket == null)
                     {
@@ -359,7 +361,7 @@ namespace PRX.Controllers.Ticket
                 try
                 {
 
-                    var ticket = _context.Tickets.FirstOrDefault(t => t.UserId == id);
+                    var ticket = _context.Tickets.FirstOrDefault(t => t.Id == id);
 
                     if (ticket == null)
                     {
@@ -395,7 +397,7 @@ namespace PRX.Controllers.Ticket
                     {
                         return BadRequest(new { message = ResponseMessages.InvalidId });
                     }
-                    var ticket = _context.Tickets.FirstOrDefault(t => t.UserId == id);
+                    var ticket = _context.Tickets.FirstOrDefault(t => t.Id == id);
 
                     if (ticket == null)
                     {

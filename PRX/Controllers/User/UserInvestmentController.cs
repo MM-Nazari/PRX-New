@@ -135,17 +135,17 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateUserInvestment(int id, [FromBody] UserInvestmentDto userInvestmentDto)
+        public IActionResult UpdateUserInvestment(int requestId, [FromBody] UserInvestmentDto userInvestmentDto)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -154,7 +154,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -167,7 +167,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userInvestment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -189,16 +189,16 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteUserInvestment(int id)
+        public IActionResult DeleteUserInvestment(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -207,7 +207,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -220,7 +220,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userInvestment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -261,21 +261,21 @@ namespace PRX.Controllers.User
         }
 
         // PUT: api/HaghighiUserProfile/complete/{id}
-        [HttpPut("complete/{id}")]
+        [HttpPut("complete/{requestId}")]
         //[Authorize(Roles = "Admin")] // Assuming only admins can mark profiles as complete
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarkFinancwChangeAsComplete(int id)
+        public IActionResult MarkFinancwChangeAsComplete(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userInvestments = _context.UserInvestments.FirstOrDefault(u => u.RequestId == id);
+                var userInvestments = _context.UserInvestments.FirstOrDefault(u => u.RequestId == requestId);
                 if (userInvestments == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -294,25 +294,25 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("isComplete/{id}")]
+        [HttpGet("isComplete/{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckCompletionStatus(int id)
+        public IActionResult CheckCompletionStatus(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -326,7 +326,7 @@ namespace PRX.Controllers.User
                 }
 
 
-                var record = _context.UserInvestments.FirstOrDefault(e => e.RequestId == id);
+                var record = _context.UserInvestments.FirstOrDefault(e => e.RequestId == requestId);
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -367,20 +367,20 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("Admin/{id}")]
+        [HttpGet("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetUserInvestmentByIdAdmin(int id)
+        public IActionResult GetUserInvestmentByIdAdmin(int requestId)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == id && !inv.IsDeleted);
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == requestId && !inv.IsDeleted);
                 if (investment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -404,21 +404,21 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpPut("Admin/{id}")]
+        [HttpPut("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateUserInvestmentAdmin(int id, [FromBody] UserInvestmentDto investmentDto)
+        public IActionResult UpdateUserInvestmentAdmin(int requestId, [FromBody] UserInvestmentDto investmentDto)
         {
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == id && !inv.IsDeleted);
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == requestId && !inv.IsDeleted);
                 if (investment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });
@@ -438,21 +438,21 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpDelete("Admin/{id}")]
+        [HttpDelete("Admin/{requestId}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteUserInvestmentAdmin(int id)
+        public IActionResult DeleteUserInvestmentAdmin(int requestId)
         {
             try
             {
 
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == id && !inv.IsDeleted);
+                var investment = _context.UserInvestments.FirstOrDefault(inv => inv.RequestId == requestId && !inv.IsDeleted);
                 if (investment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound });

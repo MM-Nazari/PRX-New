@@ -5,7 +5,7 @@ namespace PRX.Dto.User
     public class UserInvestmentExperienceDto
     {
 
-        //public int UserId { get; set; }
+        public int Id { get; set; }
         public int RequestId { get; set; }
 
         [Required(ErrorMessage = "Investment Type is required")]
