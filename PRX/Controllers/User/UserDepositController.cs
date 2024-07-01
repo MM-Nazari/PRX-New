@@ -5,6 +5,8 @@ using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
 using PRX.Utils;
+using Azure.Core;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace PRX.Controllers.User
 {
@@ -37,18 +39,18 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetUserDepositById(int id)
+        public IActionResult GetUserDepositById(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -57,7 +59,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -69,7 +71,18 @@ namespace PRX.Controllers.User
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userDeposit = _context.UserDeposits.Where(u => u.RequestId == requestId && !u.IsDeleted).Select(r => new UserDepositDto 
+                {
+                    RequestId = r.RequestId,
+                    DepositAmount = r.DepositAmount,
+                    DepositDate = r.DepositDate,
+                    DepositSource = r.DepositSource,
+                    IsComplete = r.IsComplete,
+                    IsDeleted = r.IsDeleted
+                }
+                ).ToList();
+
+
                 if (userDeposit == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDepositNotFound});
@@ -112,7 +125,7 @@ namespace PRX.Controllers.User
                 _context.UserDeposits.Add(userDeposit);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserDepositById), new { id = userDeposit.Id }, userDeposit);
+                return CreatedAtAction(nameof(GetUserDepositById), new { requestId = userDeposit.Id }, userDeposit);
 
             }
             catch (Exception ex)

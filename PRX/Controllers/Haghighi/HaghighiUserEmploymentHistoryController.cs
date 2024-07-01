@@ -68,7 +68,19 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var employmentHistory = _context.HaghighiUserEmploymentHistories.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var employmentHistory = _context.HaghighiUserEmploymentHistories.Where(e => e.RequestId == requestId && !e.IsDeleted).Select(r => new HaghighiUserEmploymentHistoryDto {
+                RequestId = r.RequestId,
+                EmployerLocation = r.EmployerLocation,
+                MainActivity = r.MainActivity,
+                Position = r.Position,
+                StartDate = r.StartDate,
+                EndDate = r.EndDate,
+                WorkAddress = r.WorkAddress,
+                WorkPhone = r.WorkPhone,
+                IsComplete = r.IsComplete,
+                IsDeleted = r.IsDeleted
+                }).ToList();
+
                 if (employmentHistory == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
@@ -112,7 +124,7 @@ namespace PRX.Controllers.Haghighi
                 _context.HaghighiUserEmploymentHistories.Add(employmentHistory);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHaghighiUserEmploymentHistoryById), new { id = employmentHistory.Id }, employmentHistory);
+                return CreatedAtAction(nameof(GetHaghighiUserEmploymentHistoryById), new { requestId = employmentHistory.Id }, employmentHistory);
             }
             catch (Exception ex)
             {

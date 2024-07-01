@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
@@ -66,7 +67,20 @@ namespace PRX.Controllers.Hoghooghi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var record = _context.HoghooghiUserInvestmentDepartmentStaff.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                var record = _context.HoghooghiUserInvestmentDepartmentStaff.Where(e => e.RequestId == requestId && !e.IsDeleted).Select(r => new HoghooghiUserInvestmentDepartmentStaffDto 
+                {
+                    RequestId = r.RequestId,
+                    FullName = r.FullName,
+                    Position = r.Position,
+                    EducationalLevel = r.EducationalLevel,
+                    FieldOfStudy = r.FieldOfStudy,
+                    ExecutiveExperience = r.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = r.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = r.PersonalInvestmentExperienceInStockExchange,
+                    IsComplete = r.IsComplete,
+                    IsDeleted = r.IsDeleted
+
+                }).ToList();
                 if (record == null)
                 {
                     return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound});
@@ -111,7 +125,7 @@ namespace PRX.Controllers.Hoghooghi
                 _context.HoghooghiUserInvestmentDepartmentStaff.Add(record);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetById), new { id = record.Id }, record);
+                return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
             }
             catch (Exception ex)
             {

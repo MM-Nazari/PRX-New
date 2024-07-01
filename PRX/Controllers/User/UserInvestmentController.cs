@@ -5,6 +5,8 @@ using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
 using PRX.Utils;
+using Azure.Core;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace PRX.Controllers.User
 {
@@ -37,16 +39,16 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetUserInvestmentById(int id)
+        public IActionResult GetUserInvestmentById(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -55,7 +57,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -68,7 +70,15 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userInvestment = _context.UserInvestments.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userInvestment = _context.UserInvestments.Where(u => u.RequestId == requestId && !u.IsDeleted).Select(r => new UserInvestmentDto 
+                {
+                    RequestId = r.RequestId,
+                    Amount = r.Amount,
+                    IsComplete = r.IsComplete,
+                    IsDeleted = r.IsDeleted
+                }
+                ).ToList();
+
                 if (userInvestment == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentNotFound});
@@ -116,7 +126,7 @@ namespace PRX.Controllers.User
                 _context.UserInvestments.Add(userInvestment);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserInvestmentById), new { id = userInvestment.Id }, userInvestment);
+                return CreatedAtAction(nameof(GetUserInvestmentById), new { requestId = userInvestment.Id }, userInvestment);
             }
             catch (Exception ex)
             {

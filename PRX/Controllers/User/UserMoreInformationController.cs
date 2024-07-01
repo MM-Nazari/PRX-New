@@ -37,16 +37,16 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetUserMoreInformationById(int id)
+        public IActionResult GetUserMoreInformationById(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -55,7 +55,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -67,7 +67,7 @@ namespace PRX.Controllers.User
                 {
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
-                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userMoreInformation = _context.UserMoreInformations.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userMoreInformation == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserMoreInfoNotFound });
@@ -113,7 +113,7 @@ namespace PRX.Controllers.User
                 _context.UserMoreInformations.Add(userMoreInformation);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserMoreInformationById), new { id = userMoreInformation.Id }, userMoreInformation);
+                return CreatedAtAction(nameof(GetUserMoreInformationById), new { requestId = userMoreInformation.Id }, userMoreInformation);
             }
             catch (Exception ex)
             {

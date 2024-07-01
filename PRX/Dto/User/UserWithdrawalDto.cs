@@ -2,7 +2,7 @@
 {
     public class UserWithdrawalDto
     {
-        public int Id { get; set; }
+        //public int Id { get; set; }
         //public int UserId { get; set; }
         public int RequestId { get; set; }
         public decimal WithdrawalAmount { get; set; }

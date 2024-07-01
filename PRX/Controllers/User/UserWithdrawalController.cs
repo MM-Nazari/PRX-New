@@ -5,6 +5,8 @@ using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
 using PRX.Utils;
+using Azure.Core;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace PRX.Controllers.User
 {
@@ -30,7 +32,7 @@ namespace PRX.Controllers.User
                 var userWithdrawals = _context.UserWithdrawals.ToList();
                 var userWithdrawalDtos = userWithdrawals.Select(userWithdrawal => new UserWithdrawalDto
                 {
-                    Id = userWithdrawal.Id,
+                    //Id = userWithdrawal.Id,
                     RequestId = userWithdrawal.RequestId,
                     WithdrawalAmount = userWithdrawal.WithdrawalAmount,
                     WithdrawalDate = userWithdrawal.WithdrawalDate,
@@ -45,16 +47,16 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetUserWithdrawalById(int id)
+        public IActionResult GetUserWithdrawalById(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -63,7 +65,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -76,20 +78,31 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userWithdrawal = _context.UserWithdrawals.Where(u => u.RequestId == requestId && !u.IsDeleted).Select(r => new UserWithdrawalDto 
+                {
+                    RequestId = r.RequestId,
+                    WithdrawalAmount = r.WithdrawalAmount,
+                    WithdrawalDate = r.WithdrawalDate,
+                    WithdrawalReason = r.WithdrawalReason,
+                    IsComplete = r.IsComplete,
+                    IsDeleted = r.IsDeleted
+                }
+                ).ToList();
+
+
                 if (userWithdrawal == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
                 }
-                var userWithdrawalDto = new UserWithdrawalDto
-                {
-                    Id = userWithdrawal.Id,
-                    RequestId = userWithdrawal.RequestId,
-                    WithdrawalAmount = userWithdrawal.WithdrawalAmount,
-                    WithdrawalDate = userWithdrawal.WithdrawalDate,
-                    WithdrawalReason = userWithdrawal.WithdrawalReason
-                };
-                return Ok(userWithdrawalDto);
+                //var userWithdrawalDto = new UserWithdrawalDto
+                //{
+                //    Id = userWithdrawal.Id,
+                //    RequestId = userWithdrawal.RequestId,
+                //    WithdrawalAmount = userWithdrawal.WithdrawalAmount,
+                //    WithdrawalDate = userWithdrawal.WithdrawalDate,
+                //    WithdrawalReason = userWithdrawal.WithdrawalReason
+                //};
+                return Ok(userWithdrawal);
 
             }
 
@@ -124,7 +137,7 @@ namespace PRX.Controllers.User
                 _context.UserWithdrawals.Add(userWithdrawal);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserWithdrawalById), new { id = userWithdrawal.Id }, userWithdrawal);
+                return CreatedAtAction(nameof(GetUserWithdrawalById), new { requestId = userWithdrawal.Id }, userWithdrawal);
             }
             catch (Exception ex)
             {
@@ -353,7 +366,7 @@ namespace PRX.Controllers.User
                 var withdrawals = _context.UserWithdrawals.ToList();
                 var withdrawalDtos = withdrawals.Select(withdrawal => new UserWithdrawalDto
                 {
-                    Id = withdrawal.Id,
+                    //Id = withdrawal.Id,
                     RequestId = withdrawal.RequestId,
                     WithdrawalAmount = withdrawal.WithdrawalAmount,
                     WithdrawalDate = withdrawal.WithdrawalDate,
@@ -393,7 +406,7 @@ namespace PRX.Controllers.User
 
                 var withdrawalDto = new UserWithdrawalDto
                 {
-                    Id = withdrawal.Id,
+                    //Id = withdrawal.Id,
                     RequestId = withdrawal.RequestId,
                     WithdrawalAmount = withdrawal.WithdrawalAmount,
                     WithdrawalDate = withdrawal.WithdrawalDate,

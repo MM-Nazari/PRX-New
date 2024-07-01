@@ -123,7 +123,7 @@ namespace PRX.Controllers.Haghighi
                 _context.HaghighiUserBankInfos.Add(bankInfo);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHaghighiUserBankInfoById), new { id = bankInfo.Id }, bankInfo);
+                return CreatedAtAction(nameof(GetHaghighiUserBankInfoById), new { requestId = bankInfo.Id }, bankInfo);
             }
             catch (Exception ex)
             {

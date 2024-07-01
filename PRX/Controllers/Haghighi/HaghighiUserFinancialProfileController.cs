@@ -68,6 +68,7 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
                 var financialProfile = _context.HaghighiUserFinancialProfiles.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+
                 if (financialProfile == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound});
@@ -118,7 +119,7 @@ namespace PRX.Controllers.Haghighi
                 _context.HaghighiUserFinancialProfiles.Add(financialProfile);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHaghighiUserFinancialProfileById), new { id = financialProfile.Id }, financialProfile);
+                return CreatedAtAction(nameof(GetHaghighiUserFinancialProfileById), new { requestId = financialProfile.Id }, financialProfile);
             }
             catch (Exception ex)
             {

@@ -128,7 +128,7 @@ namespace PRX.Controllers.Hoghooghi
                 _context.HoghooghiUsers.Add(user);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHoghooghiUserById), new { id = user.Id }, user);
+                return CreatedAtAction(nameof(GetHoghooghiUserById), new { requestId = user.Id }, user);
             }
             catch (Exception ex)
             {

@@ -122,7 +122,7 @@ namespace PRX.Controllers.Haghighi
                 _context.HaghighiUserEducationStatuses.Add(educationStatus);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHaghighiUserEducationStatusById), new { id = educationStatus.Id }, educationStatus);
+                return CreatedAtAction(nameof(GetHaghighiUserEducationStatusById), new { requestId = educationStatus.Id }, educationStatus);
             }
             catch (Exception ex)
             {

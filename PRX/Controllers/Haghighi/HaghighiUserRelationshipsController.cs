@@ -66,12 +66,37 @@ namespace PRX.Controllers.Haghighi
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var relationship = _context.HaghighiUserRelationships.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
-                if (relationship == null)
+                // Fetch all relationships associated with the request
+                //var relationships = _context.HaghighiUserRelationships
+                //    .Where(u => u.RequestId == requestId && !u.IsDeleted)
+                //    .ToList();
+
+                // Fetch all relationships associated with the request
+                var relationships = _context.HaghighiUserRelationships
+                    .Where(u => u.RequestId == requestId && !u.IsDeleted)
+                    .Select(r => new HaghighiUserRelationshipsDto
+                    {
+                        
+                        RequestId = r.RequestId,
+                        FullName = r.FullName,
+                        RelationshipStatus = r.RelationshipStatus,
+                        BirthYear = r.BirthYear,
+                        EducationLevel = r.EducationLevel,
+                        EmploymentStatus = r.EmploymentStatus,
+                        AverageMonthlyIncome = r.AverageMonthlyIncome,
+                        AverageMonthlyExpense = r.AverageMonthlyExpense,
+                        ApproximateAssets = r.ApproximateAssets,
+                        ApproximateLiabilities = r.ApproximateLiabilities,
+                        IsComplete = r.IsComplete,
+                        IsDeleted = r.IsDeleted
+                    })
+                    .ToList();
+
+                if (relationships == null)
                 {
                     return NotFound(new { message = ResponseMessages.HaghighiUserRelationNotFound});
                 }
-                return Ok(relationship);
+                return Ok(relationships);
             }
             catch (Exception ex)
             {
@@ -111,7 +136,7 @@ namespace PRX.Controllers.Haghighi
                 _context.HaghighiUserRelationships.Add(relationship);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHaghighiUserRelationshipsById), new { id = relationship.Id }, relationship);
+                return CreatedAtAction(nameof(GetHaghighiUserRelationshipsById), new { requestId = relationship.Id }, relationship);
             }
             catch (Exception ex)
             {

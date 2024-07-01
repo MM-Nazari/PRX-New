@@ -16,23 +16,35 @@ using DotNet.RateLimiter;
 using PRX;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Data.SqlClient;
+using OfficeOpenXml;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRateLimitService(builder.Configuration);
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 
 // Add services to the container.
 
 // Add services to the container.
+//builder.Services.AddControllers()
+//    .AddJsonOptions(options =>
+//    {
+//        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+//        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+
+//    });
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.WriteIndented = true; // Optional: for more readable JSON output
     });
+
 
 builder.Services.AddMemoryCache();
 

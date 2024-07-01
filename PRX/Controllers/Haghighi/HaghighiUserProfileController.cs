@@ -123,7 +123,19 @@ namespace PRX.Controllers.Haghighi
                 // Update profile properties
                 profile.FirstName = profileDto.FirstName;
                 profile.LastName = profileDto.LastName;
-                // Update other properties as needed...
+                profile.FathersName = profileDto.FathersName;
+                profile.NationalNumber = profileDto.NationalNumber;
+                profile.BirthDate = profileDto.BirthDate;
+                profile.BirthPlace = profileDto.BirthPlace;
+                profile.BirthCertificateNumber = profileDto.BirthCertificateNumber;
+                profile.MaritalStatus = profileDto.MaritalStatus;
+                profile.Gender = profileDto.Gender;
+                profile.PostalCode = profileDto.PostalCode;
+                profile.HomePhone = profileDto.HomePhone;
+                profile.Fax = profileDto.Fax;
+                profile.BestTimeToCall = profileDto.BestTimeToCall;
+                profile.ResidentialAddress = profileDto.ResidentialAddress;
+                profile.Email = profileDto.Email;
 
                 _context.SaveChanges();
 
@@ -243,7 +255,7 @@ namespace PRX.Controllers.Haghighi
                 _context.HaghighiUserProfiles.Add(profile);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHaghighiUserProfileById), new { id = profile.Id }, profile);
+                return CreatedAtAction(nameof(GetHaghighiUserProfileById), new { requestId = profile.Id }, profile);
             }
             catch (Exception ex)
             {

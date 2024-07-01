@@ -186,7 +186,7 @@ namespace PRX.Controllers.User
                 // Recalculate the percentages
                 CalculateAndSetAssetPercentages(userAssetDto.RequestId);
 
-                return CreatedAtAction(nameof(GetUserAssetById), new { id = userAsset.Id }, userAsset);
+                return CreatedAtAction(nameof(GetUserAssetById), new { requestId = userAsset.Id }, userAsset);
             }
             catch (Exception ex)
             {

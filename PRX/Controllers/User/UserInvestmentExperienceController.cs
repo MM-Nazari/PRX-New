@@ -37,16 +37,16 @@ namespace PRX.Controllers.User
 
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{requestId}")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetUserInvestmentExperienceById(int id)
+        public IActionResult GetUserInvestmentExperienceById(int requestId)
         {
 
             try
             {
-                if (id <= 0)
+                if (requestId <= 0)
                 {
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
@@ -55,7 +55,7 @@ namespace PRX.Controllers.User
                 var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
 
                 // Fetch the request
-                var request = _context.Requests.FirstOrDefault(r => r.Id == id);
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
 
                 if (request == null)
                 {
@@ -68,7 +68,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userInvestmentExperience = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
+                var userInvestmentExperience = _context.UserInvestmentExperiences.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
                 if (userInvestmentExperience == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
@@ -111,7 +111,7 @@ namespace PRX.Controllers.User
                 _context.UserInvestmentExperiences.Add(userInvestmentExperience);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserInvestmentExperienceById), new { id = userInvestmentExperience.Id }, userInvestmentExperience);
+                return CreatedAtAction(nameof(GetUserInvestmentExperienceById), new { requestId = userInvestmentExperience.Id }, userInvestmentExperience);
             }
             catch (Exception ex)
             {

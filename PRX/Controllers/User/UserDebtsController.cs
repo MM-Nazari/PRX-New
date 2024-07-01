@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -55,7 +56,18 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                var userDebt = _context.UserDebts.Where(u => u.RequestId == requestId && !u.IsDeleted).Select(r => new UserDebtDto 
+                {
+                    RequestId = r.RequestId,
+                    DebtTitle = r.DebtTitle,
+                    DebtAmount = r.DebtAmount,
+                    DebtDueDate = r.DebtDueDate,
+                    DebtRepaymentPercentage = r.DebtRepaymentPercentage,
+                    IsComplete = r.IsComplete,
+                    IsDeleted = r.IsDeleted
+                }
+                ).ToList();
+
                 if (userDebt == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDebtNotFound});
@@ -96,7 +108,7 @@ namespace PRX.Controllers.User
                 _context.UserDebts.Add(userDebt);
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserDebtById), new { id = userDebt.Id }, userDebt);
+                return CreatedAtAction(nameof(GetUserDebtById), new { requestId = userDebt.Id }, userDebt);
             }
             catch (Exception ex)
             {
