@@ -165,9 +165,16 @@
 
         // OTP
 
+        public const string OTPMobileNotFound = "شماره موبایل وارد نشده است";
         public const string OTPCouldntBeSent = "بدلیل ناتوانی برقراری ارتباط با سرور امکان ارسال پیامک وجود دارد ";
         public const string OTPVerificationFailed = "کد وارد شده صحیح نمیباشد ";
         public const string OTPVerificationSucceded = "احراز هویت با سرویس پیامک کوتاه با موفقیت انجام شد ";
+
+
+        // National Code
+
+        public const string NationalCodeNotFound = "کد ملی وارد نشده است";
+        public const string MobileNotFound = " شماره موبایل وارد نشده است ";
 
 
         // logout

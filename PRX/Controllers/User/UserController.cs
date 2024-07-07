@@ -18,6 +18,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using DotNet.RateLimiter.ActionFilters;
 using DocumentFormat.OpenXml.Spreadsheet;
+using PRX.Dto.Helper;
 
 namespace PRX.Controllers.User
 {
@@ -445,87 +446,87 @@ namespace PRX.Controllers.User
         //    return CreatedAtAction(nameof(GetUserById), new { id = admin.Id }, admin);
         //}
 
-        [HttpPost("verify-otp")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> VerifyOtpAsync([FromBody] OtpDto otpVerificationDto)
-        {
-            try
-            {
-                var isOtpVerified = await VerifyOtp(otpVerificationDto.PhoneNumber, otpVerificationDto.Otp);
-                if (!isOtpVerified)
-                {
-                    return BadRequest(new { message = ResponseMessages.OTPVerificationFailed });
-                }
+        //[HttpPost("verify-otp")]
+        //[AllowAnonymous]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //public async Task<IActionResult> VerifyOtpAsync([FromBody] OtpDto otpVerificationDto)
+        //{
+        //    try
+        //    {
+        //        var isOtpVerified = await VerifyOtp(otpVerificationDto.PhoneNumber, otpVerificationDto.Otp);
+        //        if (!isOtpVerified)
+        //        {
+        //            return BadRequest(new { message = ResponseMessages.OTPVerificationFailed });
+        //        }
 
 
-                return Ok(new { message = ResponseMessages.OTPVerificationSucceded });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
-            }
-        }
+        //        return Ok(new { message = ResponseMessages.OTPVerificationSucceded });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+        //    }
+        //}
 
 
 
-        private async Task<bool> SendOtp(string mobile)
-        {
-            try
-            {
-                var requestBody = new
-                {
-                    mobile,
-                    user = 0,
-                    template = "prx"
-                };
+        //private async Task<bool> SendOtp(string mobile)
+        //{
+        //    try
+        //    {
+        //        var requestBody = new
+        //        {
+        //            mobile,
+        //            user = 0,
+        //            template = "prx"
+        //        };
 
-                var jsonContent = JsonConvert.SerializeObject(requestBody);
-                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+        //        var jsonContent = JsonConvert.SerializeObject(requestBody);
+        //        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                using (var httpClient = new HttpClient())
-                {
-                    httpClient.DefaultRequestHeaders.Add("Key", "9ac6bc9a-cca3-4779-8640-6836b6ab1daa");
-                    var response = await httpClient.PostAsync("http://172.21.30.78:8000/api/v1/sms/send_code/", httpContent);
-                    return response.IsSuccessStatusCode;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log or handle the error
-                return false;
-            }
-        }
+        //        using (var httpClient = new HttpClient())
+        //        {
+        //            httpClient.DefaultRequestHeaders.Add("Key", "9ac6bc9a-cca3-4779-8640-6836b6ab1daa");
+        //            var response = await httpClient.PostAsync("http://172.21.30.78:8000/api/v1/sms/send_code/", httpContent);
+        //            return response.IsSuccessStatusCode;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log or handle the error
+        //        return false;
+        //    }
+        //}
 
-        private async Task<bool> VerifyOtp(string mobile, int code)
-        {
-            try
-            {
-                var requestBody = new
-                {
-                    mobile,
-                    user = 0,
-                    template = "prx",
-                    code
-                };
+        //private async Task<bool> VerifyOtp(string mobile, int code)
+        //{
+        //    try
+        //    {
+        //        var requestBody = new
+        //        {
+        //            mobile,
+        //            user = 0,
+        //            template = "prx",
+        //            code
+        //        };
 
-                var jsonContent = JsonConvert.SerializeObject(requestBody);
-                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+        //        var jsonContent = JsonConvert.SerializeObject(requestBody);
+        //        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                using (var httpClient = new HttpClient())
-                {
-                    httpClient.DefaultRequestHeaders.Add("Key", "9ac6bc9a-cca3-4779-8640-6836b6ab1daa");
-                    var response = await httpClient.PostAsync("http://172.21.30.78:8000/api/v1/sms/verify_code/", httpContent);
-                    return response.IsSuccessStatusCode;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log or handle the error
-                return false;
-            }
-        }
+        //        using (var httpClient = new HttpClient())
+        //        {
+        //            httpClient.DefaultRequestHeaders.Add("Key", "9ac6bc9a-cca3-4779-8640-6836b6ab1daa");
+        //            var response = await httpClient.PostAsync("http://172.21.30.78:8000/api/v1/sms/verify_code/", httpContent);
+        //            return response.IsSuccessStatusCode;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log or handle the error
+        //        return false;
+        //    }
+        //}
 
 
 

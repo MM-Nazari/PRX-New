@@ -164,6 +164,7 @@ namespace PRX.Controllers.User
 
             request.RequestState = "ثبت شده";
             request.TrackingCode = GenerateTrackingCode();
+            request.IsComplete = true;
 
 
 
