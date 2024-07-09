@@ -242,7 +242,7 @@ namespace PRX.Controllers.User
                 }
 
                 // Find the existing document by requestId and documentType
-                var existingDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == requestId && d.DocumentType == documentType);
+                var existingDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == requestId && d.DocumentType == documentType && !d.IsDeleted);
                 if (existingDocument == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDocNotFound });
@@ -529,7 +529,7 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == requestId && d.DocumentType == documentType);
+                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == requestId && d.DocumentType == documentType && !d.IsDeleted);
                 if (userDocument == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDocNotFound });

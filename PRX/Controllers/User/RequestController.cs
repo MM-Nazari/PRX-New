@@ -49,6 +49,7 @@ namespace PRX.Controllers.User
                 return NotFound(new { message = ResponseMessages.RequestNotFound });
             }
 
+
             return Ok(request);
         }
 
@@ -163,6 +164,7 @@ namespace PRX.Controllers.User
             }
 
             request.RequestState = "ثبت شده";
+            request.RequestSentTime = DateTime.Now;
             request.TrackingCode = GenerateTrackingCode();
             request.IsComplete = true;
 

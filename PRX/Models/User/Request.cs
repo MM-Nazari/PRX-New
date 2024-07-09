@@ -11,10 +11,10 @@ namespace PRX.Models.User
         [Key]
         public int Id { get; set; }
 
-        [Required]
+        //[Required]
         public int UserId { get; set; }
 
-        [Required]
+        //[Required]
         public string RequestType { get; set; } // e.g., "Haghighi", "Hoghooghi"
 
         public bool IsComplete { get; set; } = false;
@@ -24,16 +24,16 @@ namespace PRX.Models.User
 
 
         // New fields
-        [Required]
+        //[Required]
         public string TrackingCode { get; set; }
 
-        [Required]
+        //[Required]
         public DateTime RequestSentTime { get; set; }
 
-        [Required]
+        //[Required]
         public string BeneficiaryName { get; set; } // نام ذی نفع
 
-        [Required]
+        //[Required]
         public string RequestState { get; set; }
 
 
