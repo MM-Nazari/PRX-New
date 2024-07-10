@@ -57,6 +57,7 @@ namespace PRX.Models.User
         //public UserState UserState { get; set; }
         public List<UserDocument> UserDocs { get; set; }
         //public UserReference UserReference { get; set; }
+        public UserBankInfo UserBankInfos { get; set; }
 
 
 
@@ -67,7 +68,7 @@ namespace PRX.Models.User
         public HaghighiUserFinancialProfile HaghighiUserFinancialProfiles { get; set; }
         public HaghighiUserEducationStatus HaghighiUserEducationStatus { get; set; }
         public List<HaghighiUserEmploymentHistory> EmploymentHistories { get; set; }
-        public HaghighiUserBankInfo HaghighiUserBankInfos { get; set; }
+
 
 
         // Hoghooghi

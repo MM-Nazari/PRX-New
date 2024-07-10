@@ -48,7 +48,6 @@ namespace PRX.Models.Hoghooghi
         public string LandlinePhone { get; set; }
 
         [Required]
-        [StringLength(10)] // Assuming a maximum length for fax
         public string Fax { get; set; }
 
         [Required]

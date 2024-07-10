@@ -111,6 +111,21 @@ namespace PRX.Controllers.User
                 return BadRequest(ModelState);
             }
 
+            // Check for existing requests of type "حقیقی" and "حقوقی"
+            var existingRequests = await _context.Requests
+                .Where(r => r.UserId == requestDto.UserId)
+                .ToListAsync();
+
+            if (existingRequests.Count(r => r.RequestType == "حقیقی") >= 1 && requestDto.RequestType == "حقیقی")
+            {
+                return BadRequest(new { message = ResponseMessages.MaximumRequestTypeHaghighi });
+            }
+
+            if (existingRequests.Count(r => r.RequestType == "حقوقی") >= 3 && requestDto.RequestType == "حقوقی")
+            {
+                return BadRequest(new { message = ResponseMessages.MaximumRequestTypeHoghooghi });
+            }
+
 
             var request = new Request
             {

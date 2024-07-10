@@ -137,8 +137,8 @@ namespace PRX.Controllers.Report
                 AddDataToSheet(userTestScoreSheet, userTestScoreData, GetUserTestScoreColumnMappings());
 
                 // Add sheet and data for HaghighiUserBankInfos
-                var haghighiUserBankInfoSheet = package.Workbook.Worksheets.Add("اطلاعات بانکی کاربر حقیقی");
-                var haghighiUserBankInfoData = await _context.HaghighiUserBankInfos.ToListAsync();
+                var haghighiUserBankInfoSheet = package.Workbook.Worksheets.Add("اطلاعات بانکی کاربر ");
+                var haghighiUserBankInfoData = await _context.UserBankInfos.ToListAsync();
                 AddDataToSheet(haghighiUserBankInfoSheet, haghighiUserBankInfoData, GetHaghighiUserBankInfoColumnMappings());
 
                 // Add sheet and data for HaghighiUserEducationStatuses
@@ -267,8 +267,8 @@ namespace PRX.Controllers.Report
                 AddDataToSheet(userTestScoreSheet, userTestScoreData, GetUserTestScoreColumnMappings());
 
                 // Add sheet and data for HaghighiUserBankInfos
-                var haghighiUserBankInfoSheet = package.Workbook.Worksheets.Add("اطلاعات بانکی کاربر حقیقی");
-                var haghighiUserBankInfoData = requestId > 0 ? await _context.HaghighiUserBankInfos.Where(hubi => hubi.RequestId == requestId).ToListAsync() : await _context.HaghighiUserBankInfos.ToListAsync();
+                var haghighiUserBankInfoSheet = package.Workbook.Worksheets.Add("اطلاعات بانکی کاربر ");
+                var haghighiUserBankInfoData = requestId > 0 ? await _context.UserBankInfos.Where(hubi => hubi.RequestId == requestId).ToListAsync() : await _context.UserBankInfos.ToListAsync();
                 AddDataToSheet(haghighiUserBankInfoSheet, haghighiUserBankInfoData, GetHaghighiUserBankInfoColumnMappings());
 
                 // Add sheet and data for HaghighiUserEducationStatuses

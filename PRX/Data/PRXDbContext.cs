@@ -46,6 +46,7 @@ namespace PRX.Data
         public DbSet<UserReference> UserReferences { get; set; }
         public DbSet<Request> Requests { get; set; }
         public DbSet<DataChangeLog> DataChangeLogs { get; set; }
+        public DbSet<UserBankInfo> UserBankInfos { get; set; }
 
 
 
@@ -57,7 +58,7 @@ namespace PRX.Data
         public DbSet<HaghighiUserFinancialProfile> HaghighiUserFinancialProfiles { get; set; }
         public DbSet<HaghighiUserEducationStatus> HaghighiUserEducationStatuses { get; set; }
         public DbSet<HaghighiUserEmploymentHistory> HaghighiUserEmploymentHistories { get; set; }
-        public DbSet<HaghighiUserBankInfo> HaghighiUserBankInfos { get; set; }
+        
 
 
         // Hoghooghi Set
@@ -191,6 +192,11 @@ namespace PRX.Data
            .ValueGeneratedOnAdd()
            .IsRequired();
 
+            modelBuilder.Entity<UserBankInfo>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .IsRequired();
+
 
             // Haghighi
 
@@ -219,10 +225,7 @@ namespace PRX.Data
             .ValueGeneratedOnAdd()
             .IsRequired();
 
-            modelBuilder.Entity<HaghighiUserBankInfo>()
-            .Property(e => e.Id)
-            .ValueGeneratedOnAdd()
-            .IsRequired();
+    
 
 
             // Hoghooghi
@@ -680,6 +683,11 @@ namespace PRX.Data
              .WithOne(r => r.User)
              .HasForeignKey(r => r.UserId);
 
+            modelBuilder.Entity<Request>()
+            .HasOne(u => u.UserBankInfos)
+            .WithOne(p => p.Request)
+            .HasForeignKey<UserBankInfo>(p => p.RequestId);
+
 
 
             // Haghighi
@@ -707,10 +715,7 @@ namespace PRX.Data
                .WithOne(p => p.Request)
                .HasForeignKey<HaghighiUserEducationStatus>(p => p.RequestId);
 
-            modelBuilder.Entity<Request>()
-                .HasOne(u => u.HaghighiUserBankInfos)
-                .WithOne(p => p.Request)
-                .HasForeignKey<HaghighiUserBankInfo>(p => p.RequestId);
+
 
 
 

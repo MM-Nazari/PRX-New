@@ -88,6 +88,10 @@
         public const string UserRefernceCodeFormatIsInvalid = "فرمت کد معرف صحیح نمیباشد ";
         public const string UserRefernceCodeIsInvalid = "کد معرف صحیح نیست ";
 
+        // User Bank Info
+        public const string UserBankInfoNotFound = "اطلاعات بانکی متناسب با کاربر حقیقی یافت نشد";
+        public const string UserBankInfoDuplicate = "اطلاعات بانکی متناسب این کاربر حقیقی قبلا ثبت شده است";
+
 
 
         // Haghighi User Education Status
@@ -109,9 +113,7 @@
         // Haghighi User Relationship 
         public const string HaghighiUserRelationNotFound = "رابطه متناسب با کاربر حقیقی یافت نشد";
 
-        // Haghighi User Bank Info
-        public const string HaghighiUserBankInfoNotFound = "اطلاعات بانکی متناسب با کاربر حقیقی یافت نشد";
-        public const string HaghighiUserBankInfoDuplicate = "اطلاعات بانکی متناسب این کاربر حقیقی قبلا ثبت شده است";
+
 
 
 
@@ -189,6 +191,8 @@
         public const string RequestNotFound = "درخواست متناسب با اطلاعات داده شده پیدا نشد";
         public const string UserRequestNotFound = "درخواست متناسب با کاربر پیدا نشد";
         public const string InvalidTrackingCode = "کد رهگیری نامعتبر است";
+        public const string MaximumRequestTypeHaghighi = "شما حداکثر مجاز به ثبت یک درخواست حقیقی هستید";
+        public const string MaximumRequestTypeHoghooghi = "شما حداکثر مجاز به ثبت 3 درخواست حقوقی هستید";
 
         // 500
         public const string InternalServerError = "ارور داخلی سرور";
