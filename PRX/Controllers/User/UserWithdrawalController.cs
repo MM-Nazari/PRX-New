@@ -118,27 +118,38 @@ namespace PRX.Controllers.User
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult CreateUserWithdrawal([FromBody] UserWithdrawalDto userWithdrawalDto)
+        public IActionResult CreateUserWithdrawal([FromBody] UserWithdrawalListDto userWithdrawalDto)
         {
             try
             {
+                if (userWithdrawalDto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var userWithdrawal = new UserWithdrawal
+                foreach (var withdrawl in userWithdrawalDto.withdrawlList) 
                 {
-                    RequestId = userWithdrawalDto.RequestId,
-                    WithdrawalAmount = userWithdrawalDto.WithdrawalAmount,
-                    WithdrawalDate = userWithdrawalDto.WithdrawalDate,
-                    WithdrawalReason = userWithdrawalDto.WithdrawalReason
-                };
+                    var userWithdrawal = new UserWithdrawal
+                    {
+                        RequestId = userWithdrawalDto.RequestId,
+                        WithdrawalAmount = withdrawl.WithdrawalAmount,
+                        WithdrawalDate = withdrawl.WithdrawalDate,
+                        WithdrawalReason = withdrawl.WithdrawalReason
+                    };
+                    _context.UserWithdrawals.Add(userWithdrawal);
+                }
 
-                _context.UserWithdrawals.Add(userWithdrawal);
+
+
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserWithdrawalById), new { requestId = userWithdrawal.Id }, userWithdrawal);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetUserWithdrawalById), new { requestId = userWithdrawal.Id }, userWithdrawal);
             }
             catch (Exception ex)
             {

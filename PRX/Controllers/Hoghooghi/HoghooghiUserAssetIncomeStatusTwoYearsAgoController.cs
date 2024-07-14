@@ -110,35 +110,47 @@ namespace PRX.Controllers.Hoghooghi
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Create([FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoDto dto)
+        public IActionResult Create([FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoListDto dto)
         {
             try
             {
+                if (dto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
-                var record = new HoghooghiUserAssetIncomeStatusTwoYearsAgo
-                {
-                    RequestId = dto.RequestId,
-                    FiscalYear = dto.FiscalYear,
-                    RegisteredCapital = dto.RegisteredCapital,
-                    ApproximateAssetValue = dto.ApproximateAssetValue,
-                    TotalLiabilities = dto.TotalLiabilities,
-                    TotalInvestments = dto.TotalInvestments,
-                    OperationalIncome = dto.OperationalIncome,
-                    OtherIncome = dto.OtherIncome,
-                    OperationalExpenses = dto.OperationalExpenses,
-                    OtherExpenses = dto.OtherExpenses,
-                    OperationalProfitOrLoss = dto.OperationalProfitOrLoss,
-                    NetProfitOrLoss = dto.NetProfitOrLoss,
-                    AccumulatedProfitOrLoss = dto.AccumulatedProfitOrLoss
-                };
 
-                _context.HoghooghiUsersAssets.Add(record);
+                foreach (var asset in dto.AssetIncome) 
+                {
+                    var record = new HoghooghiUserAssetIncomeStatusTwoYearsAgo
+                    {
+                        RequestId = dto.RequestId,
+                        FiscalYear = asset.FiscalYear,
+                        RegisteredCapital = asset.RegisteredCapital,
+                        ApproximateAssetValue = asset.ApproximateAssetValue,
+                        TotalLiabilities = asset.TotalLiabilities,
+                        TotalInvestments = asset.TotalInvestments,
+                        OperationalIncome = asset.OperationalIncome,
+                        OtherIncome = asset.OtherIncome,
+                        OperationalExpenses = asset.OperationalExpenses,
+                        OtherExpenses = asset.OtherExpenses,
+                        OperationalProfitOrLoss = asset.OperationalProfitOrLoss,
+                        NetProfitOrLoss = asset.NetProfitOrLoss,
+                        AccumulatedProfitOrLoss = asset.AccumulatedProfitOrLoss
+                    };
+                    _context.HoghooghiUsersAssets.Add(record);
+                }
+
+
+                
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
             }
             catch (Exception ex)
             {

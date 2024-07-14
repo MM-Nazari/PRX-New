@@ -87,29 +87,39 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateUserDebt([FromBody] UserDebtDto userDebtDto)
+        public IActionResult CreateUserDebt([FromBody] UserDebtListDto userDebtDto)
         {
             try
             {
+                if (userDebtDto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-
-                var userDebt = new UserDebt
+                foreach (var debt in userDebtDto.DebtList) 
                 {
-                    RequestId = userDebtDto.RequestId,
-                    DebtTitle = userDebtDto.DebtTitle,
-                    DebtAmount = userDebtDto.DebtAmount,
-                    DebtDueDate = userDebtDto.DebtDueDate,
-                    DebtRepaymentPercentage = userDebtDto.DebtRepaymentPercentage
-                };
+                    var userDebt = new UserDebt
+                    {
+                        RequestId = userDebtDto.RequestId,
+                        DebtTitle = debt.DebtTitle,
+                        DebtAmount = debt.DebtAmount,
+                        DebtDueDate = debt.DebtDueDate,
+                        DebtRepaymentPercentage = debt.DebtRepaymentPercentage
+                    };
+                    _context.UserDebts.Add(userDebt);
+                }
 
-                _context.UserDebts.Add(userDebt);
+
+                
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserDebtById), new { requestId = userDebt.Id }, userDebt);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetUserDebtById), new { requestId = userDebt.Id }, userDebt);
             }
             catch (Exception ex)
             {

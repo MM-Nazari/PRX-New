@@ -105,30 +105,39 @@ namespace PRX.Controllers.User
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult CreateUserInvestmentExperience([FromBody] UserInvestmentExperienceDto userInvestmentExperienceDto)
+        public IActionResult CreateUserInvestmentExperience([FromBody] UserInvestmentExperienceListDto userInvestmentExperienceDto)
         {
             try
             {
+                if (userInvestmentExperienceDto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var userInvestmentExperience = new UserInvestmentExperience
+                foreach (var exp in userInvestmentExperienceDto.Experience) 
                 {
-                    RequestId = userInvestmentExperienceDto.RequestId,
-                    InvestmentType = userInvestmentExperienceDto.InvestmentType,
-                    InvestmentAmount = userInvestmentExperienceDto.InvestmentAmount,
-                    InvestmentDurationMonths = userInvestmentExperienceDto.InvestmentDurationMonths,
-                    ProfitLossAmount = userInvestmentExperienceDto.ProfitLossAmount,
-                    ProfitLossDescription = userInvestmentExperienceDto.ProfitLossDescription,
-                    ConversionReason = userInvestmentExperienceDto.ConversionReason
-                };
-
-                _context.UserInvestmentExperiences.Add(userInvestmentExperience);
+                    var record = new UserInvestmentExperience
+                    {
+                        RequestId = userInvestmentExperienceDto.RequestId,
+                        InvestmentType = exp.InvestmentType,
+                        InvestmentAmount = exp.InvestmentAmount,
+                        InvestmentDurationMonths = exp.InvestmentDurationMonths,
+                        ProfitLossAmount = exp.ProfitLossAmount,
+                        ProfitLossDescription = exp.ProfitLossDescription,
+                        ConversionReason = exp.ConversionReason
+                    };
+                    _context.UserInvestmentExperiences.Add(record);
+                }
+  
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserInvestmentExperienceById), new { requestId = userInvestmentExperience.Id }, userInvestmentExperience);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetUserInvestmentExperienceById), new { requestId = userInvestmentExperience.Id }, userInvestmentExperience);
             }
             catch (Exception ex)
             {

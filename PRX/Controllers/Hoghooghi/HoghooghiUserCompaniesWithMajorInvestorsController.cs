@@ -101,27 +101,38 @@ namespace PRX.Controllers.Hoghooghi
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Create([FromBody] HoghooghiUserCompaniesWithMajorInvestorsDto dto)
+        public IActionResult Create([FromBody] HoghooghiUserCompaniesWithMajorInvestorsListDto dto)
         {
             try
             {
+
+                if (dto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var record = new HoghooghiUserCompaniesWithMajorInvestors
+                foreach (var investor in dto.MajorInvestors)
                 {
-                    RequestId = dto.RequestId,
-                    CompanyName = dto.CompanyName,
-                    CompanySubject = dto.CompanySubject,
-                    PercentageOfTotal = dto.PercentageOfTotal
-                };
+                    var record = new HoghooghiUserCompaniesWithMajorInvestors
+                    {
+                        RequestId = dto.RequestId,
+                        CompanyName = investor.CompanyName,
+                        CompanySubject = investor.CompanySubject,
+                        PercentageOfTotal = investor.PercentageOfTotal
+                    };
+                    _context.HoghooghiUserCompaniesWithMajorInvestors.Add(record);
+                }
 
-                _context.HoghooghiUserCompaniesWithMajorInvestors.Add(record);
+                
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
             }
             catch (Exception ex)
             {

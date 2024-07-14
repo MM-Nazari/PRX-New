@@ -110,33 +110,44 @@ namespace PRX.Controllers.Haghighi
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult CreateHaghighiUserRelationships([FromBody] HaghighiUserRelationshipsDto relationshipDto)
+        public IActionResult CreateHaghighiUserRelationships([FromBody] HaghighiUserRelationshipsListDto relationshipDto)
         {
             try
             {
+                if (relationshipDto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var relationship = new HaghighiUserRelationships
+                foreach (var rel in relationshipDto.Relations) 
                 {
-                    RequestId = relationshipDto.RequestId,
-                    FullName = relationshipDto.FullName,
-                    RelationshipStatus = relationshipDto.RelationshipStatus,
-                    BirthYear = relationshipDto.BirthYear,
-                    EducationLevel = relationshipDto.EducationLevel,
-                    EmploymentStatus = relationshipDto.EmploymentStatus,
-                    AverageMonthlyIncome = relationshipDto.AverageMonthlyIncome,
-                    AverageMonthlyExpense = relationshipDto.AverageMonthlyExpense,
-                    ApproximateAssets = relationshipDto.ApproximateAssets,
-                    ApproximateLiabilities = relationshipDto.ApproximateLiabilities
-                };
+                    var relationship = new HaghighiUserRelationships
+                    {
+                        RequestId = relationshipDto.RequestId,
+                        FullName = rel.FullName,
+                        RelationshipStatus = rel.RelationshipStatus,
+                        BirthYear = rel.BirthYear,
+                        EducationLevel = rel.EducationLevel,
+                        EmploymentStatus = rel.EmploymentStatus,
+                        AverageMonthlyIncome = rel.AverageMonthlyIncome,
+                        AverageMonthlyExpense = rel.AverageMonthlyExpense,
+                        ApproximateAssets = rel.ApproximateAssets,
+                        ApproximateLiabilities = rel.ApproximateLiabilities
+                    };
+                    _context.HaghighiUserRelationships.Add(relationship);
+                }
 
-                _context.HaghighiUserRelationships.Add(relationship);
+
+                
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHaghighiUserRelationshipsById), new { requestId = relationship.Id }, relationship);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetHaghighiUserRelationshipsById), new { requestId = relationship.Id }, relationship);
             }
             catch (Exception ex)
             {

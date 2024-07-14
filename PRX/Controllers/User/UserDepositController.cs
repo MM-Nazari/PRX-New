@@ -106,27 +106,38 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateUserDeposit([FromBody] UserDepositDto userDepositDto)
+        public IActionResult CreateUserDeposit([FromBody] UserDepositListDto userDepositDto)
         {
             try
             {
+                if (userDepositDto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var userDeposit = new UserDeposit
+                foreach (var deposit in userDepositDto.DepositList) 
                 {
-                    RequestId = userDepositDto.RequestId,
-                    DepositAmount = userDepositDto.DepositAmount,
-                    DepositDate = userDepositDto.DepositDate,
-                    DepositSource = userDepositDto.DepositSource
-                };
+                    var userDeposit = new UserDeposit
+                    {
+                        RequestId = userDepositDto.RequestId,
+                        DepositAmount = deposit.DepositAmount,
+                        DepositDate = deposit.DepositDate,
+                        DepositSource = deposit.DepositSource
+                    };
+                    _context.UserDeposits.Add(userDeposit);
+                }
 
-                _context.UserDeposits.Add(userDeposit);
+
+
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetUserDepositById), new { requestId = userDeposit.Id }, userDeposit);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetUserDepositById), new { requestId = userDeposit.Id }, userDeposit);
 
             }
             catch (Exception ex)

@@ -101,31 +101,42 @@ namespace PRX.Controllers.Hoghooghi
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Create([FromBody] HoghooghiUserBoardOfDirectorsDto dto)
+        public IActionResult Create([FromBody] HoghooghiUserBoardOfDirectorsListDto dto)
         {
             try
             {
+
+                if (dto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var record = new HoghooghiUserBoardOfDirectors
+                foreach (var board in dto.BoardOfDirectors)
                 {
-                    RequestId = dto.RequestId,
-                    FullName = dto.FullName,
-                    Position = dto.Position,
-                    EducationalLevel = dto.EducationalLevel,
-                    FieldOfStudy = dto.FieldOfStudy,
-                    ExecutiveExperience = dto.ExecutiveExperience,
-                    FamiliarityWithCapitalMarket = dto.FamiliarityWithCapitalMarket,
-                    PersonalInvestmentExperienceInStockExchange = dto.PersonalInvestmentExperienceInStockExchange
-                };
+                    var record = new HoghooghiUserBoardOfDirectors
+                    {
+                        RequestId = dto.RequestId,
+                        FullName = board.FullName,
+                        Position = board.Position,
+                        EducationalLevel = board.EducationalLevel,
+                        FieldOfStudy = board.FieldOfStudy,
+                        ExecutiveExperience = board.ExecutiveExperience,
+                        FamiliarityWithCapitalMarket = board.FamiliarityWithCapitalMarket,
+                        PersonalInvestmentExperienceInStockExchange = board.PersonalInvestmentExperienceInStockExchange
+                    };
+                    _context.HoghooghiUserBoardOfDirectors.Add(record);
+                }
 
-                _context.HoghooghiUserBoardOfDirectors.Add(record);
+                
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
+                //return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
             }
             catch (Exception ex)
             {

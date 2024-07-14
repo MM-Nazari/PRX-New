@@ -165,29 +165,42 @@ namespace PRX.Controllers.User
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateUserAsset([FromBody] UserAssetDto userAssetDto)
+        public IActionResult CreateUserAsset([FromBody] UserAssetListDto userAssetDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
 
             try
             {
-                var userAsset = new UserAsset
-                {
-                    RequestId = userAssetDto.RequestId,
-                    AssetTypeId = userAssetDto.AssetTypeId,
-                    AssetValue = userAssetDto.AssetValue
-                };
 
-                _context.UserAssets.Add(userAsset);
+                if (userAssetDto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                foreach ( var asset in  userAssetDto.Assets ) 
+                {
+                    var userAsset = new UserAsset
+                    {
+                        RequestId = userAssetDto.RequestId,
+                        AssetTypeId = asset.AssetTypeId,
+                        AssetValue = asset.AssetValue
+                    };
+                    _context.UserAssets.Add(userAsset);
+                }
+
+
+
                 _context.SaveChanges();
 
                 // Recalculate the percentages
                 CalculateAndSetAssetPercentages(userAssetDto.RequestId);
 
-                return CreatedAtAction(nameof(GetUserAssetById), new { requestId = userAsset.Id }, userAsset);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetUserAssetById), new { requestId = userAsset.Id }, userAsset);
             }
             catch (Exception ex)
             {

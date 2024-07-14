@@ -102,31 +102,42 @@ namespace PRX.Controllers.Hoghooghi
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Create([FromBody] HoghooghiUserInvestmentDepartmentStaffDto dto)
+        public IActionResult Create([FromBody] HoghooghiUserInvestmentDepartmentStaffListDto dto)
         {
             try
             {
+                if (dto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var record = new HoghooghiUserInvestmentDepartmentStaff
+                foreach (var staff in dto.Staff) 
                 {
-                    RequestId = dto.RequestId,
-                    FullName = dto.FullName,
-                    Position = dto.Position,
-                    EducationalLevel = dto.EducationalLevel,
-                    FieldOfStudy = dto.FieldOfStudy,
-                    ExecutiveExperience = dto.ExecutiveExperience,
-                    FamiliarityWithCapitalMarket = dto.FamiliarityWithCapitalMarket,
-                    PersonalInvestmentExperienceInStockExchange = dto.PersonalInvestmentExperienceInStockExchange
-                };
+                    var record = new HoghooghiUserInvestmentDepartmentStaff
+                    {
+                        RequestId = dto.RequestId,
+                        FullName = staff.FullName,
+                        Position = staff.Position,
+                        EducationalLevel = staff.EducationalLevel,
+                        FieldOfStudy = staff.FieldOfStudy,
+                        ExecutiveExperience = staff.ExecutiveExperience,
+                        FamiliarityWithCapitalMarket = staff.FamiliarityWithCapitalMarket,
+                        PersonalInvestmentExperienceInStockExchange = staff.PersonalInvestmentExperienceInStockExchange
+                    };
+                    _context.HoghooghiUserInvestmentDepartmentStaff.Add(record);
+                }
 
-                _context.HoghooghiUserInvestmentDepartmentStaff.Add(record);
+
+               
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
+                //return CreatedAtAction(nameof(GetById), new { requestId = record.Id }, record);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
             }
             catch (Exception ex)
             {

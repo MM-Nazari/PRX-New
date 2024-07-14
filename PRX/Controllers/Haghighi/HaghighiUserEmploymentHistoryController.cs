@@ -100,32 +100,43 @@ namespace PRX.Controllers.Haghighi
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult CreateHaghighiUserEmploymentHistory([FromBody] HaghighiUserEmploymentHistoryDto employmentHistoryDto)
+        public IActionResult CreateHaghighiUserEmploymentHistory([FromBody] HaghighiUserEmploymentHistoryListDto employmentHistoryDto)
         {
 
             try
             {
+                if (employmentHistoryDto.RequestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var employmentHistory = new HaghighiUserEmploymentHistory
+                foreach (var history in employmentHistoryDto.EmployementHistory) 
                 {
-                    RequestId = employmentHistoryDto.RequestId,
-                    EmployerLocation = employmentHistoryDto.EmployerLocation,
-                    MainActivity = employmentHistoryDto.MainActivity,
-                    Position = employmentHistoryDto.Position,
-                    StartDate = employmentHistoryDto.StartDate,
-                    EndDate = employmentHistoryDto.EndDate,
-                    WorkAddress = employmentHistoryDto.WorkAddress,
-                    WorkPhone = employmentHistoryDto.WorkPhone
-                };
+                    var record = new HaghighiUserEmploymentHistory
+                    {
+                        RequestId = employmentHistoryDto.RequestId,
+                        EmployerLocation = history.EmployerLocation,
+                        MainActivity = history.MainActivity,
+                        Position = history.Position,
+                        StartDate = history.StartDate,
+                        EndDate = history.EndDate,
+                        WorkAddress = history.WorkAddress,
+                        WorkPhone = history.WorkPhone
+                    };
+                    _context.HaghighiUserEmploymentHistories.Add(record);
+                }
 
-                _context.HaghighiUserEmploymentHistories.Add(employmentHistory);
+
+               
                 _context.SaveChanges();
 
-                return CreatedAtAction(nameof(GetHaghighiUserEmploymentHistoryById), new { requestId = employmentHistory.Id }, employmentHistory);
+                return StatusCode(StatusCodes.Status201Created, new { message = ResponseMessages.OK });
+                //return CreatedAtAction(nameof(GetHaghighiUserEmploymentHistoryById), new { requestId = employmentHistory.Id }, employmentHistory);
             }
             catch (Exception ex)
             {
