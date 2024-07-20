@@ -228,6 +228,85 @@ namespace PRX.Controllers.User
             }
         }
 
+        [HttpPut("ChangeOnlyPassword/{id}")]
+        [Authorize(Roles = "User, Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult ChangePassword(int id, [FromBody] ChangePasswordDto changePasswordDto)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Ensure that the user is updating their own password
+                if (id != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                // Find the user to update
+                var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
+                }
+
+                // Verify the current password
+                if (!_utils.VerifyPassword(changePasswordDto.CurrentPassword, user.Password))
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidCurrentPassword });
+                }
+
+                // Hash and update the new password
+                var hashedNewPassword = _utils.HashPassword(changePasswordDto.NewPassword);
+                user.Password = hashedNewPassword;
+
+                // Save changes to database
+                _context.SaveChanges();
+
+                // Log the data change
+                var dataChangeLog = new DataChangeLog
+                {
+                    UserId = user.Id,
+                    Role = user.Role,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    BirthCertificateNumber = user.BirthCertificateNumber,
+                    Username = user.Username,
+                    PhoneNumber = user.PhoneNumber,
+                    Type = "password",
+                    Action = "UPDATE",
+                    Timestamp = DateTime.UtcNow
+                };
+
+                _context.DataChangeLogs.Add(dataChangeLog);
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+
         [HttpPost("Admin/Register")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]

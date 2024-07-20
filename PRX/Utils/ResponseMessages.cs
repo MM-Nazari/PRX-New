@@ -30,6 +30,8 @@
 
         public const string AdminNotExists = "ادمین با مشخصات داده شده یافت نشد";
 
+        public const string InvalidCurrentPassword = "رمز عبور فعلی اشتباه است";
+
 
         // User Asset
 

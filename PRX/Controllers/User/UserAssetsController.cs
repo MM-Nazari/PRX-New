@@ -101,13 +101,14 @@ namespace PRX.Controllers.User
                     return Unauthorized(new { message = ResponseMessages.Unauthorized });
                 }
 
-                var userAssets = _context.UserAssets.Where(u => u.RequestId == requestId && !u.IsDeleted).ToList();
-                if (!userAssets.Any())
-                {
-                    return NotFound(new { message = ResponseMessages.UserAssetNotFound });
-                }
+                //var userAssets = _context.UserAssets.Where(u => u.RequestId == requestId && !u.IsDeleted).ToList();
+                //if (!userAssets.Any())
+                //{
+                //    return NotFound(new { message = ResponseMessages.UserAssetNotFound });
+                //}
 
-                var userAssetDtos = userAssets.Select(userAsset => new UserAssetDto
+                //var userAssetDtos = userAssets.Select(userAsset => new UserAssetDto
+                var userAssetDtos = _context.UserAssets.Where(u => u.RequestId == requestId && !u.IsDeleted).Select(userAsset => new UserAssetDto
                 {
                     Id = userAsset.Id,
                     RequestId = userAsset.RequestId,
@@ -117,6 +118,10 @@ namespace PRX.Controllers.User
                     IsComplete = userAsset.IsComplete,
                     IsDeleted = userAsset.IsDeleted
                 }).ToList();
+                if ( userAssetDtos == null) 
+                {
+                    return NotFound(new { message = ResponseMessages.UserAssetNotFound });
+                }
 
                 return Ok(userAssetDtos);
             }
