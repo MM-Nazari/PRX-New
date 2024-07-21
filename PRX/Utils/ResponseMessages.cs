@@ -196,6 +196,11 @@
         public const string MaximumRequestTypeHaghighi = "شما حداکثر مجاز به ثبت یک درخواست حقیقی هستید";
         public const string MaximumRequestTypeHoghooghi = "شما حداکثر مجاز به ثبت 3 درخواست حقوقی هستید";
 
+
+        // Report
+
+        public const string RequestForUserNotFound = "درخواست متناسب با کاربر یافت نشد";
+
         // 500
         public const string InternalServerError = "ارور داخلی سرور";
     }

@@ -10,6 +10,7 @@ using PRX.Data;
 using Xceed.Words.NET;
 using OfficeOpenXml;
 using System.Reflection;
+using PRX.Utils;
 
 namespace PRX.Controllers.Report
 {
@@ -203,6 +204,17 @@ namespace PRX.Controllers.Report
         [HttpGet("ExportById/{userId}/{requestId}")]
         public async Task<IActionResult> ExportByUserId(int userId, int requestId)
         {
+
+            // Check if the combination of userId and requestId exists in the Requests table
+            var requestExists = await _context.Requests
+                .AnyAsync(r => r.UserId == userId && r.Id == requestId);
+
+            if (!requestExists)
+            {
+                return NotFound(new { Message = ResponseMessages.RequestForUserNotFound });
+            }
+
+
             var memoryStream = new MemoryStream();
 
             using (var package = new ExcelPackage(memoryStream))
