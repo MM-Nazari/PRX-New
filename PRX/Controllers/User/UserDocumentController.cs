@@ -469,6 +469,26 @@ namespace PRX.Controllers.User
         //}
 
 
+        //[HttpGet("UserDocuments/{requestId}")]
+        //[Authorize(Roles = "User")]
+        //public async Task<IActionResult> GetUserDocuments(int requestId)
+        //{
+        //    try
+        //    {
+        //        if (requestId <= 0)
+        //        {
+        //            return BadRequest(new { message = ResponseMessages.InvalidId });
+        //        }
+
+        //        var userDocuments = await _context.UserDocuments.Where(d => d.RequestId == requestId).ToListAsync();
+        //        return Ok(userDocuments);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+        //    }
+        //}
+
         [HttpGet("UserDocuments/{requestId}")]
         [Authorize(Roles = "User")]
         public async Task<IActionResult> GetUserDocuments(int requestId)
@@ -480,12 +500,21 @@ namespace PRX.Controllers.User
                     return BadRequest(new { message = ResponseMessages.InvalidId });
                 }
 
-                var userDocuments = await _context.UserDocuments.Where(d => d.RequestId == requestId).ToListAsync();
+                var userDocuments = await _context.UserDocuments
+                    .Where(d => d.RequestId == requestId && !d.IsDeleted)
+                    .Select(d => new UserDocWithoutFilePathDto
+                    {
+                        Id = d.Id,
+                        RequestId = d.RequestId,
+                        DocumentType = d.DocumentType
+                    })
+                    .ToListAsync();
+
                 return Ok(userDocuments);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Internal server error", detail = ex.Message });
             }
         }
 
