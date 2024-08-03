@@ -213,7 +213,7 @@ namespace PRX.Controllers.Haghighi
 
                 // Check for unique BirthCertificateNumber
                 var existingProfile = _context.HaghighiUserProfiles
-                    .FirstOrDefault(p => p.BirthCertificateNumber == profileDto.BirthCertificateNumber);
+                    .FirstOrDefault(p => p.NationalNumber == profileDto.NationalNumber);
 
                 if (existingProfile != null)
                 {
