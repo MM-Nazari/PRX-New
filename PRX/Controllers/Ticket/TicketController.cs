@@ -155,15 +155,15 @@ namespace PRX.Controllers.Ticket
 
             public static string GenerateTrackingCode()
             {
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+                //var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
                 var randomString = GenerateRandomString(6);
 
-                return $"{timestamp}-{randomString}";
+                return $"{randomString}";
             }
 
             private static string GenerateRandomString(int length)
             {
-                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
                 using (var crypto = new RNGCryptoServiceProvider())
                 {
                     var data = new byte[length];

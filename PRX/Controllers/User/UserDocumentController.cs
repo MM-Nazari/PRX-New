@@ -83,6 +83,9 @@ namespace PRX.Controllers.User
                     case ".zip": // Handle .zip files
                         fileName = $"{documentDto.RequestId}-{documentDto.DocumentType}.zip";
                         break;
+                    case ".rar":
+                        fileName = $"{documentDto.RequestId}-{documentDto.DocumentType}.rar";
+                        break;
                     default:
                         return BadRequest(new { message = ResponseMessages.UserFileFormatConfliction });
                 }
@@ -274,6 +277,9 @@ namespace PRX.Controllers.User
                         break;
                     case ".zip": // Handle .zip files
                         fileName = $"{requestId}-{documentType}.zip";
+                        break;
+                    case ".rar":
+                        fileName = $"{requestId}-{documentType}.rar";
                         break;
                     default:
                         return BadRequest(new { message = ResponseMessages.UserFileFormatConfliction });
@@ -506,7 +512,8 @@ namespace PRX.Controllers.User
                     {
                         Id = d.Id,
                         RequestId = d.RequestId,
-                        DocumentType = d.DocumentType
+                        DocumentType = d.DocumentType,
+                        Extension = Path.GetExtension(d.FilePath)
                     })
                     .ToListAsync();
 
@@ -596,7 +603,7 @@ namespace PRX.Controllers.User
                 }
 
                 // Retrieve the request based on the requestId
-                var request = await _context.Requests.Include(r => r.User).FirstOrDefaultAsync(r => r.Id == requestId);
+                var request = await _context.Requests.Include(r => r.User).FirstOrDefaultAsync(r => r.Id == requestId && !r.IsDeleted);
                 if (request == null)
                 {
                     return NotFound(new { message = ResponseMessages.RequestNotFound });
@@ -614,7 +621,7 @@ namespace PRX.Controllers.User
                 //    return NotFound(new { message = ResponseMessages.UserNotFound });
                 //}
 
-                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == requestId && d.DocumentType == documentType);
+                var userDocument = await _context.UserDocuments.FirstOrDefaultAsync(d => d.RequestId == requestId && d.DocumentType == documentType && !d.IsDeleted);
                 if (userDocument == null)
                 {
                     return NotFound(new { message = ResponseMessages.UserDocNotFound });
@@ -725,6 +732,12 @@ namespace PRX.Controllers.User
                     case ".jpeg":
                     case ".jpg":
                         fileName = $"{requestId}-{documentType}.jpeg";
+                        break;
+                    case ".zip":
+                        fileName = $"{requestId}-{documentType}.zip";
+                        break;
+                    case ".rar":
+                        fileName = $"{requestId}-{documentType}.rar";
                         break;
                     default:
                         return BadRequest(new { message = ResponseMessages.UserFileFormatConfliction });

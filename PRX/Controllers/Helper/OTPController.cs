@@ -1,9 +1,13 @@
 ﻿using DotNet.RateLimiter.ActionFilters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using PRX.Data;
 using PRX.Dto.Helper;
+using PRX.Dto.User;
 using PRX.Utils;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,10 +20,14 @@ namespace PRX.Controllers.NewFolder
     public class OTPController : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly PRXDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public OTPController(IHttpClientFactory httpClientFactory)
+        public OTPController(IHttpClientFactory httpClientFactory, PRXDbContext context, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
+            _context = context;
+            _configuration = configuration;
         }
 
         [HttpPost("send-otp")]
@@ -72,6 +80,87 @@ namespace PRX.Controllers.NewFolder
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
+
+        [HttpPost("OTP-Login")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> OTPLoginAsync([FromBody] OtpDto otpVerificationDto)
+        {
+            try
+            {
+                var isOtpVerified = await VerifyOtp(otpVerificationDto.Mobile, otpVerificationDto.Otp);
+                if (!isOtpVerified)
+                {
+                    return BadRequest(new { message = ResponseMessages.OTPVerificationFailed });
+                }
+
+                var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == otpVerificationDto.Mobile);
+                if (user == null)
+                {
+                    //Response.Headers.Add("message", "User does not exist");
+                    return Unauthorized(new { message = ResponseMessages.UserNotExists });
+                }
+
+                var token = GenerateJwtToken(user);
+
+                return Ok(new { Authorization = token });
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+
+        private string GenerateJwtToken(PRX.Models.User.User user)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]));
+            if (securityKey.KeySize < 256)
+            {
+                throw new ArgumentException("JWT security key size must be at least 256 bits (32 bytes).");
+            }
+
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            // Define custom claim types
+            const string IdClaimType = "id";
+            const string PhoneClaimType = "phone_number";
+            const string RoleClaimType = "role";
+            const string UsernameClaimType = "username";
+
+            // Create claims for user ID and phone number using custom claim types
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim(IdClaimType, user.Id.ToString()),
+                //new System.Security.Claims.Claim(PhoneClaimType, user.PhoneNumber),
+                new System.Security.Claims.Claim(RoleClaimType, user.Role),
+            };
+
+            // Add phone number claim only for users
+            if (user.Role == "User")
+            {
+                claims.Add(new System.Security.Claims.Claim(PhoneClaimType, user.PhoneNumber));
+            }
+
+            // Add username claim only for admins
+            if (user.Role == "Admin")
+            {
+                claims.Add(new System.Security.Claims.Claim(UsernameClaimType, user.Username));
+            }
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(24), // Token expiration time
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
 
         private async Task<bool> SendOtp(string mobile)
         {

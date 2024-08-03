@@ -116,12 +116,12 @@ namespace PRX.Controllers.User
                 .Where(r => r.UserId == requestDto.UserId)
                 .ToListAsync();
 
-            if (existingRequests.Count(r => r.RequestType == "حقیقی") >= 1 && requestDto.RequestType == "حقیقی")
+            if (existingRequests.Count(r => r.RequestType == "حقیقی" && !r.IsDeleted) >= 1 && requestDto.RequestType == "حقیقی")
             {
                 return BadRequest(new { message = ResponseMessages.MaximumRequestTypeHaghighi });
             }
 
-            if (existingRequests.Count(r => r.RequestType == "حقوقی") >= 3 && requestDto.RequestType == "حقوقی")
+            if (existingRequests.Count(r => r.RequestType == "حقوقی" && !r.IsDeleted) >= 3 && requestDto.RequestType == "حقوقی")
             {
                 return BadRequest(new { message = ResponseMessages.MaximumRequestTypeHoghooghi });
             }
@@ -180,7 +180,7 @@ namespace PRX.Controllers.User
 
             request.RequestState = "ثبت شده";
             request.RequestSentTime = DateTime.Now;
-            request.TrackingCode = GenerateTrackingCode();
+            request.TrackingCode = GenerateTrackingCode(requestId);
             request.IsComplete = true;
 
 
@@ -191,17 +191,18 @@ namespace PRX.Controllers.User
             return NoContent();
         }
 
-        public static string GenerateTrackingCode()
+        public static string GenerateTrackingCode(int id)
         {
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-            var randomString = GenerateRandomString(6);
+            //var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+            var randomString1 = GenerateRandomString(3);
+            var randomString2 = GenerateRandomString(3);
 
-            return $"{timestamp}-{randomString}";
+            return $"{randomString1}{id}{randomString2}";
         }
 
         private static string GenerateRandomString(int length)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             using (var crypto = new RNGCryptoServiceProvider())
             {
                 var data = new byte[length];
