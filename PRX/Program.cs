@@ -77,7 +77,11 @@ builder.Services.AddCors(options =>
 //}
 
 builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
-            options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
+    //options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
+    //options.UseSqlServer("Server=host.docker.internal;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
+    //options.UseSqlServer("Server=172.21.18.73\\MSSQLSERVER01;Database=PRX_V2;User Id=MMNazari;Password=123;TrustServerCertificate=True;"));
+    //options.UseSqlServer("Server=host.docker.internal,1433;Database=PRX_V2;User Id=MMNazari;Password=123;TrustServerCertificate=True;"));
+    options.UseSqlServer("Server=172.21.18.73,1433\\MSSQLSERVER01;Database=PRX_V2;User Id=MMNazari;Password=123;TrustServerCertificate=True;"));
 
 
 builder.Services.AddAuthentication(options =>
