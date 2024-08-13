@@ -17,13 +17,21 @@ using PRX;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Data.SqlClient;
 using OfficeOpenXml;
+using System.Net;
+//using static Microsoft.IO.RecyclableMemoryStreamManager;
 
 
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = "wwwroot"
+});
 
-var builder = WebApplication.CreateBuilder(args);
+//var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRateLimitService(builder.Configuration);
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
 
 
 // Add services to the container.
@@ -374,5 +382,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/", () => "Server is up and running!");
 
 app.Run();

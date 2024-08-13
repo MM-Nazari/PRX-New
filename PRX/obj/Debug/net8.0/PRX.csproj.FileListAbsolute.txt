@@ -164,3 +164,5 @@ C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\EPPlus.System.Drawing.dl
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\Microsoft.IO.RecyclableMemoryStream.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\runtimes\win\lib\net7.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Drawing.Common.dll
+C:\Users\M.Nazari\source\repos\PRX\PRX\obj\Debug\net8.0\PRX.sourcelink.json
+C:\Users\M.Nazari\source\repos\PRX\PRX\bin\Debug\net8.0\PRX.staticwebassets.runtime.json

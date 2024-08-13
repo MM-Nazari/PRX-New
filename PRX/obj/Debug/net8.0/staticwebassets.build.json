@@ -1,11 +1,19 @@
 {
   "Version": 1,
-  "Hash": "06HJ63qfOzMFw4ixsJW1xMrha4mOLey4C03V8hNTwmQ=",
+  "Hash": "+1KYGYH7fr7DvcheAaCZHYIjEb3H4DysJRFzx7i6P9A=",
   "Source": "PRX",
   "BasePath": "_content/PRX",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "PRX\\wwwroot",
+      "Source": "PRX",
+      "ContentRoot": "C:\\Users\\M.Nazari\\source\\repos\\PRX\\PRX\\wwwroot\\",
+      "BasePath": "_content/PRX",
+      "Pattern": "**"
+    }
+  ],
   "Assets": []
 }

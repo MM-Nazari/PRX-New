@@ -32,13 +32,22 @@
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
-      //"launchUrl": "http://192.168.1.100:5000",
       "environmentVariables": {
         "ASPNETCORE_HTTPS_PORTS": "80",
         "ASPNETCORE_HTTP_PORTS": "443"
       },
       "publishAllPorts": true,
       "useSSL": true
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "launchBrowser": true,
+      "launchUrl": "https://172.21.18.73:7144/swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://172.21.18.73:7144;http://172.21.18.73:5032"
+      },
+      "distributionName": ""
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",
