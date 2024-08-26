@@ -112,6 +112,10 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
+            "Microsoft.SqlServer.Server": {
+              "target": "Package",
+              "version": "[1.0.0, )"
+            },
             "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": {
               "target": "Package",
               "version": "[1.19.5, )"

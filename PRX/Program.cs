@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Data.SqlClient;
 using OfficeOpenXml;
 using System.Net;
+using Microsoft.EntityFrameworkCore;
 //using static Microsoft.IO.RecyclableMemoryStreamManager;
 
 
@@ -89,7 +90,19 @@ builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
     //options.UseSqlServer("Server=host.docker.internal;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
     //options.UseSqlServer("Server=172.21.18.73\\MSSQLSERVER01;Database=PRX_V2;User Id=MMNazari;Password=123;TrustServerCertificate=True;"));
     //options.UseSqlServer("Server=host.docker.internal,1433;Database=PRX_V2;User Id=MMNazari;Password=123;TrustServerCertificate=True;"));
-    options.UseSqlServer("Server=172.21.18.73,1433\\MSSQLSERVER01;Database=PRX_V2;User Id=MMNazari;Password=123;TrustServerCertificate=True;"));
+    options.UseSqlServer("Server=192.168.103.253, 1433\\WIN-04F3FJE618C;Database=PRX_V2;User Id=prx-server;Password=123;TrustServerCertificate=True;"));
+//options.UseSqlServer("Server=192.168.103.253, 1433\\WIN-04F3FJE618C;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
+
+//builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
+//{
+//    options.UseSqlServer("Server=192.168.103.253, 1433\\WIN-04F3FJE618C;Database=PRX_V2;User Id=prx-server;Password=123;TrustServerCertificate=True;",
+//        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
+//            maxRetryCount: 5,           // Maximum number of retry attempts
+//            maxRetryDelay: TimeSpan.FromSeconds(10),  // Maximum delay between retries
+//            errorNumbersToAdd: null));  // Optional: additional SQL error numbers to treat as transient
+//});
+
+
 
 
 builder.Services.AddAuthentication(options =>
