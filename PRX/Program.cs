@@ -19,6 +19,7 @@ using Microsoft.Data.SqlClient;
 using OfficeOpenXml;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.IO.RecyclableMemoryStreamManager;
 //using static Microsoft.IO.RecyclableMemoryStreamManager;
 
 
@@ -86,11 +87,18 @@ builder.Services.AddCors(options =>
 //}
 
 builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
-    //options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
+
+    // local connection
+    options.UseSqlServer("Server=Pirhayati\\MSSQLSERVER01;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
     //options.UseSqlServer("Server=host.docker.internal;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
     //options.UseSqlServer("Server=172.21.18.73\\MSSQLSERVER01;Database=PRX_V2;User Id=MMNazari;Password=123;TrustServerCertificate=True;"));
     //options.UseSqlServer("Server=host.docker.internal,1433;Database=PRX_V2;User Id=MMNazari;Password=123;TrustServerCertificate=True;"));
-    options.UseSqlServer("Server=192.168.103.253, 1433\\WIN-04F3FJE618C;Database=PRX_V2;User Id=prx-server;Password=123;TrustServerCertificate=True;"));
+
+    // windows server connection
+    //options.UseSqlServer("Server=192.168.103.253, 1433\\WIN-04F3FJE618C;Database=PRX_V2;User Id=prx-server;Password=123;TrustServerCertificate=True;"));
+
+    // nib dev database connection
+    //options.UseSqlServer("Server=db.nibdev.com;Database=PRX_V2;User Id=prx-server;Password=123;TrustServerCertificate=True;"));
 //options.UseSqlServer("Server=192.168.103.253, 1433\\WIN-04F3FJE618C;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;"));
 
 //builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>

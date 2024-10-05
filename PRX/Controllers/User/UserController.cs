@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using DotNet.RateLimiter.ActionFilters;
 using DocumentFormat.OpenXml.Spreadsheet;
 using PRX.Dto.Helper;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace PRX.Controllers.User
 {
@@ -304,6 +305,65 @@ namespace PRX.Controllers.User
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
+        }
+
+
+        [HttpPut("ForgotPassword")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult ForgotPassword ([FromBody] ForgotPasswordDto forgotPasswordDto)
+        {
+            try
+            {
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Find the user to update
+                var user = _context.Users.FirstOrDefault(u => u.PhoneNumber == forgotPasswordDto.PhoneNumber && !u.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserNotFound });
+                }
+
+                // Hash and update the new password
+                var hashedNewPassword = _utils.HashPassword(forgotPasswordDto.Password);
+                user.Password = hashedNewPassword;
+
+                // Save changes to database
+                _context.SaveChanges();
+
+                // Log the data change
+                var dataChangeLog = new DataChangeLog
+                {
+                    UserId = user.Id,
+                    Role = user.Role,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    BirthCertificateNumber = user.BirthCertificateNumber,
+                    Username = user.Username,
+                    PhoneNumber = user.PhoneNumber,
+                    Type = "password",
+                    Action = "UPDATE",
+                    Timestamp = DateTime.UtcNow
+                };
+
+                _context.DataChangeLogs.Add(dataChangeLog);
+                _context.SaveChanges();
+
+                var token = GenerateJwtToken(user);
+
+                return Ok(new { Authorization = token });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+
         }
 
 
