@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
@@ -190,6 +191,84 @@ namespace PRX.Controllers.Haghighi
 
 
         }
+
+        // PATCH: api/HaghighiUserEducationStatus/5
+        [HttpPatch("{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PatchHaghighiUserEducationStatus(int requestId, [FromBody] JsonPatchDocument<HaghighiUserEducationStatusDto> patchDoc)
+        {
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                // Fetch the education status
+                var educationStatus = _context.HaghighiUserEducationStatuses.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+
+                if (educationStatus == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEducationStatusNotFound });
+                }
+
+                // Convert the existing entity to a DTO
+                var educationStatusDto = new HaghighiUserEducationStatusDto
+                {
+                    RequestId = educationStatus.RequestId,
+                    LastDegree = educationStatus.LastDegree,
+                    FieldOfStudy = educationStatus.FieldOfStudy,
+                    GraduationYear = educationStatus.GraduationYear,
+                    IssuingAuthority = educationStatus.IssuingAuthority
+                };
+
+                // Apply the patch to the DTO
+                patchDoc.ApplyTo(educationStatusDto, ModelState);
+
+                // Check for model validation errors after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the original entity with the patched values
+                educationStatus.RequestId = educationStatusDto.RequestId;
+                educationStatus.LastDegree = educationStatusDto.LastDegree;
+                educationStatus.FieldOfStudy = educationStatusDto.FieldOfStudy;
+                educationStatus.GraduationYear = educationStatusDto.GraduationYear;
+                educationStatus.IssuingAuthority = educationStatusDto.IssuingAuthority;
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                return Ok(educationStatus);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         // DELETE: api/HaghighiUserEducationStatus/5
         [HttpDelete("{requestId}")]

@@ -8,6 +8,7 @@ using PRX.Utils;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Azure.Core;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace PRX.Controllers.User
 {
@@ -207,6 +208,92 @@ namespace PRX.Controllers.User
 
 
         }
+
+        // PATCH: api/UserInvestmentExperience/{id}/{requestId}
+        [HttpPatch("{id}/{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchUserInvestmentExperience(int id, int requestId, [FromBody] JsonPatchDocument<UserInvestmentExperienceDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0 || requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var userInvestmentExperience = _context.UserInvestmentExperiences
+                    .FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
+                if (userInvestmentExperience == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserInvestmentExperienceNotFound });
+                }
+
+                // Create a DTO to hold the current user investment experience information
+                var userInvestmentExperienceDto = new UserInvestmentExperienceDto
+                {
+                    InvestmentType = userInvestmentExperience.InvestmentType,
+                    InvestmentAmount = userInvestmentExperience.InvestmentAmount,
+                    InvestmentDurationMonths = userInvestmentExperience.InvestmentDurationMonths,
+                    ProfitLossAmount = userInvestmentExperience.ProfitLossAmount,
+                    ProfitLossDescription = userInvestmentExperience.ProfitLossDescription,
+                    ConversionReason = userInvestmentExperience.ConversionReason
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userInvestmentExperienceDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user investment experience properties based on the modified DTO
+                userInvestmentExperience.InvestmentType = userInvestmentExperienceDto.InvestmentType; // Update if present
+                userInvestmentExperience.InvestmentAmount = userInvestmentExperienceDto.InvestmentAmount; // Update if present
+                userInvestmentExperience.InvestmentDurationMonths = userInvestmentExperienceDto.InvestmentDurationMonths; // Update if present
+                userInvestmentExperience.ProfitLossAmount = userInvestmentExperienceDto.ProfitLossAmount; // Update if present
+                userInvestmentExperience.ProfitLossDescription = userInvestmentExperienceDto.ProfitLossDescription; // Update if present
+                userInvestmentExperience.ConversionReason = userInvestmentExperienceDto.ConversionReason; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]

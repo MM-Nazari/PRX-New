@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PRX.Data;
 using PRX.Dto.Quiz;
@@ -131,6 +132,54 @@ namespace PRX.Controllers.Quiz
             }
 
         }
+
+        // PATCH: api/UserTestScore/{requestId}
+        [HttpPatch("{requestId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult Patch(int requestId, [FromBody] JsonPatchDocument<UserTestScoreDto> patchDoc)
+        {
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Fetch the existing record
+                var record = _context.UserTestScores.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.QuizScoreNotFound });
+                }
+
+                // Create a DTO to apply the patch
+                var recordDto = new UserTestScoreDto
+                {
+                    RequestId = record.RequestId,
+                    QuizScore = record.QuizScore
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(recordDto);
+
+                // Update the record with modified values from the DTO
+                record.RequestId = recordDto.RequestId;
+                record.QuizScore = recordDto.QuizScore;
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                return Ok(record);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpPost("CalculateQuizScore/{requestId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

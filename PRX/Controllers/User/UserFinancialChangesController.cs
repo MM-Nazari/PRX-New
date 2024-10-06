@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.User;
@@ -179,6 +180,83 @@ namespace PRX.Controllers.User
 
            
         }
+
+        // PATCH: api/UserFinancialChanges/{requestId}
+        [HttpPatch("{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchUserFinancialChanges(int requestId, [FromBody] JsonPatchDocument<UserFinancialChangesDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var userFinancialChanges = _context.UserFinancialChanges.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                if (userFinancialChanges == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFinancialChangeNotFound });
+                }
+
+                // Create a DTO to hold the current user financial changes information
+                var userFinancialChangesDto = new UserFinancialChangesDto
+                {
+                    RequestId = userFinancialChanges.RequestId,
+                    Description = userFinancialChanges.Description
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userFinancialChangesDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user financial changes properties based on the modified DTO
+                userFinancialChanges.RequestId = userFinancialChangesDto.RequestId; // Update if present
+                userFinancialChanges.Description = userFinancialChangesDto.Description; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]

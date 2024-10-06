@@ -5,6 +5,7 @@ using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
 using PRX.Utils;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace PRX.Controllers.User
 {
@@ -212,6 +213,64 @@ namespace PRX.Controllers.User
             }
 
         }
+
+        // PATCH: api/UserState/PatchByUserId/{id}
+        [HttpPatch("PatchByUserId/{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchUserStateByUserId(int id, [FromBody] JsonPatchDocument<UserStateDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userState = _context.UserStates.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userState == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserStateNotFound });
+                }
+
+                // Create a DTO to hold the current user state
+                var userStateDto = new UserStateDto
+                {
+                    Id = userState.Id,
+                    State = userState.State
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userStateDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user state properties based on the modified DTO
+                userState.State = userStateDto.State; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
 
 

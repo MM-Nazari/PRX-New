@@ -7,6 +7,7 @@ using PRX.Models.User;
 using PRX.Utils;
 using Azure.Core;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace PRX.Controllers.User
 {
@@ -266,6 +267,84 @@ namespace PRX.Controllers.User
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
+
+        // PATCH: api/UserWithdrawal/Patch/{id}/{requestId}
+        [HttpPatch("{id}/{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PatchUserWithdrawal(int id, int requestId, [FromBody] JsonPatchDocument<UserWithdrawalDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0 || requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.Id == id && u.RequestId == requestId && !u.IsDeleted);
+                if (userWithdrawal == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
+                }
+
+                // Create a DTO to hold the current user withdrawal
+                var userWithdrawalDto = new UserWithdrawalDto
+                {
+                    WithdrawalAmount = userWithdrawal.WithdrawalAmount,
+                    WithdrawalDate = userWithdrawal.WithdrawalDate,
+                    WithdrawalReason = userWithdrawal.WithdrawalReason
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userWithdrawalDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user withdrawal properties based on the modified DTO
+                userWithdrawal.WithdrawalAmount = userWithdrawalDto.WithdrawalAmount; // Update if present
+                userWithdrawal.WithdrawalDate = userWithdrawalDto.WithdrawalDate; // Update if present
+                userWithdrawal.WithdrawalReason = userWithdrawalDto.WithdrawalReason; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Ticket;
@@ -242,7 +243,79 @@ namespace PRX.Controllers.Ticket
                 }
             }
 
-            [HttpDelete("{id}/{userId}")]
+        // PATCH: api/ticket/{id}/{userId}
+        [HttpPatch("{id}/{userId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchTicket(int id, int userId, [FromBody] JsonPatchDocument<TicketDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0 || userId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                if (userId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var ticket = _context.Tickets.FirstOrDefault(t => t.UserId == userId && t.Id == id && !t.IsDeleted);
+
+                if (ticket == null)
+                {
+                    return NotFound(new { message = ResponseMessages.TicketNotFound });
+                }
+
+                // Create a DTO to hold the current values
+                var ticketDto = new TicketDto
+                {
+                    TrackingCode = ticket.TrackingCode,
+                    Subject = ticket.Subject,
+                    Description = ticket.Description,
+                    Status = ticket.Status,
+                    Category = ticket.Category
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(ticketDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the ticket properties based on the modified DTO
+                ticket.TrackingCode = ticketDto.TrackingCode;
+                ticket.Subject = ticketDto.Subject;
+                ticket.Description = ticketDto.Description;
+                ticket.Status = ticketDto.Status;
+                ticket.Category = ticketDto.Category;
+
+                _context.SaveChanges();
+
+                return Ok(ticket);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+
+        [HttpDelete("{id}/{userId}")]
             [ProducesResponseType(StatusCodes.Status200OK)]
             [ProducesResponseType(StatusCodes.Status404NotFound)]
             [ProducesResponseType(StatusCodes.Status500InternalServerError)]

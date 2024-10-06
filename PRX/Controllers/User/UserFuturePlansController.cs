@@ -6,6 +6,7 @@ using PRX.Dto.User;
 using PRX.Models.User;
 using PRX.Utils;
 using Azure.Core;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace PRX.Controllers.User
 {
@@ -183,6 +184,83 @@ namespace PRX.Controllers.User
 
 
         }
+
+        // PATCH: api/UserFuturePlans/{requestId}
+        [HttpPatch("{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchUserFuturePlans(int requestId, [FromBody] JsonPatchDocument<UserFuturePlansDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var userFuturePlans = _context.UserFuturePlans.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                if (userFuturePlans == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserFuturePlanNotFound });
+                }
+
+                // Create a DTO to hold the current user future plans information
+                var userFuturePlansDto = new UserFuturePlansDto
+                {
+                    RequestId = userFuturePlans.RequestId,
+                    Description = userFuturePlans.Description
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userFuturePlansDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user future plans properties based on the modified DTO
+                userFuturePlans.RequestId = userFuturePlansDto.RequestId; // Update if present
+                userFuturePlans.Description = userFuturePlansDto.Description; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpDelete("{requestId}")]
         [Authorize(Roles = "User")]

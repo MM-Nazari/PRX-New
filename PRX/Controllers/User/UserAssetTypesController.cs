@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.User;
@@ -134,6 +135,61 @@ namespace PRX.Controllers.User
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
+
+        // PATCH: api/UserAssetType/{id}
+        [HttpPatch("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchUserAssetType(int id, [FromBody] JsonPatchDocument<UserAssetTypeDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userAssetType = _context.UserAssetTypes.FirstOrDefault(u => u.Id == id);
+                if (userAssetType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserAssetTypeNotFound });
+                }
+
+                // Create a DTO to hold the current values
+                var userAssetTypeDto = new UserAssetTypeDto
+                {
+                    Name = userAssetType.Name
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userAssetTypeDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user asset type properties based on the modified DTO
+                userAssetType.Name = userAssetTypeDto.Name;
+
+                _context.SaveChanges();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

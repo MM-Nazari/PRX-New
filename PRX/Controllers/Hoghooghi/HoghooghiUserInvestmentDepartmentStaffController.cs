@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
@@ -205,6 +206,86 @@ namespace PRX.Controllers.Hoghooghi
 
 
         }
+
+
+        // PATCH: api/HoghooghiUserInvestmentDepartmentStaff/{id}/{requestId}
+        [HttpPatch("{id}/{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Patch(int id, int requestId, [FromBody] JsonPatchDocument<HoghooghiUserInvestmentDepartmentStaffDto> patchDoc)
+        {
+            try
+            {
+                if (id <= 0 || requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                // Fetch the existing record
+                var record = _context.HoghooghiUserInvestmentDepartmentStaff
+                    .FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
+
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDepartmentNotFound });
+                }
+
+                // Create a DTO to apply the patch
+                var recordDto = new HoghooghiUserInvestmentDepartmentStaffDto
+                {
+                    RequestId = record.RequestId,
+                    FullName = record.FullName,
+                    Position = record.Position,
+                    EducationalLevel = record.EducationalLevel,
+                    FieldOfStudy = record.FieldOfStudy,
+                    ExecutiveExperience = record.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = record.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = record.PersonalInvestmentExperienceInStockExchange
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(recordDto);
+
+                // Update the record with modified values from the DTO
+                record.RequestId = recordDto.RequestId;
+                record.FullName = recordDto.FullName;
+                record.Position = recordDto.Position;
+                record.EducationalLevel = recordDto.EducationalLevel;
+                record.FieldOfStudy = recordDto.FieldOfStudy;
+                record.ExecutiveExperience = recordDto.ExecutiveExperience;
+                record.FamiliarityWithCapitalMarket = recordDto.FamiliarityWithCapitalMarket;
+                record.PersonalInvestmentExperienceInStockExchange = recordDto.PersonalInvestmentExperienceInStockExchange;
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                return Ok(record);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         // DELETE: api/HoghooghiUserInvestmentDepartmentStaff/5
         [HttpDelete("{id}/{requestId}")]

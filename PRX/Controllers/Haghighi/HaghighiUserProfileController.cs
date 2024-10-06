@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
@@ -146,6 +147,103 @@ namespace PRX.Controllers.Haghighi
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
+
+        // PATCH: api/HaghighiUserProfile/5
+        [HttpPatch("{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PatchHaghighiUserProfile(int requestId, [FromBody] JsonPatchDocument<HaghighiUserProfileDto> patchDoc)
+        {
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var profile = _context.HaghighiUserProfiles.FirstOrDefault(u => u.RequestId == requestId && !u.IsDeleted);
+                if (profile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserProfileNotFound });
+                }
+
+                // Convert the entity to a DTO object for patching
+                var profileDto = new HaghighiUserProfileDto
+                {
+                    FirstName = profile.FirstName,
+                    LastName = profile.LastName,
+                    FathersName = profile.FathersName,
+                    NationalNumber = profile.NationalNumber,
+                    BirthDate = profile.BirthDate,
+                    BirthPlace = profile.BirthPlace,
+                    BirthCertificateNumber = profile.BirthCertificateNumber,
+                    MaritalStatus = profile.MaritalStatus,
+                    Gender = profile.Gender,
+                    PostalCode = profile.PostalCode,
+                    HomePhone = profile.HomePhone,
+                    Fax = profile.Fax,
+                    BestTimeToCall = profile.BestTimeToCall,
+                    ResidentialAddress = profile.ResidentialAddress,
+                    Email = profile.Email
+                };
+
+                // Apply the patch to the DTO
+                patchDoc.ApplyTo(profileDto, ModelState);
+
+                // Check for validation errors after patch is applied
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the original entity with the patched values
+                profile.FirstName = profileDto.FirstName;
+                profile.LastName = profileDto.LastName;
+                profile.FathersName = profileDto.FathersName;
+                profile.NationalNumber = profileDto.NationalNumber;
+                profile.BirthDate = profileDto.BirthDate;
+                profile.BirthPlace = profileDto.BirthPlace;
+                profile.BirthCertificateNumber = profileDto.BirthCertificateNumber;
+                profile.MaritalStatus = profileDto.MaritalStatus;
+                profile.Gender = profileDto.Gender;
+                profile.PostalCode = profileDto.PostalCode;
+                profile.HomePhone = profileDto.HomePhone;
+                profile.Fax = profileDto.Fax;
+                profile.BestTimeToCall = profileDto.BestTimeToCall;
+                profile.ResidentialAddress = profileDto.ResidentialAddress;
+                profile.Email = profileDto.Email;
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         // DELETE: api/HaghighiUserProfile/5
         [HttpDelete("{requestId}")]

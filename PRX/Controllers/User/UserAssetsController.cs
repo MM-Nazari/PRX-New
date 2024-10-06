@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.User;
@@ -297,6 +298,84 @@ namespace PRX.Controllers.User
                 }
 
                
+                userAsset.AssetTypeId = userAssetDto.AssetTypeId;
+                userAsset.AssetValue = userAssetDto.AssetValue;
+
+                _context.SaveChanges();
+
+                // Recalculate the percentages
+                CalculateAndSetAssetPercentages(userAssetDto.RequestId);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+        // PATCH: api/UserAsset/{id}/{requestId}
+        [HttpPatch("{id}/{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchUserAsset(int id, int requestId, [FromBody] JsonPatchDocument<UserAssetDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0 || requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var userAsset = _context.UserAssets.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
+                if (userAsset == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserAssetNotFound });
+                }
+
+                // Create a DTO to hold the current values
+                var userAssetDto = new UserAssetDto
+                {
+                    AssetTypeId = userAsset.AssetTypeId,
+                    AssetValue = userAsset.AssetValue,
+                    RequestId = userAsset.RequestId // Ensure we pass the RequestId for further calculations if needed
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userAssetDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user asset properties based on the modified DTO
                 userAsset.AssetTypeId = userAssetDto.AssetTypeId;
                 userAsset.AssetValue = userAssetDto.AssetValue;
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
@@ -188,6 +189,88 @@ namespace PRX.Controllers.Haghighi
 
 
         }
+
+        // PATCH: api/HaghighiUserFinancialProfile/5
+        [HttpPatch("{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PatchHaghighiUserFinancialProfile(int requestId, [FromBody] JsonPatchDocument<HaghighiUserFinancialProfileDto> patchDoc)
+        {
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var financialProfile = _context.HaghighiUserFinancialProfiles
+                    .FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+
+                if (financialProfile == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserFinancialProfileNotFound });
+                }
+
+                // Convert the entity to a DTO object for patching
+                var financialProfileDto = new HaghighiUserFinancialProfileDto
+                {
+                    RequestId = financialProfile.RequestId,
+                    MainContinuousIncome = financialProfile.MainContinuousIncome,
+                    OtherIncomes = financialProfile.OtherIncomes,
+                    SupportFromOthers = financialProfile.SupportFromOthers,
+                    ContinuousExpenses = financialProfile.ContinuousExpenses,
+                    OccasionalExpenses = financialProfile.OccasionalExpenses,
+                    ContributionToOthers = financialProfile.ContributionToOthers
+                };
+
+                // Apply the patch to the DTO
+                patchDoc.ApplyTo(financialProfileDto, ModelState);
+
+                // Check for validation errors after patch is applied
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the original entity with the patched values
+                financialProfile.RequestId = financialProfileDto.RequestId;
+                financialProfile.MainContinuousIncome = financialProfileDto.MainContinuousIncome;
+                financialProfile.OtherIncomes = financialProfileDto.OtherIncomes;
+                financialProfile.SupportFromOthers = financialProfileDto.SupportFromOthers;
+                financialProfile.ContinuousExpenses = financialProfileDto.ContinuousExpenses;
+                financialProfile.OccasionalExpenses = financialProfileDto.OccasionalExpenses;
+                financialProfile.ContributionToOthers = financialProfileDto.ContributionToOthers;
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                return Ok(financialProfile);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         // DELETE: api/HaghighiUserFinancialProfile/5
         [HttpDelete("{requestId}")]

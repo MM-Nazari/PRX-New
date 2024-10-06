@@ -20,6 +20,7 @@ using DotNet.RateLimiter.ActionFilters;
 using DocumentFormat.OpenXml.Spreadsheet;
 using PRX.Dto.Helper;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace PRX.Controllers.User
 {
@@ -1092,6 +1093,131 @@ namespace PRX.Controllers.User
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
+
+        //// PATCH: api/User/{id}
+        //[HttpPatch("{id}")]
+        //[Authorize(Roles = "User, Admin")]
+        //[ProducesResponseType(StatusCodes.Status204NoContent)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        //public IActionResult PatchUser(int id, [FromBody] JsonPatchDocument<UserDto> patchDoc)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    try
+        //    {
+        //        if (id <= 0)
+        //        {
+        //            return BadRequest(new { message = ResponseMessages.InvalidId });
+        //        }
+
+        //        // Retrieve the user ID from the token
+        //        var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+        //        // Ensure that the user is updating their own data
+        //        if (id != tokenUserId)
+        //        {
+        //            return Unauthorized(new { message = ResponseMessages.Unauthorized });
+        //        }
+
+        //        // Find the user to update
+        //        var user = _context.Users.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+        //        if (user == null)
+        //        {
+        //            return NotFound(new { message = ResponseMessages.UserNotFound });
+        //        }
+
+        //        // Create a DTO to hold the current user information
+        //        var userDto = new UserDto
+        //        {
+        //            PhoneNumber = user.PhoneNumber,
+        //            Username = user.Username,
+        //            ReferenceCode = user.ReferenceCode,
+        //            FirstName = user.FirstName,
+        //            LastName = user.LastName,
+        //            BirthCertificateNumber = user.BirthCertificateNumber,
+        //            // Password is not included for patching
+        //        };
+
+        //        // Apply the patch document to the DTO
+        //        patchDoc.ApplyTo(userDto, ModelState);
+
+        //        // Validate the model after applying the patch
+        //        if (!ModelState.IsValid)
+        //        {
+        //            return BadRequest(ModelState);
+        //        }
+
+        //        // Update the user properties based on the modified DTO
+        //        if (!string.IsNullOrEmpty(userDto.PhoneNumber))
+        //        {
+        //            user.PhoneNumber = userDto.PhoneNumber;
+        //        }
+
+        //        if (!string.IsNullOrEmpty(userDto.Username))
+        //        {
+        //            user.Username = userDto.Username;
+        //        }
+
+        //        if (!string.IsNullOrEmpty(userDto.ReferenceCode))
+        //        {
+        //            user.ReferenceCode = userDto.ReferenceCode;
+        //        }
+
+        //        if (!string.IsNullOrEmpty(userDto.FirstName))
+        //        {
+        //            user.FirstName = userDto.FirstName;
+        //        }
+
+        //        if (!string.IsNullOrEmpty(userDto.LastName))
+        //        {
+        //            user.LastName = userDto.LastName;
+        //        }
+
+        //        if (!string.IsNullOrEmpty(userDto.BirthCertificateNumber))
+        //        {
+        //            user.BirthCertificateNumber = userDto.BirthCertificateNumber;
+        //        }
+
+        //        // Save changes to the database
+        //        _context.SaveChanges();
+
+        //        // Log the data change (You can implement a method to log changes)
+        //        LogUserChanges(user);
+
+        //        // Return 204 No Content
+        //        return NoContent();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+        //    }
+        //}
+
+        //private void LogUserChange(User user) // Rename method if necessary
+        //{
+        //    var dataChangeLog = new DataChangeLog
+        //    {
+        //        UserId = user.Id,
+        //        Role = user.Role,
+        //        FirstName = user.FirstName,
+        //        LastName = user.LastName,
+        //        BirthCertificateNumber = user.BirthCertificateNumber,
+        //        Username = user.Username,
+        //        PhoneNumber = user.PhoneNumber,
+        //        Type = "partial", // Indicating a partial update
+        //        Action = "UPDATE",
+        //        Timestamp = DateTime.UtcNow
+        //    };
+
+        //    _context.DataChangeLogs.Add(dataChangeLog);
+        //    _context.SaveChanges();
+        //}
+
 
 
         //[HttpPut("{id}")]

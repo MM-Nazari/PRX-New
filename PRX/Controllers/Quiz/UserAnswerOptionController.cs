@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Quiz;
 using PRX.Models.Quiz;
@@ -207,6 +208,55 @@ namespace PRX.Controllers.Quiz
             }
 
         }
+
+
+        // PATCH: api/UserAnswerOption/{id}
+        [HttpPatch("PatchById/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult Patch(int id, [FromBody] JsonPatchDocument<UserAnswerOptionDto> patchDoc)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Fetch the existing record
+                var record = _context.UserAnswerOptions.FirstOrDefault(e => e.Id == id);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.QuizAnswerOptionNotFound });
+                }
+
+                // Create a DTO to apply the patch
+                var recordDto = new UserAnswerOptionDto
+                {
+                    QuestionId = record.QuestionId,
+                    Text = record.Text
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(recordDto);
+
+                // Update the record with modified values from the DTO
+                record.QuestionId = recordDto.QuestionId;
+                record.Text = recordDto.Text;
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                return Ok(record);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         // DELETE: api/UserAnswerOption/5
         [HttpDelete("DeleteById/{id}")]

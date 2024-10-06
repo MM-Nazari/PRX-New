@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
@@ -204,6 +205,82 @@ namespace PRX.Controllers.Hoghooghi
 
 
         }
+
+
+        // PATCH: api/HoghooghiUserBoardOfDirectors/{id}/{requestId}
+        [HttpPatch("{id}/{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Patch(int id, int requestId, [FromBody] JsonPatchDocument<HoghooghiUserBoardOfDirectorsDto> patchDoc)
+        {
+            try
+            {
+                if (id <= 0 || requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var record = _context.HoghooghiUserBoardOfDirectors.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
+                if (record == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiDrectorsNotFound });
+                }
+
+                // Create a DTO from the existing record to apply patches
+                var recordDto = new HoghooghiUserBoardOfDirectorsDto
+                {
+                    RequestId = record.RequestId,
+                    FullName = record.FullName,
+                    Position = record.Position,
+                    EducationalLevel = record.EducationalLevel,
+                    FieldOfStudy = record.FieldOfStudy,
+                    ExecutiveExperience = record.ExecutiveExperience,
+                    FamiliarityWithCapitalMarket = record.FamiliarityWithCapitalMarket,
+                    PersonalInvestmentExperienceInStockExchange = record.PersonalInvestmentExperienceInStockExchange
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(recordDto);
+
+                // Update the record with the modified values from the DTO
+                record.RequestId = recordDto.RequestId;
+                record.FullName = recordDto.FullName;
+                record.Position = recordDto.Position;
+                record.EducationalLevel = recordDto.EducationalLevel;
+                record.FieldOfStudy = recordDto.FieldOfStudy;
+                record.ExecutiveExperience = recordDto.ExecutiveExperience;
+                record.FamiliarityWithCapitalMarket = recordDto.FamiliarityWithCapitalMarket;
+                record.PersonalInvestmentExperienceInStockExchange = recordDto.PersonalInvestmentExperienceInStockExchange;
+
+                _context.SaveChanges();
+
+                return Ok(record);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         // DELETE: api/HoghooghiUserBoardOfDirectors/5
         [HttpDelete("{id}/{requestId}")]

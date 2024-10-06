@@ -7,6 +7,7 @@ using PRX.Models.User;
 using PRX.Utils;
 using Azure.Core;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace PRX.Controllers.User
 {
@@ -205,6 +206,87 @@ namespace PRX.Controllers.User
 
   
         }
+
+        // PATCH: api/UserDeposit/{id}/{requestId}
+        [HttpPatch("{id}/{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchUserDeposit(int id, int requestId, [FromBody] JsonPatchDocument<UserDepositDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0 || requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var userDeposit = _context.UserDeposits.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
+                if (userDeposit == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserDepositNotFound });
+                }
+
+                // Create a DTO to hold the current user deposit information
+                var userDepositDto = new UserDepositDto
+                {
+                    RequestId = userDeposit.RequestId,
+                    DepositAmount = userDeposit.DepositAmount,
+                    DepositDate = userDeposit.DepositDate,
+                    DepositSource = userDeposit.DepositSource
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userDepositDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user deposit properties based on the modified DTO
+                userDeposit.RequestId = userDepositDto.RequestId; // Update if present
+                userDeposit.DepositAmount = userDepositDto.DepositAmount; // Update if present
+                userDeposit.DepositDate = userDepositDto.DepositDate; // Update if present
+                userDeposit.DepositSource = userDepositDto.DepositSource; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]

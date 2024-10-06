@@ -5,6 +5,7 @@ using PRX.Data;
 using PRX.Dto.User;
 using PRX.Models.User;
 using PRX.Utils;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace PRX.Controllers.User
 {
@@ -209,6 +210,123 @@ namespace PRX.Controllers.User
             }
 
         }
+
+        // PATCH: api/UserType/PatchById/{id}
+        [HttpPatch("PatchById/{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PatchUserType(int id, [FromBody] JsonPatchDocument<UserTypeDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userType = _context.UserTypes.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+                if (userType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserTypeNotFound });
+                }
+
+                // Create a DTO to hold the current user type
+                var userTypeDto = new UserTypeDto
+                {
+                    Id = userType.Id,
+                    UserId = userType.UserId,
+                    Type = userType.Type
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userTypeDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user type properties based on the modified DTO
+                userType.UserId = userTypeDto.UserId; // Update if present
+                userType.Type = userTypeDto.Type; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
+        // PATCH: api/UserType/PatchByUserId/{id}
+        [HttpPatch("PatchByUserId/{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PatchUserTypeByUserId(int id, [FromBody] JsonPatchDocument<UserTypeDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var userType = _context.UserTypes.FirstOrDefault(u => u.UserId == id && !u.IsDeleted);
+                if (userType == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserTypeNotFound });
+                }
+
+                // Create a DTO to hold the current user type
+                var userTypeDto = new UserTypeDto
+                {
+                    Id = userType.Id,
+                    UserId = userType.UserId,
+                    Type = userType.Type
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userTypeDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user type properties based on the modified DTO
+                userType.Id = userTypeDto.Id; // Update if present
+                userType.Type = userTypeDto.Type; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
 
         [HttpDelete("DeleteById/{id}")]

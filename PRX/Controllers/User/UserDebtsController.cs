@@ -2,6 +2,7 @@
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.User;
@@ -178,6 +179,87 @@ namespace PRX.Controllers.User
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
+
+        // PATCH: api/UserDebt/{id}/{requestId}
+        [HttpPatch("{id}/{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchUserDebt(int id, int requestId, [FromBody] JsonPatchDocument<UserDebtDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (id <= 0 || requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                var userDebt = _context.UserDebts.FirstOrDefault(u => u.RequestId == requestId && u.Id == id && !u.IsDeleted);
+                if (userDebt == null)
+                {
+                    return NotFound(new { message = ResponseMessages.UserDebtNotFound });
+                }
+
+                // Create a DTO to hold the current user debt information
+                var userDebtDto = new UserDebtDto
+                {
+                    RequestId = userDebt.RequestId,
+                    DebtTitle = userDebt.DebtTitle,
+                    DebtAmount = userDebt.DebtAmount,
+                    DebtDueDate = userDebt.DebtDueDate,
+                    DebtRepaymentPercentage = userDebt.DebtRepaymentPercentage
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userDebtDto, ModelState);
+
+                // Validate the model after applying the patch
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the user debt properties based on the modified DTO
+                userDebt.RequestId = userDebtDto.RequestId; // Update if present
+                userDebt.DebtTitle = userDebtDto.DebtTitle; // Update if present
+                userDebt.DebtAmount = userDebtDto.DebtAmount; // Update if present
+                userDebt.DebtDueDate = userDebtDto.DebtDueDate; // Update if present
+                userDebt.DebtRepaymentPercentage = userDebtDto.DebtRepaymentPercentage; // Update if present
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                // Return 204 No Content
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpDelete("{id}/{requestId}")]
         [Authorize(Roles = "User")]

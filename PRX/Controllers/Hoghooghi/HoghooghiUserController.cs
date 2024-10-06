@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Hoghooghi;
@@ -204,6 +205,101 @@ namespace PRX.Controllers.Hoghooghi
 
 
         }
+
+        // PATCH: api/HoghooghiUser/{requestId}
+        [HttpPatch("{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PatchHoghooghiUser(int requestId, [FromBody] JsonPatchDocument<HoghooghiUserDto> patchDoc)
+        {
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                // Fetch the existing user
+                var user = _context.HoghooghiUsers.FirstOrDefault(e => e.RequestId == requestId && !e.IsDeleted);
+                if (user == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HoghooghiUserNotFound });
+                }
+
+                // Create a DTO to apply the patch
+                var userDto = new HoghooghiUserDto
+                {
+                    RequestId = user.RequestId,
+                    Name = user.Name,
+                    RegistrationNumber = user.RegistrationNumber,
+                    RegistrationDate = user.RegistrationDate,
+                    RegistrationLocation = user.RegistrationLocation,
+                    NationalId = user.NationalId,
+                    MainActivityBasedOnCharter = user.MainActivityBasedOnCharter,
+                    MainActivityBasedOnPastThreeYearsPerformance = user.MainActivityBasedOnPastThreeYearsPerformance,
+                    PostalCode = user.PostalCode,
+                    LandlinePhone = user.LandlinePhone,
+                    Fax = user.Fax,
+                    BestTimeToCall = user.BestTimeToCall,
+                    Address = user.Address,
+                    Email = user.Email,
+                    RepresentativeName = user.RepresentativeName,
+                    RepresentativeNationalId = user.RepresentativeNationalId,
+                    RepresentativeMobilePhone = user.RepresentativeMobilePhone
+                };
+
+                // Apply the patch document to the DTO
+                patchDoc.ApplyTo(userDto);
+
+                // Update the user with modified values from the DTO
+                user.RequestId = userDto.RequestId;
+                user.Name = userDto.Name;
+                user.RegistrationNumber = userDto.RegistrationNumber;
+                user.RegistrationDate = userDto.RegistrationDate;
+                user.RegistrationLocation = userDto.RegistrationLocation;
+                user.NationalId = userDto.NationalId;
+                user.MainActivityBasedOnCharter = userDto.MainActivityBasedOnCharter;
+                user.MainActivityBasedOnPastThreeYearsPerformance = userDto.MainActivityBasedOnPastThreeYearsPerformance;
+                user.PostalCode = userDto.PostalCode;
+                user.LandlinePhone = userDto.LandlinePhone;
+                user.Fax = userDto.Fax;
+                user.BestTimeToCall = userDto.BestTimeToCall;
+                user.Address = userDto.Address;
+                user.Email = userDto.Email;
+                user.RepresentativeName = userDto.RepresentativeName;
+                user.RepresentativeNationalId = userDto.RepresentativeNationalId;
+                user.RepresentativeMobilePhone = userDto.RepresentativeMobilePhone;
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         // DELETE: api/HoghooghiUser/5
         [HttpDelete("{requestId}")]

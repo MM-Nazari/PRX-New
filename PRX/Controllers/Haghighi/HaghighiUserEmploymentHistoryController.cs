@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Haghighi;
@@ -207,6 +208,91 @@ namespace PRX.Controllers.Haghighi
 
 
         }
+
+        // PATCH: api/HaghighiUserEmploymentHistory/5
+        [HttpPatch("{id}/{requestId}")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PatchHaghighiUserEmploymentHistory(int id, int requestId, [FromBody] JsonPatchDocument<HaghighiUserEmploymentHistoryDto> patchDoc)
+        {
+            try
+            {
+                if (id <= 0 || requestId <= 0)
+                {
+                    return BadRequest(new { message = ResponseMessages.InvalidId });
+                }
+
+                // Retrieve the user ID from the token
+                var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
+
+                // Fetch the request
+                var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
+
+                if (request == null)
+                {
+                    return NotFound(new { message = ResponseMessages.RequestNotFound });
+                }
+
+                // Ensure that the user associated with the request matches the token user ID
+                if (request.UserId != tokenUserId)
+                {
+                    return Unauthorized(new { message = ResponseMessages.Unauthorized });
+                }
+
+                // Fetch the employment history record
+                var employmentHistory = _context.HaghighiUserEmploymentHistories
+                    .FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
+
+                if (employmentHistory == null)
+                {
+                    return NotFound(new { message = ResponseMessages.HaghighiUserEmploymentHistoryNotFound });
+                }
+
+                // Convert the entity to a DTO object to apply the patch
+                var employmentHistoryDto = new HaghighiUserEmploymentHistoryDto
+                {
+                    RequestId = employmentHistory.RequestId,
+                    EmployerLocation = employmentHistory.EmployerLocation,
+                    MainActivity = employmentHistory.MainActivity,
+                    Position = employmentHistory.Position,
+                    StartDate = employmentHistory.StartDate,
+                    EndDate = employmentHistory.EndDate,
+                    WorkAddress = employmentHistory.WorkAddress,
+                    WorkPhone = employmentHistory.WorkPhone
+                };
+
+                // Apply the patch to the DTO
+                patchDoc.ApplyTo(employmentHistoryDto, ModelState);
+
+                // Check for validation errors after patch is applied
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the original entity with the patched values
+                employmentHistory.RequestId = employmentHistoryDto.RequestId;
+                employmentHistory.EmployerLocation = employmentHistoryDto.EmployerLocation;
+                employmentHistory.MainActivity = employmentHistoryDto.MainActivity;
+                employmentHistory.Position = employmentHistoryDto.Position;
+                employmentHistory.StartDate = employmentHistoryDto.StartDate;
+                employmentHistory.EndDate = employmentHistoryDto.EndDate;
+                employmentHistory.WorkAddress = employmentHistoryDto.WorkAddress;
+                employmentHistory.WorkPhone = employmentHistoryDto.WorkPhone;
+
+                // Save changes to the database
+                _context.SaveChanges();
+
+                return Ok(employmentHistory);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         // DELETE: api/HaghighiUserEmploymentHistory/5
         [HttpDelete("{id}/{requestId}")]

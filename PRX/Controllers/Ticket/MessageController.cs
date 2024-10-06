@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PRX.Data;
 using PRX.Dto.Ticket;
@@ -447,6 +448,67 @@ namespace PRX.Controllers.Ticket
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
             }
         }
+
+        // PATCH: api/messages/{id}
+        [HttpPatch("{id}")]
+        [Authorize(Roles = "User, Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult PatchMessage(int id, [FromBody] JsonPatchDocument<MessageDto> patchDoc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var message = _context.Messages.FirstOrDefault(m => m.Id == id && !m.IsDeleted);
+
+                if (message == null)
+                {
+                    return NotFound(new { message = ResponseMessages.MessageNotFound });
+                }
+
+                var senderType = User.FindFirst("role")?.Value;
+                var senderId = int.Parse(User.FindFirst("id")?.Value);
+
+                if ((message.SenderType == "User" && senderType == "User" && message.SenderId == senderId) ||
+                    (message.SenderType == "Admin" && senderType == "Admin" && message.SenderId == senderId))
+                {
+                    // Create a DTO to hold the current values
+                    var messageDto = new MessageDto
+                    {
+                        Content = message.Content
+                    };
+
+                    // Apply the patch document to the DTO
+                    patchDoc.ApplyTo(messageDto, ModelState);
+
+                    // Validate the model after applying the patch
+                    if (!ModelState.IsValid)
+                    {
+                        return BadRequest(ModelState);
+                    }
+
+                    // Update the message properties
+                    message.Content = messageDto.Content;
+
+                    _context.SaveChanges();
+
+                    return Ok(message);
+                }
+
+                return Unauthorized(new { message = ResponseMessages.Unauthorized });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
+            }
+        }
+
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "User, Admin")]
