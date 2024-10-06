@@ -36,7 +36,7 @@ namespace PRX.Models.Haghighi
         public string Gender { get; set; }
         [Required]
         [MaxLength(10)]
-        public int PostalCode { get; set; }
+        public string PostalCode { get; set; }
         [Required]
         public string HomePhone { get; set; }
         [Required]

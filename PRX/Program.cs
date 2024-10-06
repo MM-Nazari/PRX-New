@@ -49,12 +49,23 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 builder.Services.AddHttpClient();
 
+//// Add services to the container.
+//builder.Services.AddControllers()
+//    .AddNewtonsoftJson(options =>
+//    {
+//        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;  // Ignore self-referencing loops
+//    });
 builder.Services.AddControllers()
+     .AddNewtonsoftJson(options =>
+     {
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;  // Ignore self-referencing loops
+     })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
         options.JsonSerializerOptions.WriteIndented = true; // Optional: for more readable JSON output
+        
     });
 
 

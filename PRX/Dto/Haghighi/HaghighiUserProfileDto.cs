@@ -13,7 +13,7 @@
         public string BirthCertificateNumber { get; set; }
         public string MaritalStatus { get; set; }
         public string Gender { get; set; }
-        public int PostalCode { get; set; }
+        public string PostalCode { get; set; }
         public string HomePhone { get; set; }
         public string Fax { get; set; }
         public string BestTimeToCall { get; set; }

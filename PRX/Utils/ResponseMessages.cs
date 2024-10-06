@@ -170,7 +170,7 @@
         // OTP
 
         public const string OTPMobileNotFound = "شماره موبایل وارد نشده است";
-        public const string OTPCouldntBeSent = "بدلیل ناتوانی برقراری ارتباط با سرور امکان ارسال پیامک وجود دارد ";
+        public const string OTPCouldntBeSent = "بدلیل ناتوانی برقراری ارتباط با سرور امکان ارسال پیامک وجود ندارد ";
         public const string OTPVerificationFailed = "کد وارد شده صحیح نمیباشد ";
         public const string OTPVerificationSucceded = "احراز هویت با سرویس پیامک کوتاه با موفقیت انجام شد ";
 
