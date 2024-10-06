@@ -2,7 +2,6 @@
 {
     public class UserTestScoreDto
     {
-        //public int UserId { get; set; }
         public int RequestId { get; set; }
         public int QuizScore { get; set; }
 

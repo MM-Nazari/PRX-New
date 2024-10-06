@@ -13,9 +13,6 @@ namespace PRX.Dto.User
         public string Password { get; set; } // Add Password field
         
         public string ReferenceCode { get; set; } = string.Empty;
-
-        // public int otp {  get; set; }
-
         public string Role { get; set; } = "User";
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
@@ -25,7 +22,5 @@ namespace PRX.Dto.User
         public string LastName { get; set; }
         public string BirthCertificateNumber { get; set; }
 
-
-        //public string Username { get; set; } = "";
     }
 }

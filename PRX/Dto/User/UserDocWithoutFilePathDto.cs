@@ -7,6 +7,5 @@
             public string DocumentType { get; set; }
             public string Extension { get; set; }
 
-
     }
 }

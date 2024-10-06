@@ -12,15 +12,11 @@ namespace PRX.Models.Quiz
         [Required]
         [ForeignKey("Request")]
         public int RequestId { get; set; }
-        //public int UserId { get; set; }
-        //public int QusetionId { get; set; }
-
         public int AnswerOptionId { get; set; }
         public string? AnswerText { get; set; }
 
         public bool IsDeleted { get; set; } = false;
 
-        //public User.User User { get; set; }
         public Request Request { get; set; }
         public UserAnswerOption answerOption { get; set; }
     }

@@ -7,17 +7,20 @@ namespace PRX.Models.Haghighi
     public class HaghighiUserEducationStatus
     {
         public int Id { get; set; }
-        //[Required]
-        //public int UserId { get; set; }
+
         [Required]
         [ForeignKey("Request")]
         public int RequestId { get; set; }
+
         [Required]
         public string LastDegree { get; set; }
+
         [Required]
         public string FieldOfStudy { get; set; }
+
         [Required]
         public int GraduationYear { get; set; }
+
         [Required]
         public string IssuingAuthority { get; set; }
 

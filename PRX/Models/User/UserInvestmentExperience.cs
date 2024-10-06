@@ -6,11 +6,11 @@ namespace PRX.Models.User
     public class UserInvestmentExperience
     {
         public int Id { get; set; }
-        //[Required]
-        //public int UserId { get; set; }
+
         [Required]
         [ForeignKey("Request")]
         public int RequestId { get; set; }
+
         [Required]
         public string InvestmentType { get; set; }
         [Required]
@@ -26,8 +26,6 @@ namespace PRX.Models.User
         public string ConversionReason { get; set; }
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
-
-        //public User User { get; set; }
         public Request Request { get; set; }
     }
 

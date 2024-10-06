@@ -11,8 +11,7 @@ namespace PRX.Models.User
         [Required]
         [ForeignKey("Request")]
         public int RequestId { get; set; }
-        //public int UserId { get; set; }
-
+ 
         [Required]
         public string TradeCode { get; set; } // کد معاملاتی
 

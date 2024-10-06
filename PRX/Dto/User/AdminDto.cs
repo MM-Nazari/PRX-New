@@ -9,10 +9,5 @@
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
 
-        // public string FirstName { get; set; } = "";
-        // public string LastName { get; set; } = "";
-        // public string BirthCertificateNumber { get; set; } = "";
-        //public string PhoneNumber { get; set; } = "";
-
     }
 }

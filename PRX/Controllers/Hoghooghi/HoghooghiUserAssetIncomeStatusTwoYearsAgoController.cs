@@ -213,43 +213,6 @@ namespace PRX.Controllers.Hoghooghi
                     record.NetProfitOrLoss = asset.NetProfitOrLoss;
                     record.AccumulatedProfitOrLoss = asset.AccumulatedProfitOrLoss;
 
-                    //if (record != null)
-                    //{
-                    //    // Update existing record
-                    //    record.RegisteredCapital = asset.RegisteredCapital;
-                    //    record.ApproximateAssetValue = asset.ApproximateAssetValue;
-                    //    record.TotalLiabilities = asset.TotalLiabilities;
-                    //    record.TotalInvestments = asset.TotalInvestments;
-                    //    record.OperationalIncome = asset.OperationalIncome;
-                    //    record.OtherIncome = asset.OtherIncome;
-                    //    record.OperationalExpenses = asset.OperationalExpenses;
-                    //    record.OtherExpenses = asset.OtherExpenses;
-                    //    record.OperationalProfitOrLoss = asset.OperationalProfitOrLoss;
-                    //    record.NetProfitOrLoss = asset.NetProfitOrLoss;
-                    //    record.AccumulatedProfitOrLoss = asset.AccumulatedProfitOrLoss;
-                    //}
-                    //else
-                    //{
-                    //    // Add new record if it doesn't exist
-                    //    var newRecord = new HoghooghiUserAssetIncomeStatusTwoYearsAgo
-                    //    {
-                    //        RequestId = requestId,
-                    //        FiscalYear = asset.FiscalYear,
-                    //        RegisteredCapital = asset.RegisteredCapital,
-                    //        ApproximateAssetValue = asset.ApproximateAssetValue,
-                    //        TotalLiabilities = asset.TotalLiabilities,
-                    //        TotalInvestments = asset.TotalInvestments,
-                    //        OperationalIncome = asset.OperationalIncome,
-                    //        OtherIncome = asset.OtherIncome,
-                    //        OperationalExpenses = asset.OperationalExpenses,
-                    //        OtherExpenses = asset.OtherExpenses,
-                    //        OperationalProfitOrLoss = asset.OperationalProfitOrLoss,
-                    //        NetProfitOrLoss = asset.NetProfitOrLoss,
-                    //        AccumulatedProfitOrLoss = asset.AccumulatedProfitOrLoss
-                    //    };
-                    //    _context.HoghooghiUsersAssets.Add(newRecord);
-                    //}
-
                     
                 }
 
@@ -263,73 +226,6 @@ namespace PRX.Controllers.Hoghooghi
             }
         }
 
-
-
-        //// PUT: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
-        //[HttpPut("{id}/{requestId}")]
-        //[Authorize(Roles = "User")]
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //public IActionResult Update(int id, int requestId, [FromBody] HoghooghiUserAssetIncomeStatusTwoYearsAgoDto dto)
-        //{
-        //    try
-        //    {
-        //        if (id <= 0 || requestId <= 0)
-        //        {
-        //            return BadRequest(new { message = ResponseMessages.InvalidId });
-        //        }
-        //        // Retrieve the user ID from the token
-        //        var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-
-        //        // Fetch the request
-        //        var request = _context.Requests.FirstOrDefault(r => r.Id == requestId);
-
-        //        if (request == null)
-        //        {
-        //            return NotFound(new { message = ResponseMessages.RequestNotFound });
-        //        }
-
-        //        // Ensure that the user associated with the request matches the token user ID
-        //        if (request.UserId != tokenUserId)
-        //        {
-        //            return Unauthorized(new { message = ResponseMessages.Unauthorized });
-        //        }
-
-        //        var record = _context.HoghooghiUsersAssets.FirstOrDefault(e => e.RequestId == requestId && e.Id == id && !e.IsDeleted);
-        //        if (record == null)
-        //        {
-        //            return NotFound(new { message = ResponseMessages.HoghooghiAssetIncomeNotfound });
-        //        }
-
-        //        record.RequestId = dto.RequestId;
-        //        record.FiscalYear = dto.FiscalYear;
-        //        record.RegisteredCapital = dto.RegisteredCapital;
-        //        record.ApproximateAssetValue = dto.ApproximateAssetValue;
-        //        record.TotalLiabilities = dto.TotalLiabilities;
-        //        record.TotalInvestments = dto.TotalInvestments;
-        //        record.OperationalIncome = dto.OperationalIncome;
-        //        record.OtherIncome = dto.OtherIncome;
-        //        record.OperationalExpenses = dto.OperationalExpenses;
-        //        record.OtherExpenses = dto.OtherExpenses;
-        //        record.OperationalProfitOrLoss = dto.OperationalProfitOrLoss;
-        //        record.NetProfitOrLoss = dto.NetProfitOrLoss;
-        //        record.AccumulatedProfitOrLoss = dto.AccumulatedProfitOrLoss;
-
-        //        _context.SaveChanges();
-
-        //        return Ok(record);
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
-        //    }
-
-
-
-
-        //}
 
         // DELETE: api/HoghooghiUserAssetIncomeStatusTwoYearsAgo/5
         [HttpDelete("{id}/{requestId}")]

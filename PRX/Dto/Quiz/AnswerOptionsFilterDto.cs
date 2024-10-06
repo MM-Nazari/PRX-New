@@ -8,8 +8,6 @@ namespace PRX.Dto.Quiz
     {
         public string Type { get; set; }
         public int QuestionId { get; set; }
-        //public int QuestionNumber { get; set; }
-
         public string Text { get; set; }
 
     }

@@ -104,34 +104,6 @@ namespace PRX.Controllers.Quiz
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetByFilter([FromQuery] QuestionsFilterDto filterDto)
         {
-            //try
-            //{
-            //    if (!ModelState.IsValid)
-            //    {
-            //        return BadRequest(ModelState);
-            //    }
-
-            //    var query = _context.UserQuestions.AsQueryable();
-
-            //    if (!string.IsNullOrEmpty(filterDto.Type))
-            //    {
-            //        query = query.Where(q => q.Type == filterDto.Type);
-            //    }
-
-            //    if (filterDto.QuestionNumber > 0)
-            //    {
-            //        query = query.Where(q => q.QuestionNumber == filterDto.QuestionNumber);
-            //    }
-
-            //    var userQuestions = query.ToList();
-
-            //    if (userQuestions == null || userQuestions.Count == 0)
-            //    {
-            //        return NotFound(new { message = "User questions not found for the specified filter criteria." });
-            //    }
-
-            //    return Ok(userQuestions);
-            //}
 
             try
             {

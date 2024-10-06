@@ -4,9 +4,7 @@ namespace PRX.Dto.User
 {
     public class UserBankInfoDto
     {
-        //public int UserId { get; set; }
         public int RequestId { get; set; }
-
 
         public string TradeCode { get; set; } // کد معاملاتی
 

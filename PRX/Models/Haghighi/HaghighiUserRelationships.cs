@@ -8,9 +8,6 @@ namespace PRX.Models.Haghighi
     {
         public int Id { get; set; }
 
-        //[Required]
-        //public int UserId { get; set; }
-
         [Required]
         [ForeignKey("Request")]
         public int RequestId { get; set; }
@@ -47,11 +44,10 @@ namespace PRX.Models.Haghighi
         [Range(0, double.PositiveInfinity)]
         public decimal ApproximateLiabilities { get; set; }
 
-
         public bool IsComplete { get; set; } = false;
+
         public bool IsDeleted { get; set; } = false;
 
-        // Navigation property for one-to-one relationship with User
         public Request Request { get; set; }
     }
 }

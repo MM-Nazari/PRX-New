@@ -2,7 +2,6 @@
 {
     public class HaghighiUserEducationStatusDto
     {
-        //public int UserId { get; set; }
         public int RequestId { get; set; }
         public string LastDegree { get; set; }
         public string FieldOfStudy { get; set; }

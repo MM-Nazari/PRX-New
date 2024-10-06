@@ -20,7 +20,6 @@ using OfficeOpenXml;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.IO.RecyclableMemoryStreamManager;
-//using static Microsoft.IO.RecyclableMemoryStreamManager;
 
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -29,32 +28,12 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     WebRootPath = "wwwroot"
 });
 
-//var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRateLimitService(builder.Configuration);
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-
-
-// Add services to the container.
-
-// Add services to the container.
-//builder.Services.AddControllers()
-//    .AddJsonOptions(options =>
-//    {
-//        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-//        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-
-//    });
-
 builder.Services.AddHttpClient();
 
-//// Add services to the container.
-//builder.Services.AddControllers()
-//    .AddNewtonsoftJson(options =>
-//    {
-//        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;  // Ignore self-referencing loops
-//    });
 builder.Services.AddControllers()
      .AddNewtonsoftJson(options =>
      {
@@ -82,20 +61,6 @@ builder.Services.AddCors(options =>
         });
 });
 
-//string connectionString = "Server=Pirhayati\\MSSQLSERVER01;Database=PRX_V2;Integrated Security=True;TrustServerCertificate=True;";
-
-//using (SqlConnection connection = new SqlConnection(connectionString))
-//{
-//    try
-//    {
-//        connection.Open();
-//        Console.WriteLine("Connection successful!");
-//    }
-//    catch (Exception ex)
-//    {
-//        Console.WriteLine("Connection failed: " + ex.Message);
-//    }
-//}
 
 builder.Services.AddDbContext<PRX.Data.PRXDbContext>(options =>
 
@@ -183,152 +148,6 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
-
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-//}).AddJwtBearer(o =>
-//{
-//    o.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-//        ValidAudience = builder.Configuration["Jwt:Audience"],
-//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
-//        ValidateIssuer = true,
-//        ValidateAudience = true,
-//        ValidateLifetime = true,
-//        ValidateIssuerSigningKey = true,
-//        ClockSkew = TimeSpan.Zero // Reduce the clock skew
-//    };
-
-//    o.Events = new JwtBearerEvents
-//    {
-//        OnMessageReceived = context =>
-//        {
-//            var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
-//            context.Token = accessToken;
-
-//            if (accessToken != null)
-//            {
-//                var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
-//                if (memoryCache.TryGetValue(accessToken, out _))
-//                {
-//                    context.Fail("This token is blacklisted.");
-//                }
-//            }
-//            return Task.CompletedTask;
-//        },
-//        OnAuthenticationFailed = context =>
-//        {
-//            context.Response.ContentType = "application/json";
-//            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-//            var result = JsonConvert.SerializeObject(new { message = "Authentication failed.", detail = context.Exception?.Message });
-//            return context.Response.WriteAsync(result);
-//        },
-//        OnForbidden = context =>
-//        {
-//            context.Response.ContentType = "application/json";
-//            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//            var result = JsonConvert.SerializeObject(new { message = "Forbidden." });
-//            return context.Response.WriteAsync(result);
-//        }
-//    };
-//});
-
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-//}).AddJwtBearer(o =>
-//{
-//    o.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-//        ValidAudience = builder.Configuration["Jwt:Audience"],
-//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
-//        ValidateIssuer = true,
-//        ValidateAudience = true,
-//        ValidateLifetime = true,
-//        ValidateIssuerSigningKey = true
-//    };
-
-//    //o.Events = new JwtBearerEvents
-//    //{
-//    //    OnMessageReceived = context =>
-//    //    {
-//    //        var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
-//    //        context.Token = accessToken;
-
-//    //        if (accessToken != null)
-//    //        {
-//    //            var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
-//    //            if (memoryCache.TryGetValue(accessToken, out _))
-//    //            {
-//    //                context.Fail("This token is blacklisted.");
-//    //            }
-//    //        }
-//    //        return Task.CompletedTask;
-//    //    },
-//    //    OnAuthenticationFailed = context =>
-//    //    {
-//    //        context.Response.ContentType = "application/json";
-//    //        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-//    //        var result = JsonConvert.SerializeObject(new { message = "Authentication failed." });
-//    //        return context.Response.WriteAsync(result);
-//    //    },
-//    //    OnForbidden = context =>
-//    //    {
-//    //        context.Response.ContentType = "application/json";
-//    //        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//    //        var result = JsonConvert.SerializeObject(new { message = "Forbidden." });
-//    //        return context.Response.WriteAsync(result);
-//    //    }
-//    //};
-
-
-//    o.Events = new JwtBearerEvents
-//    {
-//        //OnMessageReceived = context =>
-//        //{
-//        //    var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
-//        //    context.Token = accessToken;
-//        //    return Task.CompletedTask;
-//        //},
-//        OnMessageReceived = context =>
-//        {
-//            var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
-//            context.Token = accessToken;
-
-//            if (accessToken != null)
-//            {
-//                var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
-//                if (memoryCache.TryGetValue(accessToken, out _))
-//                {
-//                    context.Fail("This token is blacklisted.");
-//                }
-//            }
-//            return Task.CompletedTask;
-//        },
-//        OnAuthenticationFailed = context =>
-//        {
-//            context.Response.ContentType = "application/json";
-//            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-//            var result = JsonConvert.SerializeObject(new { message = "Authentication failed." });
-//            return context.Response.WriteAsync(result);
-//        },
-//        OnForbidden = context =>
-//        {
-//            context.Response.ContentType = "application/json";
-//            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//            var result = JsonConvert.SerializeObject(new { message = ResponseMessages.Forbidden });
-//            return context.Response.WriteAsync(result);
-//        }
-//    };
-
-//});
 
 
 builder.Services.AddAuthorization(options =>

@@ -10,33 +10,15 @@ namespace PRX.Models.User
     {
         [Key]
         public int Id { get; set; }
-
-        //[Required]
         public int UserId { get; set; }
-
-        //[Required]
         public string RequestType { get; set; } // e.g., "Haghighi", "Hoghooghi"
-
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
-
         public User User { get; set; }
-
-
-        // New fields
-        //[Required]
         public string TrackingCode { get; set; }
-
-        //[Required]
         public DateTime RequestSentTime { get; set; }
-
-        //[Required]
         public string BeneficiaryName { get; set; } // نام ذی نفع
-
-        //[Required]
         public string RequestState { get; set; }
-
-
 
         //
         // Relations
@@ -53,10 +35,7 @@ namespace PRX.Models.User
         public List<UserDebt> UserDebts { get; set; }
         public UserInvestment UserInvestment { get; set; }
         public UserMoreInformation UserMoreInformations { get; set; }
-        //public List<UserType> UserTypes { get; set; }
-        //public UserState UserState { get; set; }
         public List<UserDocument> UserDocs { get; set; }
-        //public UserReference UserReference { get; set; }
         public UserBankInfo UserBankInfos { get; set; }
 
 

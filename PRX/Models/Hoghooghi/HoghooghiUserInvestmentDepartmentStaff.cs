@@ -9,10 +9,6 @@ namespace PRX.Models.Hoghooghi
         [Key]
         public int Id { get; set; }
 
-        //[Required]
-        //[ForeignKey("User")]
-        //public int UserId { get; set; }
-
         [Required]
         [ForeignKey("Request")]
         public int RequestId { get; set; }
@@ -41,9 +37,6 @@ namespace PRX.Models.Hoghooghi
         [Required]
         public bool IsComplete { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
-
-        // Navigation property for the one-to-many relationship with User table
-        //public PRX.Models.User.User User { get; set; }
         public Request Request { get; set; }
     }
 }

@@ -96,14 +96,7 @@ namespace PRX.Controllers.User
                 {
                     return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
                 }
-                //var userWithdrawalDto = new UserWithdrawalDto
-                //{
-                //    Id = userWithdrawal.Id,
-                //    RequestId = userWithdrawal.RequestId,
-                //    WithdrawalAmount = userWithdrawal.WithdrawalAmount,
-                //    WithdrawalDate = userWithdrawal.WithdrawalDate,
-                //    WithdrawalReason = userWithdrawal.WithdrawalReason
-                //};
+
                 return Ok(userWithdrawal);
 
             }
@@ -159,63 +152,6 @@ namespace PRX.Controllers.User
 
 
         }
-
-        //[HttpPut("{id}")]
-        //[Authorize(Roles = "User")]
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //public IActionResult UpdateUserWithdrawal(int id, [FromBody] UserWithdrawalDto userWithdrawalDto)
-        //{
-
-        //    try
-        //    {
-        //        if (id <= 0)
-        //        {
-        //            return BadRequest(new { message = ResponseMessages.InvalidId });
-        //        }
-
-        //        // Retrieve the user ID from the token
-        //        var tokenUserId = int.Parse(User.FindFirst("id")?.Value);
-
-        //        // Fetch the request
-        //        var request = _context.Requests.FirstOrDefault(r => r.Id == id);
-
-        //        if (request == null)
-        //        {
-        //            return NotFound(new { message = ResponseMessages.RequestNotFound });
-        //        }
-
-        //        // Ensure that the user associated with the request matches the token user ID
-        //        if (request.UserId != tokenUserId)
-        //        {
-        //            return Unauthorized(new { message = ResponseMessages.Unauthorized });
-        //        }
-
-        //        var userWithdrawal = _context.UserWithdrawals.FirstOrDefault(u => u.RequestId == id && !u.IsDeleted);
-        //        if (userWithdrawal == null)
-        //        {
-        //            return NotFound(new { message = ResponseMessages.UserWithdrawlNotFound });
-        //        }
-
-
-        //        userWithdrawal.WithdrawalAmount = userWithdrawalDto.WithdrawalAmount;
-        //        userWithdrawal.WithdrawalDate = userWithdrawalDto.WithdrawalDate;
-        //        userWithdrawal.WithdrawalReason = userWithdrawalDto.WithdrawalReason;
-
-        //        _context.SaveChanges();
-
-        //        return Ok(new { message = ResponseMessages.OK });
-
-        //    }
-
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(StatusCodes.Status500InternalServerError, new { message = ResponseMessages.InternalServerError, detail = ex.Message });
-        //    }
-
-
-        //}
 
         [HttpPut("{id}/{requestId}")]
         [Authorize(Roles = "User")]

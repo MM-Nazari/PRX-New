@@ -13,7 +13,6 @@ namespace PRX.Models.Quiz
 
         public bool IsDeleted { get; set; } = false;
         public UserQuestion UserQuestion { get; set; }
-        //public List<HaghighiUserAnswer> HaghighiUserAnswers { get; set; }
         public UserAnswer UserAnswer { get; set; }
     }
 }

@@ -4,9 +4,7 @@
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        //public int RequestId { get; set; }
         public string State { get; set; }
-
         public bool IsDeleted { get; set; }
 
     }

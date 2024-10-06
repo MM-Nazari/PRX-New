@@ -8,9 +8,6 @@ namespace PRX.Models.Haghighi
     {
         public int Id { get; set; }
 
-        //[Required]
-        //public int UserId { get; set; }
-
         [Required]
         [ForeignKey("Request")]
         public int RequestId { get; set; }
